@@ -27,6 +27,7 @@
 #include <memory> //e.g. for unique_ptr made with make_unique
 #include <cmath>
 #include <iostream>
+#include <boost/dynamic_bitset.hpp>
 //#include <Rtypes.h>
 //#include <vector>
 
@@ -101,11 +102,12 @@ class ntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   std::vector<std::string> HLT_Mu_S;
   std::vector<std::string> HLT_El_S;
 
-  std::vector<bool> HLT_MuMu_B;
-  std::vector<bool> HLT_ElMu_B;
-  std::vector<bool> HLT_ElEl_B;
-  std::vector<bool> HLT_Mu_B;
-  std::vector<bool> HLT_El_B;
+  //Use deque instead of vector, which for type bool has a specialized format (8 bools per byte) and whose elements don't behave as C++ bools (one BYTE each)
+  boost::dynamic_bitset<> HLT_MuMu_B;
+  boost::dynamic_bitset<> HLT_ElMu_B;
+  boost::dynamic_bitset<> HLT_ElEl_B;
+  boost::dynamic_bitset<> HLT_Mu_B;
+  boost::dynamic_bitset<> HLT_El_B;
 
   //TTree
   TTree *tree;
@@ -178,6 +180,38 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    //HBHENoiseFilter_Selector_ = "HBHENoiseFilter_Selector_";
    //EEBadScNoiseFilter_Selector_ = "EEBadScNoiseFilter_Selector_";
 
+   if(is2016){
+     std::cout << "Defining triggers for 2016" << std::endl;
+     //MuMu Triggers
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v6");
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v7");
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v5");
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v6");
+
+     //ElMu Triggers
+     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v7");
+     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v3");
+     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v9");
+     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v4");
+
+     //ElEl Triggers
+     HLT_ElEl_S.push_back("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v9");
+
+     //Mu Triggers
+     HLT_Mu_S.push_back("HLT_IsoTkMu24_v4");
+     HLT_Mu_S.push_back("HLT_IsoMu24_v4");
+
+     //El Triggers
+     HLT_El_S.push_back("HLT_Ele32_eta2p1_WPTight_Gsf_v");
+   }
+   else if(is2017){
+     std::cout << "FIX ME!" << std::endl;
+   }
+   else if(is2018){
+     std::cout << "FIX ME!" << std::endl;
+   }
+   else
+     std::cout << "Error: Data is not from 2016, 2017, or 2018. Is it ReReco?" << std::endl;
 
 }
 
@@ -292,37 +326,6 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    // HLT Triggers
    // WARNING: version will differ in different productions, must be parsed in the future to make this more automated.
    //Store the string name of triggers in arrays with postfix _S, and corresponding booleans will be in arrays with postfix _B
-   if(is2016){
-     //MuMu Triggers
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v6");
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v7");
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v5");
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v6");
-
-     //ElMu Triggers
-     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v7");
-     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v3");
-     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v9");
-     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v4");
-
-     //ElEl Triggers
-     HLT_ElEl_S.push_back("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v9");
-
-     //Mu Triggers
-     HLT_Mu_S.push_back("HLT_IsoTkMu24_v4");
-     HLT_Mu_S.push_back("HLT_IsoMu24_v4");
-
-     //El Triggers
-     HLT_El_S.push_back("HLT_Ele32_eta2p1_WPTight_Gsf_v");
-   }
-   else if(is2017){
-     std::cout << "FIX ME!" << std::endl;
-   }
-   else if(is2018){
-     std::cout << "FIX ME!" << std::endl;
-   }
-   else
-     std::cout << "Error: Data is not from 2016, 2017, or 2018. Is it ReReco?" << std::endl;
 
 
    const edm::TriggerNames &HLTnames = iEvent.triggerNames(*HLTTrg);
@@ -330,20 +333,21 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //std::cout << HLTnames.triggerName(i) << std::endl;
      //FIXME Option: Create a mapping on a per-year basis to try matching based on position, and if that fails, then loop through instead
      //For efficicency: Do one search through names to find locations, then store them in global variables to be used in all following events
+
      for(uint j = 0; j < HLT_MuMu_S.size(); j++)
        if (HLTnames.triggerName(i) == HLT_MuMu_S[j]) HLT_MuMu_B[j] = true;
-     for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
-       if (HLTnames.triggerName(i) == HLT_ElMu_S[jj]) HLT_ElMu_B[jj] = true;
-     for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
-       if (HLTnames.triggerName(i) == HLT_ElEl_S[jjj]) HLT_ElEl_B[jjj] = true;
-     for(uint k = 0; k < HLT_Mu_S.size(); k++)
-       if (HLTnames.triggerName(i) == HLT_Mu_S[k]) HLT_Mu_B[k] = true;
-     for(uint kk = 0; kk < HLT_ElEl_S.size(); kk++)
-       if (HLTnames.triggerName(i) == HLT_El_S[kk]) HLT_El_B[kk] = true;
+     // for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
+     //   if (HLTnames.triggerName(i) == HLT_ElMu_S[jj]) HLT_ElMu_B[jj] = true;
+     // for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
+     //   if (HLTnames.triggerName(i) == HLT_ElEl_S[jjj]) HLT_ElEl_B[jjj] = true;
+     // for(uint k = 0; k < HLT_Mu_S.size(); k++)
+     //   if (HLTnames.triggerName(i) == HLT_Mu_S[k]) HLT_Mu_B[k] = true;
+     // for(uint kk = 0; kk < HLT_ElEl_S.size(); kk++)
+     //   if (HLTnames.triggerName(i) == HLT_El_S[kk]) HLT_El_B[kk] = true;
 
-     //testing
-     std::cout << HLT_MuMu_B[0] << " " << HLT_MuMu_B[1] << " " << HLT_MuMu_B[2] << " " << HLT_MuMu_B[3] << " " << HLT_ElMu_B[0] << " " << HLT_ElMu_B[1]
-	       << " " << HLT_ElMu_B[2] << " " << HLT_ElMu_B[3] << " " << HLT_ElEl_B[0] << " " << HLT_Mu_B[0] << " " << HLT_Mu_B[1] << " " << HLT_El_B[0] << std::endl;
+     // //testing
+     // std::cout << HLT_MuMu_B[0] << " " << HLT_MuMu_B[1] << " " << HLT_MuMu_B[2] << " " << HLT_MuMu_B[3] << " " << HLT_ElMu_B[0] << " " << HLT_ElMu_B[1]
+     // 	       << " " << HLT_ElMu_B[2] << " " << HLT_ElMu_B[3] << " " << HLT_ElEl_B[0] << " " << HLT_Mu_B[0] << " " << HLT_Mu_B[1] << " " << HLT_El_B[0] << std::endl;
      
    }
 
