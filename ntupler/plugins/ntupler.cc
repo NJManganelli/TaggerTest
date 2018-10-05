@@ -213,6 +213,13 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    else
      std::cout << "Error: Data is not from 2016, 2017, or 2018. Is it ReReco?" << std::endl;
 
+   //Set HLT bits to zero via initialization, using the boost::dynamic_bitset, with the proper number of bits
+   HLT_MuMu_B = boost::dynamic_bitset<>(HLT_MuMu_S.size(), 0ul);
+   HLT_ElMu_B = boost::dynamic_bitset<>(HLT_ElMu_S.size(), 0ul);
+   HLT_ElEl_B = boost::dynamic_bitset<>(HLT_ElEl_S.size(), 0ul);
+   HLT_Mu_B = boost::dynamic_bitset<>(HLT_Mu_S.size(), 0ul);
+   HLT_El_B = boost::dynamic_bitset<>(HLT_El_S.size(), 0ul);
+
 }
 
 
@@ -335,15 +342,16 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //For efficicency: Do one search through names to find locations, then store them in global variables to be used in all following events
 
      for(uint j = 0; j < HLT_MuMu_S.size(); j++)
-       if (HLTnames.triggerName(i) == HLT_MuMu_S[j]) HLT_MuMu_B[j] = true;
-     // for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
-     //   if (HLTnames.triggerName(i) == HLT_ElMu_S[jj]) HLT_ElMu_B[jj] = true;
-     // for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
-     //   if (HLTnames.triggerName(i) == HLT_ElEl_S[jjj]) HLT_ElEl_B[jjj] = true;
-     // for(uint k = 0; k < HLT_Mu_S.size(); k++)
-     //   if (HLTnames.triggerName(i) == HLT_Mu_S[k]) HLT_Mu_B[k] = true;
-     // for(uint kk = 0; kk < HLT_ElEl_S.size(); kk++)
-     //   if (HLTnames.triggerName(i) == HLT_El_S[kk]) HLT_El_B[kk] = true;
+       if (HLTnames.triggerName(i) == HLT_MuMu_S[j]) HLT_MuMu_B[j] = HLTTrg->accept(i);
+     for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
+       if (HLTnames.triggerName(i) == HLT_ElMu_S[jj]) HLT_ElMu_B[jj] = HLTTrg->accept(i);
+     for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
+       if (HLTnames.triggerName(i) == HLT_ElEl_S[jjj]) HLT_ElEl_B[jjj] = HLTTrg->accept(i);
+     for(uint k = 0; k < HLT_Mu_S.size(); k++)
+       if (HLTnames.triggerName(i) == HLT_Mu_S[k]) HLT_Mu_B[k] = HLTTrg->accept(i);
+     for(uint kk = 0; kk < HLT_ElEl_S.size(); kk++)
+       if (HLTnames.triggerName(i) == HLT_El_S[kk]) HLT_El_B[kk] = HLTTrg->accept(i);
+     std::cout << HLTnames.triggerName(i) << " " << HLT_MuMu_B << " " << HLTTrg->accept(i) << std::endl;
 
      // //testing
      // std::cout << HLT_MuMu_B[0] << " " << HLT_MuMu_B[1] << " " << HLT_MuMu_B[2] << " " << HLT_MuMu_B[3] << " " << HLT_ElMu_B[0] << " " << HLT_ElMu_B[1]
