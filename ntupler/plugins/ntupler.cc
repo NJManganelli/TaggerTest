@@ -353,7 +353,6 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        if (HLTnames.triggerName(i) == HLT_El_S[kk]) HLT_El_B[kk] = HLTTrg->accept(i);
      std::cout << HLTnames.triggerName(i) << " " << HLT_MuMu_B << " " << HLTTrg->accept(i) << std::endl;
 
-     // //testing
      // std::cout << HLT_MuMu_B[0] << " " << HLT_MuMu_B[1] << " " << HLT_MuMu_B[2] << " " << HLT_MuMu_B[3] << " " << HLT_ElMu_B[0] << " " << HLT_ElMu_B[1]
      // 	       << " " << HLT_ElMu_B[2] << " " << HLT_ElMu_B[3] << " " << HLT_ElEl_B[0] << " " << HLT_Mu_B[0] << " " << HLT_Mu_B[1] << " " << HLT_El_B[0] << std::endl;
      
