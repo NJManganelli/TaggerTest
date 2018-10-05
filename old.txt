@@ -4,5 +4,5 @@ __init__.py
 .#*
 #*#
 *~
-**/data/*.root
-**/test/*.root
+data/*.root*
+test/*.root*
