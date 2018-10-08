@@ -83,7 +83,7 @@ class ntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       virtual void endJob() override;
 
       // ----------member data ---------------------------
-  bool isData, isMC;
+  bool isData, isMC, deBug;
   bool is2016, is2017, is2018;
 
   //Tokens
@@ -161,6 +161,7 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    //FIXME : HardCoding for bools
    isData = false;
    isMC = true;
+   deBug = true;
    is2016 = true;
    is2017 = false;
    is2018 = false;
@@ -183,26 +184,27 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    if(is2016){
      std::cout << "Defining triggers for 2016" << std::endl;
      //MuMu Triggers
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v6");
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v7");
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v5");
-     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v6");
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v");
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v");
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v");
+     HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v");
 
      //ElMu Triggers
-     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v7");
-     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v3");
-     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v9");
-     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v4");
+     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v");
+     HLT_ElMu_S.push_back("HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_DZ_v");
+     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v");
+     HLT_ElMu_S.push_back("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v");
 
      //ElEl Triggers
-     HLT_ElEl_S.push_back("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v9");
+     HLT_ElEl_S.push_back("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v");
 
      //Mu Triggers
-     HLT_Mu_S.push_back("HLT_IsoTkMu24_v4");
-     HLT_Mu_S.push_back("HLT_IsoMu24_v4");
+     HLT_Mu_S.push_back("HLT_IsoTkMu24_v");
+     HLT_Mu_S.push_back("HLT_IsoMu24_v");
 
      //El Triggers
      HLT_El_S.push_back("HLT_Ele32_eta2p1_WPTight_Gsf_v");
+
    }
    else if(is2017){
      std::cout << "FIX ME!" << std::endl;
@@ -214,7 +216,7 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
      std::cout << "Error: Data is not from 2016, 2017, or 2018. Is it ReReco?" << std::endl;
 
    //Set HLT bits to zero via initialization, using the boost::dynamic_bitset, with the proper number of bits
-   HLT_MuMu_B = boost::dynamic_bitset<>(HLT_MuMu_S.size(), 0ul);
+   HLT_MuMu_B = boost::dynamic_bitset<>(HLT_MuMu_S.size(), 0ul); //sets number of bits corresponding to triggers per channel, and 0 unsigned long value
    HLT_ElMu_B = boost::dynamic_bitset<>(HLT_ElMu_S.size(), 0ul);
    HLT_ElEl_B = boost::dynamic_bitset<>(HLT_ElEl_S.size(), 0ul);
    HLT_Mu_B = boost::dynamic_bitset<>(HLT_Mu_S.size(), 0ul);
@@ -340,23 +342,44 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //std::cout << HLTnames.triggerName(i) << std::endl;
      //FIXME Option: Create a mapping on a per-year basis to try matching based on position, and if that fails, then loop through instead
      //For efficicency: Do one search through names to find locations, then store them in global variables to be used in all following events
-
+     std::string trgName = HLTnames.triggerName(i); //string of triggername
+     bool trgBit = HLTTrg->accept(i); //accept bit
+     std::string delimeter = "_v"; //common delimeter in triggers
+     std::string trgSubName = trgName.substr(0, trgName.find(delimeter) + delimeter.length()); //only take the common portion of trigger (up through version marker _v)
      for(uint j = 0; j < HLT_MuMu_S.size(); j++)
-       if (HLTnames.triggerName(i) == HLT_MuMu_S[j]) HLT_MuMu_B[j] = HLTTrg->accept(i);
+       if (trgSubName == HLT_MuMu_S[j]){
+	 if(deBug) std::cout << "Initial Bits: " << HLT_MuMu_B << std::endl;
+	 HLT_MuMu_B[j] = trgBit; //sets individual bit, starting from least significant ("rightmost" in operator<< language)
+	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_MuMu_B << std::endl;
+       }
      for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
-       if (HLTnames.triggerName(i) == HLT_ElMu_S[jj]) HLT_ElMu_B[jj] = HLTTrg->accept(i);
+       if (trgSubName == HLT_ElMu_S[jj]){
+	 if(deBug) std::cout << "Initial Bits: " << HLT_ElMu_B << std::endl;
+	 HLT_ElMu_B[jj] = trgBit;
+	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_ElMu_B << std::endl;
+       }
      for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
-       if (HLTnames.triggerName(i) == HLT_ElEl_S[jjj]) HLT_ElEl_B[jjj] = HLTTrg->accept(i);
+       if (trgSubName == HLT_ElEl_S[jjj]){
+	 if(deBug) std::cout << "Initial Bits: " << HLT_ElEl_B << std::endl;
+	 HLT_ElEl_B[jjj] = trgBit;
+	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_ElEl_B << std::endl;
+       }
      for(uint k = 0; k < HLT_Mu_S.size(); k++)
-       if (HLTnames.triggerName(i) == HLT_Mu_S[k]) HLT_Mu_B[k] = HLTTrg->accept(i);
-     for(uint kk = 0; kk < HLT_ElEl_S.size(); kk++)
-       if (HLTnames.triggerName(i) == HLT_El_S[kk]) HLT_El_B[kk] = HLTTrg->accept(i);
-     std::cout << HLTnames.triggerName(i) << " " << HLT_MuMu_B << " " << HLTTrg->accept(i) << std::endl;
-
-     // std::cout << HLT_MuMu_B[0] << " " << HLT_MuMu_B[1] << " " << HLT_MuMu_B[2] << " " << HLT_MuMu_B[3] << " " << HLT_ElMu_B[0] << " " << HLT_ElMu_B[1]
-     // 	       << " " << HLT_ElMu_B[2] << " " << HLT_ElMu_B[3] << " " << HLT_ElEl_B[0] << " " << HLT_Mu_B[0] << " " << HLT_Mu_B[1] << " " << HLT_El_B[0] << std::endl;
-     
+       if (trgSubName == HLT_Mu_S[k]){
+	 if(deBug) std::cout << "Initial Bits: " << HLT_Mu_B << std::endl;
+	 HLT_Mu_B[k] = trgBit;
+	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_Mu_B << std::endl;
+       }
+     for(uint kk = 0; kk < HLT_El_S.size(); kk++)
+       if (trgSubName == HLT_El_S[kk]){
+	 if(deBug) std::cout << "Initial Bits: " << HLT_El_B << std::endl;
+	 HLT_El_B[kk] = trgBit;
+	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_El_B << std::endl;
+       }     
    }
+
+   if(!(HLT_MuMu_B.any() || HLT_ElMu_B.any() || HLT_ElEl_B.any() || HLT_Mu_B.any() || HLT_El_B.any() ) ) //if NO triggers pass, want to skip rest of this module
+     return; //void main, so just return nothing
 
    // MET Filters
    const pat::MET &met = mets->front();
@@ -364,7 +387,7 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //int passFilterEEBadSC=0;
    const edm::TriggerNames &names = iEvent.triggerNames(*METFlt);
    for (unsigned int i = 0, n = METFlt->size(); i < n; ++i) {
-     std::cout << names.triggerName(i) << std::endl;
+     //std::cout << names.triggerName(i) << std::endl;
      //if (names.triggerName(i) == HBHENoiseFilter_Selector_)
      //  passFilterHBHE=metflt->accept(i);
      //if (names.triggerName(i) == EEBadScNoiseFilter_Selector_)
@@ -482,6 +505,12 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    electronMultiplicityVec->clear();
    muonMultiplicityVec->clear();
 
+   HLT_MuMu_B.reset();
+   HLT_ElMu_B.reset();
+   HLT_ElEl_B.reset();
+   HLT_Mu_B.reset();
+   HLT_El_B.reset();
+
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;
    iEvent.getByLabel("example",pIn);
@@ -538,13 +567,19 @@ ntupler::beginJob()
 
    usesResource("TFileService");
    edm::Service<TFileService> fs;
-   tree = fs->make<TTree>("nTuple"," Event nTuple");
-   br_run = tree->Branch("run", &run);
-   br_lumiBlock = tree->Branch("lumiBlock", &lumiBlock);
-   br_nEvent = tree->Branch("event", &nEvent);
-   br_JetVec = tree->Branch("JetVec", "vector<TLorentzVector>", &JetVec, 32000,-1);
-   br_MuonVec = tree->Branch("MuonVec", "vector<TLorentzVector>", &MuonVec, 32000,-1);
-   br_ElectronVec = tree->Branch("ElectronVec", "vector<TLorentzVector>", &ElectronVec, 32000,-1);
+   tree = fs->make<TTree>("nTuple", "Event nTuple");
+   // br_run = 
+   tree->Branch("run", &run);
+   // br_lumiBlock = 
+   tree->Branch("lumiBlock", &lumiBlock);
+   // br_nEvent = 
+   tree->Branch("event", &nEvent);
+   // br_JetVec = 
+   tree->Branch("JetVec", "vector<TLorentzVector>", &JetVec, 32000,-1);
+   //br_MuonVec = 
+   tree->Branch("MuonVec", "vector<TLorentzVector>", &MuonVec, 32000,-1);
+   //br_ElectronVec = 
+   tree->Branch("ElectronVec", "vector<TLorentzVector>", &ElectronVec, 32000,-1);
    tree->Branch("qgPtD", &qgPtDVec);
    tree->Branch("qgAxis1", &qgAxis1Vec);
    tree->Branch("qgAxis2", &qgAxis2Vec);
