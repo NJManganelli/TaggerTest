@@ -102,25 +102,31 @@ class ntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   std::vector<std::string> HLT_Mu_S;
   std::vector<std::string> HLT_El_S;
 
-  //Use deque instead of vector, which for type bool has a specialized format (8 bools per byte) and whose elements don't behave as C++ bools (one BYTE each)
+  //Use dynamic bitset instead of vector<bool>, which has a specialized format (8 bools per byte - 1 bit each) and whose elements don't behave as C++ bools (one BYTE each)
   boost::dynamic_bitset<> HLT_MuMu_B;
   boost::dynamic_bitset<> HLT_ElMu_B;
   boost::dynamic_bitset<> HLT_ElEl_B;
   boost::dynamic_bitset<> HLT_Mu_B;
   boost::dynamic_bitset<> HLT_El_B;
 
+  //For storing the bits in ROOT, using explicit casting bitset -> unsigned long, then implicit casting ulong -> uint
+  uint HLT_MuMu_Bits, HLT_ElMu_Bits, HLT_ElEl_Bits, HLT_Mu_Bits, HLT_El_Bits;
+
+  //MET Filters
+  std::vector<std::string> MET_Flt_S;
+
+  //dynamic bitset for MET Filters
+  boost::dynamic_bitset<> MET_Flt_B;
+
+  //for storing filter bits in ROOT
+  uint MET_Flt_Bits;
+
   //TTree
   TTree *tree;
 
-  // TBranch *br_my_var;
-  // TBranch *br_nEvts;
-  // TBranch *br_my_other_var;
-
-
-  uint nEvts, run, lumiBlock, nEvent;
-  //bool HLT
-  bool MuMu, ElMu, ElEl, El, Mu, SL, DL;
-  std::vector<TLorentzVector> *JetVec, *MuonVec, *ElectronVec;
+  uint nEvts, nRun, nLumiBlock, nEvent;
+  bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
+  std::vector<TLorentzVector> *JetVec, *MuonVec, *ElectronVec, *VertexVec;
   std::vector<double> *qgPtDVec, *qgAxis1Vec, *qgAxis2Vec, *qgMultVec;
   std::vector<double> *deepCSVbVec, *deepCSVcVec, *deepCSVlVec, *deepCSVbbVec, *deepCSVccVec, *btagVec;
   std::vector<double> *chargedHadronEnergyFractionVec, *neutralHadronEnergyFractionVec, *chargedEmEnergyFractionVec;
@@ -128,16 +134,6 @@ class ntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   std::vector<double> *recoJetsHFHadronEnergyFractionVec, *recoJetsHFEMEnergyFractionVec;
   std::vector<double> *chargedHadronMultiplicityVec, *neutralHadronMultiplicityVec, *photonMultiplicityVec, *electronMultiplicityVec, *muonMultiplicityVec;
 
-  TBranch *br_nEvts2, *br_run, *br_lumiBlock, *br_nEvent;
-  TBranch *br_JetVec, *br_MuonVec, *br_ElectronVec;
-
-  //Jet sub-branches for HOT tagger
-  TBranch *br_qgPtD, *br_qgAxis1, *br_qgAxis2, *br_qgMult;
-  TBranch *br_deepCSVb, *br_deepCSVc, *br_deepCSVl, *br_deepCSVbb, *br_deepCSVcc, *br_btag;
-  TBranch *br_chargedHadronEnergyFraction, *br_neutralHadronEnergyFraction, *br_chargedEmEnergyFraction;
-  TBranch *br_neutralEmEnergyFraction, *br_muonEnergyFraction, *br_photonEnergyFraction, *br_electronEnergyFraction;
-  TBranch *br_recoJetsHFHadronEnergyFraction, *br_recoJetsHFEMEnergyFraction;
-  TBranch *br_chargedHadronMultiplicity, *br_neutralHadronMultiplicity, *br_photonMultiplicity, *br_electronMultiplicity, *br_muonMultiplicity;
 };
 
 //
@@ -166,12 +162,14 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    is2017 = false;
    is2018 = false;
 
-
+   ////////////////////
+   ////// Tokens //////
+   ////////////////////
    JetToken = consumes<std::vector<pat::Jet> >(edm::InputTag("selectedUpdatedPatJetsDeepCSV"));
    MuonToken = consumes<std::vector<pat::Muon> >(edm::InputTag("slimmedMuons"));
    ElectronToken = consumes<std::vector<pat::Electron> >(edm::InputTag("slimmedElectrons"));
    METToken = consumes<std::vector<pat::MET> >(edm::InputTag("slimmedMETs"));
-   VtxToken = consumes<std::vector<reco::Vertex> >(edm::InputTag("offlineSlimmedPrimaryVertices")); //FIXME
+   VtxToken = consumes<std::vector<reco::Vertex> >(edm::InputTag("offlineSlimmedPrimaryVertices"));
    HLTToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "HLT"));
    FltToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "RECO"));
 
@@ -181,7 +179,15 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    //HBHENoiseFilter_Selector_ = "HBHENoiseFilter_Selector_";
    //EEBadScNoiseFilter_Selector_ = "EEBadScNoiseFilter_Selector_";
 
+   ////////////////////////////
+   /// Per-Year definitions ///
+   ////////////////////////////
+
    if(is2016){
+   ///////////
+   /// HLT ///
+   ///////////
+   //Store the string name of triggers in arrays with postfix _S, and corresponding booleans will be in arrays with postfix _B, int representation of bits with postifx _Bits
      std::cout << "Defining triggers for 2016" << std::endl;
      //MuMu Triggers
      HLT_MuMu_S.push_back("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v");
@@ -205,12 +211,17 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
      //El Triggers
      HLT_El_S.push_back("HLT_Ele32_eta2p1_WPTight_Gsf_v");
 
+     //MET Filters
+     MET_Flt_S.push_back("FIXME");
+
    }
    else if(is2017){
-     std::cout << "FIX ME!" << std::endl;
+     std::cout << "Defining triggers for 2017" << std::endl;
+     std::cout << "FIXME!" << std::endl;
    }
    else if(is2018){
-     std::cout << "FIX ME!" << std::endl;
+     std::cout << "Defining triggers for 2018" << std::endl;
+     std::cout << "FIXME!" << std::endl;
    }
    else
      std::cout << "Error: Data is not from 2016, 2017, or 2018. Is it ReReco?" << std::endl;
@@ -221,6 +232,9 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    HLT_ElEl_B = boost::dynamic_bitset<>(HLT_ElEl_S.size(), 0ul);
    HLT_Mu_B = boost::dynamic_bitset<>(HLT_Mu_S.size(), 0ul);
    HLT_El_B = boost::dynamic_bitset<>(HLT_El_S.size(), 0ul);
+
+   //Set MET bits to zero via initialization
+   MET_Flt_B = boost::dynamic_bitset<>(MET_Flt_S.size(), 0ul);
 
 }
 
@@ -244,20 +258,45 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace edm;
    edm::Handle<std::vector<pat::Jet> > jets;
    iEvent.getByToken(JetToken, jets);
+   if(!jets.isValid()) {
+     throw cms::Exception("Jet collection not valid!"); 
+   }
    edm::Handle<std::vector<pat::Muon> > muons;
    iEvent.getByToken(MuonToken, muons);
+   if(!muons.isValid()) {
+     throw cms::Exception("Muon collection not valid!"); 
+   }
    edm::Handle<std::vector<pat::Electron> > electrons;
    iEvent.getByToken(ElectronToken, electrons);
+   if(!electrons.isValid()) {
+     throw cms::Exception("Electron collection not valid!"); 
+   }
    edm::Handle<std::vector<pat::MET> > mets;
    iEvent.getByToken(METToken, mets);
+   if(!mets.isValid()) {
+     throw cms::Exception("MET collection not valid!"); 
+   }
    edm::Handle<edm::TriggerResults> METFlt;
    iEvent.getByToken(FltToken, METFlt);
+   if(!METFlt.isValid()) {
+     throw cms::Exception("MET Filter collection not valid!"); 
+   }
    edm::Handle<edm::TriggerResults> HLTTrg;
    iEvent.getByToken(HLTToken, HLTTrg);
+   if(!HLTTrg.isValid()) {
+     throw cms::Exception("HLT collection not valid!"); 
+   }
+   edm::Handle<std::vector<reco::Vertex> > vertices;
+   iEvent.getByToken(VtxToken, vertices);
+   if(!vertices.isValid()) {
+     throw cms::Exception("Vertex collection not valid!"); 
+   } 
+
 
    //See /afs/cern.ch/user/n/nmangane/DAS/EGammaExercises/MuonExercise3/plugins/MuonExercise3.cc for histogram array creation, tight (vertex) selection
    //edm::Handle <pat::PackedGenParticleCollection> genColl;
    //iEvent.getByToken(genCollToken, genColl);
+
    //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ CP code
   // // Retrieve the GenParticle collection from the event 
   // edm::Handle<reco::GenParticleCollection> genParticles;
@@ -268,34 +307,6 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   // if(!genParticles.isValid()) {
   //   throw cms::Exception("GenParticle collection not valid!"); 
   // } 
-
-  // // Same with pat::Muons 
-  // edm::Handle<edm::View<pat::Muon> > muons;
-  // iEvent.getByToken(muonToken, muons);
-  // if(!muons.isValid()) {
-  //   throw cms::Exception("Muon collection not valid!"); 
-  // }
-
-  // // Same with vertices 
-  // edm::Handle<std::vector<reco::Vertex>> vertices;
-  // iEvent.getByToken(vertexToken, vertices);
-  // if(!vertices.isValid()) {
-  //   throw cms::Exception("Vertex collection not valid!"); 
-  // } 
-
-  // // Let's check that we have at least one good vertex! 
-  // std::vector<reco::Vertex>::const_iterator firstGoodVertex = vertices->end();
-
-  // for (std::vector<reco::Vertex>::const_iterator it=vertices->begin(); it!=firstGoodVertex; ++it) {
-  //   if (!it->isFake() && it->ndof()>4 && it->position().Rho()<2. && std::abs(it->position().Z())<24.) {
-  //     if(firstGoodVertex == vertices->end()) firstGoodVertex = it;
-  //     break;
-  //   }
-  // }
-
-  // // Require a good vertex
-  // if(firstGoodVertex == vertices->end()) return;
-  // // int nvtx = vertices->size(); 
 
   // //std::cout << deb++ << std::endl;
   // edm::View<pat::Muon>::const_iterator muend = muons->end();
@@ -332,11 +343,10 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   //   }
     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ end CP code
 
-   // HLT Triggers
-   // WARNING: version will differ in different productions, must be parsed in the future to make this more automated.
-   //Store the string name of triggers in arrays with postfix _S, and corresponding booleans will be in arrays with postfix _B
 
-
+   /////////////////////////////
+   /// HLT TRIGGER SELECTION ///
+   /////////////////////////////
    const edm::TriggerNames &HLTnames = iEvent.triggerNames(*HLTTrg);
    for (unsigned int i = 0, n = HLTTrg->size(); i < n; ++i) {
      //std::cout << HLTnames.triggerName(i) << std::endl;
@@ -349,7 +359,7 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      for(uint j = 0; j < HLT_MuMu_S.size(); j++)
        if (trgSubName == HLT_MuMu_S[j]){
 	 if(deBug) std::cout << "Initial Bits: " << HLT_MuMu_B << std::endl;
-	 HLT_MuMu_B[j] = trgBit; //sets individual bit, starting from least significant ("rightmost" in operator<< language)
+	 HLT_MuMu_B[j] = trgBit; //sets individual bit, starting from most significant ("leftmost" in 'operator<<' language)
 	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_MuMu_B << std::endl;
        }
      for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
@@ -377,31 +387,65 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_El_B << std::endl;
        }     
    }
+   //bitset -> unsigned long -> unsigned int (ROOT-compatible format)
+   HLT_MuMu_Bits = HLT_MuMu_B.to_ulong(); 
+   HLT_ElMu_Bits = HLT_ElMu_B.to_ulong();
+   HLT_ElEl_Bits = HLT_ElEl_B.to_ulong();
+   HLT_Mu_Bits = HLT_Mu_B.to_ulong();
+   HLT_El_Bits = HLT_El_B.to_ulong();
 
    if(!(HLT_MuMu_B.any() || HLT_ElMu_B.any() || HLT_ElEl_B.any() || HLT_Mu_B.any() || HLT_El_B.any() ) ) //if NO triggers pass, want to skip rest of this module
      return; //void main, so just return nothing
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
 
-   // MET Filters
+   ////////////////////////////
+   /// MET FILTER SELECTION ///
+   ////////////////////////////
    const pat::MET &met = mets->front();
-   //int passFilterHBHE=0;
-   //int passFilterEEBadSC=0;
    const edm::TriggerNames &names = iEvent.triggerNames(*METFlt);
-   for (unsigned int i = 0, n = METFlt->size(); i < n; ++i) {
-     //std::cout << names.triggerName(i) << std::endl;
-     //if (names.triggerName(i) == HBHENoiseFilter_Selector_)
-     //  passFilterHBHE=metflt->accept(i);
-     //if (names.triggerName(i) == EEBadScNoiseFilter_Selector_)
-     //  passFilterEEBadSC=metflt->accept(i);
+   for (uint i = 0; i < METFlt->size(); ++i) {
+     std::string fltName = names.triggerName(i); //convenient name storage
+     if(deBug) std::cout << fltName << std::endl;
+     bool fltBit = METFlt->accept(i); //filter pass bit
+     for(uint j = 0; j < MET_Flt_S.size(); j++){
+       if (fltName == MET_Flt_S[j]){
+	 if(deBug) std::cout << "Initial Bits: " << MET_Flt_B << std::endl;
+	 MET_Flt_B[j] = fltBit; //store bit decision in bitset
+	 if(deBug) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
+       }     
+     }
    }
+   MET_Flt_Bits = MET_Flt_B.to_ulong();
    // End filters stuff
 
 
    ////////////////////
    //// Event info ////
    ////////////////////
-   run = iEvent.id().run();
-   lumiBlock = iEvent.id().luminosityBlock();
+   nRun = iEvent.id().run();
+   nLumiBlock = iEvent.id().luminosityBlock();
    nEvent = iEvent.id().event();
+
+   /////////////////////
+   //// Good Vertex ////
+   /////////////////////
+   std::vector<reco::Vertex>::const_iterator firstGoodVertex = vertices->end();
+
+   for (std::vector<reco::Vertex>::const_iterator verts=vertices->begin(); verts!=firstGoodVertex; verts++) {
+     if (!verts->isFake() && verts->ndof()>4 && verts->position().Rho()<2. && std::abs(verts->position().Z())<24.) {
+       if(firstGoodVertex == vertices->end()) firstGoodVertex = verts;
+       break;
+     }
+   }
+   if(firstGoodVertex == vertices->end()) return;    // Require good vertex
+   TLorentzVector perVertexLVec;
+   perVertexLVec.SetXYZT(firstGoodVertex->position().X(), firstGoodVertex->position().Y(), firstGoodVertex->position().Z(), 0); //dummy variable 0 for Time coordinate
+   VertexVec->push_back(perVertexLVec); //First vertex in vector is primary. SVs can be emplaced afterwards
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
 
    ////////////////////////
    //// Selected Muons ////
@@ -410,6 +454,15 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      TLorentzVector perMuonLVec;
      perMuonLVec.SetPtEtaPhiE( muon.pt(), muon.eta(), muon.phi(), muon.energy() );
      MuonVec->push_back(perMuonLVec);
+   }
+
+   ////////////////////////
+   //// Selected Electrons ////
+   ////////////////////////
+   for(const pat::Electron& electron : *electrons){
+     TLorentzVector perElectronLVec;
+     perElectronLVec.SetPtEtaPhiE( electron.pt(), electron.eta(), electron.phi(), electron.energy() );
+     ElectronVec->push_back(perElectronLVec);
    }
 
    ///////////////////////
@@ -470,16 +523,19 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      electronMultiplicityVec->push_back(electronMultiplicity);
      muonMultiplicityVec->push_back(muonMultiplicity);
  
-     std::cout << " Pt: " << jet.pt() << " btag: " << btag << std::endl;
+     if(deBug) std::cout << " Pt: " << jet.pt() << " btag: " << btag << std::endl;
    }
 
    nEvts++;
+
+   //Fill tree, to be written by TFileService
    tree->Fill();
 
    //Clear pointers
    JetVec->clear();
    MuonVec->clear();
    ElectronVec->clear();
+   VertexVec->clear();
    qgPtDVec->clear();
    qgAxis1Vec->clear();
    qgAxis2Vec->clear();
@@ -505,11 +561,13 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    electronMultiplicityVec->clear();
    muonMultiplicityVec->clear();
 
+   //reset bitsets
    HLT_MuMu_B.reset();
    HLT_ElMu_B.reset();
    HLT_ElEl_B.reset();
    HLT_Mu_B.reset();
    HLT_El_B.reset();
+   MET_Flt_B.reset();
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;
@@ -528,8 +586,8 @@ void
 ntupler::beginJob()
 {   
    nEvts = 0;
-   run = -1;
-   lumiBlock = -1; 
+   nRun = -1;
+   nLumiBlock = -1; 
    nEvent = -1;
    // HLT__= -1;
    // HLT__= -1;
@@ -540,6 +598,7 @@ ntupler::beginJob()
    JetVec = new std::vector<TLorentzVector>;
    MuonVec = new std::vector<TLorentzVector>;
    ElectronVec = new std::vector<TLorentzVector>;
+   VertexVec = new std::vector<TLorentzVector>;
    qgPtDVec = new std::vector<double>;
    qgAxis1Vec = new std::vector<double>;
    qgAxis2Vec = new std::vector<double>;
@@ -568,18 +627,19 @@ ntupler::beginJob()
    usesResource("TFileService");
    edm::Service<TFileService> fs;
    tree = fs->make<TTree>("nTuple", "Event nTuple");
-   // br_run = 
-   tree->Branch("run", &run);
-   // br_lumiBlock = 
-   tree->Branch("lumiBlock", &lumiBlock);
-   // br_nEvent = 
+   tree->Branch("run", &nRun);
+   tree->Branch("lumiBlock", &nLumiBlock);
    tree->Branch("event", &nEvent);
-   // br_JetVec = 
+   tree->Branch("HLT_MuMu_Bits", &HLT_MuMu_Bits);
+   tree->Branch("HLT_ElMu_Bits", &HLT_ElMu_Bits);
+   tree->Branch("HLT_ElEl_Bits", &HLT_ElEl_Bits);
+   tree->Branch("HLT_Mu_Bits", &HLT_Mu_Bits);
+   tree->Branch("HLT_El_Bits", &HLT_El_Bits);
+   tree->Branch("MET_Flt_Bits", &MET_Flt_Bits);
    tree->Branch("JetVec", "vector<TLorentzVector>", &JetVec, 32000,-1);
-   //br_MuonVec = 
    tree->Branch("MuonVec", "vector<TLorentzVector>", &MuonVec, 32000,-1);
-   //br_ElectronVec = 
    tree->Branch("ElectronVec", "vector<TLorentzVector>", &ElectronVec, 32000,-1);
+   tree->Branch("VertexVec", "vector<TLorentzVector>", &VertexVec, 32000, -1);
    tree->Branch("qgPtD", &qgPtDVec);
    tree->Branch("qgAxis1", &qgAxis1Vec);
    tree->Branch("qgAxis2", &qgAxis2Vec);
