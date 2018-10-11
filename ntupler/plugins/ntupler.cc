@@ -53,8 +53,15 @@
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+//#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+
+//#include "DataFormats/MuonReco/interface/MuonPFIsolation.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
@@ -94,6 +101,10 @@ class ntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   edm::EDGetTokenT<std::vector<reco::Vertex>> VtxToken;
   edm::EDGetTokenT<edm::TriggerResults> HLTToken;
   edm::EDGetTokenT<edm::TriggerResults> FltToken;
+  edm::EDGetTokenT<std::vector<pat::PackedGenParticle>> GenToken;
+  edm::EDGetTokenT<std::vector<reco::GenParticle>> PrunedGenToken;
+  edm::EDGetTokenT<std::vector<reco::GenJet>> GenJetToken;
+  edm::EDGetTokenT<std::vector<reco::GenJet>> GenJetAK8Token;
 
   //HLT Triggers
   std::vector<std::string> HLT_MuMu_S;
@@ -172,6 +183,10 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    VtxToken = consumes<std::vector<reco::Vertex> >(edm::InputTag("offlineSlimmedPrimaryVertices"));
    HLTToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "HLT"));
    FltToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "RECO"));
+   GenToken = consumes<std::vector<pat::PackedGenParticle> >(edm::InputTag("packedGenParticles"));
+   PrunedGenToken = consumes<std::vector<reco::GenParticle> >(edm::InputTag("prunedGenParticles"));
+   GenJetToken = consumes<std::vector<reco::GenJet> >(edm::InputTag("slimmedGenJets"));
+   GenJetAK8Token = consumes<std::vector<reco::GenJet> >(edm::InputTag("slimmedGenJetsAK8"));
 
    //MET Filter Settings
    //HBHENoiseFilter_Selector_ =  iConfig.getParameter<std::string> ("HBHENoiseFilter_Selector_");
@@ -292,22 +307,34 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      throw cms::Exception("Vertex collection not valid!"); 
    } 
 
+   if(isMC){
+     edm::Handle <std::vector<pat::PackedGenParticle> > gens;
+     iEvent.getByToken(GenToken, gens);
+     if(!gens.isValid()) {
+       throw cms::Exception("Gen Particle collection not valid!");
+     }
+
+     edm::Handle <std::vector<reco::GenParticle> > prunedGens;
+     iEvent.getByToken(PrunedGenToken, prunedGens);
+     if(!prunedGens.isValid()) {
+       throw cms::Exception("Pruned Gen Particle collection not valid!");
+     }
+
+     edm::Handle <std::vector<reco::GenJet> > genjets;
+     iEvent.getByToken(GenJetToken, genjets);
+     if(!prunedGens.isValid()) {
+       throw cms::Exception("Gen Jet collection not valid!");
+     }
+
+     edm::Handle <std::vector<reco::GenJet> > genjetsak8;
+     iEvent.getByToken(GenJetAK8Token, genjetsak8);
+     if(!prunedGens.isValid()) {
+       throw cms::Exception("Gen Jet AK8 collection not valid!");
+     }
+   }
 
    //See /afs/cern.ch/user/n/nmangane/DAS/EGammaExercises/MuonExercise3/plugins/MuonExercise3.cc for histogram array creation, tight (vertex) selection
-   //edm::Handle <pat::PackedGenParticleCollection> genColl;
-   //iEvent.getByToken(genCollToken, genColl);
-
    //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ CP code
-  // // Retrieve the GenParticle collection from the event 
-  // edm::Handle<reco::GenParticleCollection> genParticles;
-  // iEvent.getByToken(genPartToken, genParticles);
-  // std::vector<reco::GenParticle> genColl = (*genParticles);
-
-  // // Just for peace of mind, let's check that the collection is valid... 
-  // if(!genParticles.isValid()) {
-  //   throw cms::Exception("GenParticle collection not valid!"); 
-  // } 
-
   // //std::cout << deb++ << std::endl;
   // edm::View<pat::Muon>::const_iterator muend = muons->end();
   // for (edm::View<pat::Muon>::const_iterator it=muons->begin(); it!=muend; ++it) {
@@ -451,6 +478,13 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //// Selected Muons ////
    ////////////////////////
    for(const pat::Muon& muon : *muons){
+     if(muon.pt < 20() || fabs(muon.eta()) > 2.4)
+       continue;
+     if(!muon.isLooseMuon())
+       continue;
+     double relIso = (muon.pfIsolationR04().sumChargedHadronPt + max(0., muon.pfIsolationR04().sumNeutralHadronEt + muon.pfIsolationR04().sumPhotonEt - 0.5*muon.pfIsolationR04().sumPUPt))/muon.pt();
+     //if(relIso > XXXXXXXX)
+     //continue;
      TLorentzVector perMuonLVec;
      perMuonLVec.SetPtEtaPhiE( muon.pt(), muon.eta(), muon.phi(), muon.energy() );
      MuonVec->push_back(perMuonLVec);
@@ -460,6 +494,8 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //// Selected Electrons ////
    ////////////////////////
    for(const pat::Electron& electron : *electrons){
+     if(electron.pt() < 5 || fabs(electron.eta()) > 2.5)
+       continue;
      TLorentzVector perElectronLVec;
      perElectronLVec.SetPtEtaPhiE( electron.pt(), electron.eta(), electron.phi(), electron.energy() );
      ElectronVec->push_back(perElectronLVec);
@@ -469,6 +505,18 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //// Selected Jets ////
    ///////////////////////
    for(const pat::Jet&jet : *jets){
+     if(jet.pt() < 20 || jet.eta() > 2.5)
+       continue;
+     //bool untaggedJetCrit = (jet.pt() > 30 //tagged vs untagged jet criteria...
+     //if(jet.pt() < 30 && 
+
+     ////JET CLEANING
+     // for(int unj = 0; unj < selectedUncleanedJets.size(); unj++) {
+     //   bool isClose = false;
+     //   for(int e = 0; e < selectedElectrons.size(); e++) {
+     // 	 if(selectedElectrons[e]->DeltaR(*selectedUncleanedJets[unj]) < 0.3)
+     // 	   isClose = true;
+     //   }
      TLorentzVector perJetLVec;
      perJetLVec.SetPtEtaPhiE( jet.pt(), jet.eta(), jet.phi(), jet.energy() );
      JetVec->push_back(perJetLVec);
