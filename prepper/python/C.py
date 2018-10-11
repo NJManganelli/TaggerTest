@@ -2,11 +2,11 @@ import FWCore.ParameterSet.Config as cms
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection ### for updating jets!
 from Configuration.AlCa.GlobalTag import GlobalTag
 
-process = cms.Process("TagPrepper")
+process = cms.Process("BTag_ID_Process")
 
 #process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True) )
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 10
 process.load("Configuration.EventContent.EventContent_cff")
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
@@ -20,9 +20,13 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #else:
 print "Running on MC"
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
-#process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_2016_TrancheIV_v6', '')
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
+################################
+################################
+##### Input File Selection #####
+################################
+################################
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
@@ -38,10 +42,13 @@ process.options   = cms.untracked.PSet(
     SkipEvent = cms.untracked.vstring('ProductNotFound')
 )
 
-#########################
-jetTag = cms.InputTag("slimmedJets")
-########## Configure QGTagger and prepare to add DeepCSV variables ###################
+################################################
+################################################
+##### JET Energy Corrections and B-Tagging #####
+################################################
+################################################
 
+# Configure QGTagger and prepare to add DeepCSV variables #
 process.load('RecoJets.JetProducers.QGTagger_cfi')
 process.QGTagger.srcJets   = cms.InputTag("slimmedJets")
 updateJetCollection(
@@ -71,25 +78,47 @@ process.BTAGSequence = cms.Sequence(process.QGTagger *
                                     process.QGTagger *
                                     process.selectedUpdatedPatJetsDeepCSV)
 
-########## Recorrect Jets since DeepCSV breaks this in CMSSW_80X##############
-#process.load('RecoJets.JetProducers.QGTagger_cfi')
-#process.QGTagger.srcJets   = cms.InputTag("updatedPatJetsFinal")
-# updateJetCollection(
-#    process,
-#    labelName = "Final",
-#    jetSource = cms.InputTag("selectedUpdatedPatJetsDeepCSV"),
-#    #jetSource = cms.InputTag("selectedUpdatedPatJetsDeepCSV"), #doesn't exist
-#    jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']), 'None'),
 
-# )
-#process.CorrSequence = cms.Sequence(process.patJetCorrFactorsFinal * process.updatedPatJetsFinal)
-################################
+#####################################
+#####################################
+##### Electron ID Configuration #####
+#####################################
+#####################################
 
-process.myNtupler = cms.EDProducer('prepper', src = cms.InputTag("selectedUpdatedPatJetsDeepCSV")
-)
+#Electron ID configuration
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+# turn on VID producer, indicate data format  to be
+# DataFormat.AOD or DataFormat.MiniAOD, as appropriate 
+dataFormat = DataFormat.MiniAOD
+switchOnVIDElectronIdProducer(process, dataFormat)
+
+# define which IDs we want to produce
+my_id_modules = [
+    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronHLTPreselecition_Summer16_V1_cff'
+    ]
+
+#add them to the VID producer
+for idmod in my_id_modules:
+    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+
+#################################
+#################################
+##### NTupler Configuration #####
+#################################
+#################################
+process.myNtupler = cms.EDProducer('prepper', 
+                                   src = cms.InputTag("selectedUpdatedPatJetsDeepCSV"),
+) #Placeholder for integrating ../../ntupler/plugins/ntupler.cc
+
+#######################
+#######################
+##### Output File #####
+#######################
+#######################
 process.out = cms.OutputModule("PoolOutputModule",
     #outputCommands = cms.untracked.vstring('keep *'),
-    fileName = cms.untracked.string('myOutputFile_COMB_QGadded_100ev.root')
+    #fileName = cms.untracked.string('myOutputFile_COMB_QGadded_100ev.root')
+                               fileName = cms.untracked.string('BT_ID_100ev.root')
 )
 
 

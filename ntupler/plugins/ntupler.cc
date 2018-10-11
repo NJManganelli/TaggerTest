@@ -478,11 +478,11 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //// Selected Muons ////
    ////////////////////////
    for(const pat::Muon& muon : *muons){
-     if(muon.pt < 20() || fabs(muon.eta()) > 2.4)
+     if(muon.pt() < 20 || fabs(muon.eta()) > 2.4)
        continue;
      if(!muon.isLooseMuon())
        continue;
-     double relIso = (muon.pfIsolationR04().sumChargedHadronPt + max(0., muon.pfIsolationR04().sumNeutralHadronEt + muon.pfIsolationR04().sumPhotonEt - 0.5*muon.pfIsolationR04().sumPUPt))/muon.pt();
+     double relIso = (muon.pfIsolationR04().sumChargedHadronPt + fmax(0., muon.pfIsolationR04().sumNeutralHadronEt + muon.pfIsolationR04().sumPhotonEt - 0.5*muon.pfIsolationR04().sumPUPt))/muon.pt();
      //if(relIso > XXXXXXXX)
      //continue;
      TLorentzVector perMuonLVec;
