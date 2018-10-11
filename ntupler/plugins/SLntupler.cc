@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    Demo/ntupler
-// Class:      ntupler
+// Package:    Demo/SLntupler
+// Class:      SLntupler
 // 
-/**\class ntupler ntupler.cc Demo/ntupler/plugins/ntupler.cc
+/**\class SLntupler SLntupler.cc Demo/ntupler/plugins/SLntupler.cc
 
  Description: [one line class summary]
 
@@ -76,11 +76,11 @@
 // constructor "usesResource("TFileService");"
 // This will improve performance in multithreaded jobs.
 
-class ntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
+class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
    public:
   //explicit 
-      explicit ntupler(const edm::ParameterSet&);
-      ~ntupler();
+      explicit SLntupler(const edm::ParameterSet&);
+      ~SLntupler();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -160,7 +160,7 @@ class ntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 //
 // constructors and destructor
 //
-ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
+SLntupler::SLntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
 {
    //Explicitly declare shared resource TFileService to make it threadsafe
    usesResource("TFileService");
@@ -254,7 +254,7 @@ ntupler::ntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
 }
 
 
-ntupler::~ntupler()
+SLntupler::~SLntupler()
 {
    usesResource("TFileService");
    // do anything here that needs to be done at desctruction time
@@ -268,7 +268,7 @@ ntupler::~ntupler()
 
 // ------------ method called for each event  ------------
 void
-ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
    edm::Handle<std::vector<pat::Jet> > jets;
@@ -631,7 +631,7 @@ ntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-ntupler::beginJob()
+SLntupler::beginJob()
 {   
    nEvts = 0;
    nRun = -1;
@@ -716,7 +716,7 @@ ntupler::beginJob()
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-ntupler::endJob() 
+SLntupler::endJob() 
 {
    usesResource("TFileService");
    //********** WARNING **********//
@@ -754,7 +754,7 @@ ntupler::endJob()
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-ntupler::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+SLntupler::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
