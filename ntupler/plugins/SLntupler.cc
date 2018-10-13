@@ -51,6 +51,8 @@
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/Common/interface/ValueMap.h"
+#include "DataFormats/PatCandidates/interface/VIDCutFlowResult.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
@@ -137,7 +139,8 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 
   uint nEvts, nRun, nLumiBlock, nEvent;
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
-  std::vector<TLorentzVector> *JetVec, *MuonVec, *ElectronVec, *VertexVec;
+  bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
+  std::vector<TLorentzVector> *JetVec, *selectedLepLVec, *vetoLepLVec, *VertexVec;
   std::vector<double> *qgPtDVec, *qgAxis1Vec, *qgAxis2Vec, *qgMultVec;
   std::vector<double> *deepCSVbVec, *deepCSVcVec, *deepCSVlVec, *deepCSVbbVec, *deepCSVccVec, *btagVec;
   std::vector<double> *chargedHadronEnergyFractionVec, *neutralHadronEnergyFractionVec, *chargedEmEnergyFractionVec;
@@ -194,9 +197,9 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    //HBHENoiseFilter_Selector_ = "HBHENoiseFilter_Selector_";
    //EEBadScNoiseFilter_Selector_ = "EEBadScNoiseFilter_Selector_";
 
-   ////////////////////////////
-   /// Per-Year definitions ///
-   ////////////////////////////
+   //////////////////////////////////////////////
+   /// Per-Year definitions for future ReReco ///
+   //////////////////////////////////////////////
 
    if(is2016){
    ///////////
@@ -227,7 +230,7 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
      HLT_El_S.push_back("HLT_Ele32_eta2p1_WPTight_Gsf_v");
 
      //MET Filters
-     MET_Flt_S.push_back("FIXME");
+     MET_Flt_S.push_back("FIXME"); //not used for MC, events failing filters aren't kept
 
    }
    else if(is2017){
@@ -430,21 +433,23 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////////
    /// MET FILTER SELECTION ///
    ////////////////////////////
-   const pat::MET &met = mets->front();
-   const edm::TriggerNames &names = iEvent.triggerNames(*METFlt);
-   for (uint i = 0; i < METFlt->size(); ++i) {
-     std::string fltName = names.triggerName(i); //convenient name storage
-     if(deBug) std::cout << fltName << std::endl;
-     bool fltBit = METFlt->accept(i); //filter pass bit
-     for(uint j = 0; j < MET_Flt_S.size(); j++){
-       if (fltName == MET_Flt_S[j]){
-	 if(deBug) std::cout << "Initial Bits: " << MET_Flt_B << std::endl;
-	 MET_Flt_B[j] = fltBit; //store bit decision in bitset
-	 if(deBug) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
-       }     
+   if(isData){
+     const pat::MET &met = mets->front();
+     const edm::TriggerNames &names = iEvent.triggerNames(*METFlt);
+     for (uint i = 0; i < METFlt->size(); ++i) {
+       std::string fltName = names.triggerName(i); //convenient name storage
+       if(deBug) std::cout << fltName << std::endl;
+       bool fltBit = METFlt->accept(i); //filter pass bit
+       for(uint j = 0; j < MET_Flt_S.size(); j++){
+	 if (fltName == MET_Flt_S[j]){
+	   if(deBug) std::cout << "Initial Bits: " << MET_Flt_B << std::endl;
+	   MET_Flt_B[j] = fltBit; //store bit decision in bitset
+	   if(deBug) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
+	 }     
+       }
      }
    }
-   MET_Flt_Bits = MET_Flt_B.to_ulong();
+   MET_Flt_Bits = MET_Flt_B.to_ulong(); //store flt decision even if default 0
    // End filters stuff
 
 
@@ -478,35 +483,67 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //// Selected Muons ////
    ////////////////////////
    for(const pat::Muon& muon : *muons){
-     if(muon.pt() < 20 || fabs(muon.eta()) > 2.4)
+     //Min cuts for the Loose (veto) Muon selection
+     if(muon.pt() <= 10 || fabs(muon.eta()) >= 2.5)
        continue;
-     if(!muon.isLooseMuon())
-       continue;
-     double relIso = (muon.pfIsolationR04().sumChargedHadronPt + fmax(0., muon.pfIsolationR04().sumNeutralHadronEt + muon.pfIsolationR04().sumPhotonEt - 0.5*muon.pfIsolationR04().sumPUPt))/muon.pt();
-     //if(relIso > XXXXXXXX)
-     //continue;
-     TLorentzVector perMuonLVec;
-     perMuonLVec.SetPtEtaPhiE( muon.pt(), muon.eta(), muon.phi(), muon.energy() );
-     MuonVec->push_back(perMuonLVec);
-   }
 
-   ////////////////////////
+     //Calculate the Relative Isolation
+     double relIso = (muon.pfIsolationR04().sumChargedHadronPt + fmax(0., muon.pfIsolationR04().sumNeutralHadronEt + muon.pfIsolationR04().sumPhotonEt - 0.5*muon.pfIsolationR04().sumPUPt))/muon.pt();
+
+     //Cut on max isolation for the loose(veto) muon
+     if(relIso >= 0.25)
+       continue;
+
+     //Select Tight Muons (Tight ID, relIso < 0.15, pt > 25, |eta| < 2.1)
+     if(muon.isTightMuon(*firstGoodVertex) && muon.pt() > 25 && fabs(muon.eta()) < 2.1 && relIso < 0.15 ){
+       //setup LVec for Muon
+       TLorentzVector perMuonLVec; 
+       perMuonLVec.SetPtEtaPhiE( muon.pt(), muon.eta(), muon.phi(), muon.energy() );
+
+       //add to selected leptons
+       selectedLepLVec->push_back(perMuonLVec);
+
+       //debug info
+       if(deBug)
+	 std::cout << "Tight ID: " << muon.isTightMuon(*firstGoodVertex) << " Pt: " << muon.pt() << " Eta: " << muon.eta() << " relIso: " << relIso << std::endl;
+     }
+
+     //Select Loose Muons for Veto (Loose ID, relIso < 0.25, pt > 10, |eta| < 2.5)
+     else if(muon.isLooseMuon() )
+       return;  // If there are any Loose/Veto Leptons, then not in the SL channel!
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
+   }
+   
+
+   ////////////////////////////
    //// Selected Electrons ////
-   ////////////////////////
+   ////////////////////////////
    for(const pat::Electron& electron : *electrons){
+     //Select veto lepton cuts minimum
      if(electron.pt() < 5 || fabs(electron.eta()) > 2.5)
        continue;
+
+     //Set up Lorentz Vector for Electrons
      TLorentzVector perElectronLVec;
      perElectronLVec.SetPtEtaPhiE( electron.pt(), electron.eta(), electron.phi(), electron.energy() );
-     ElectronVec->push_back(perElectronLVec);
+
+     //Add to selected leptons
+     selectedLepLVec->push_back(perElectronLVec);
    }
 
    ///////////////////////
    //// Selected Jets ////
    ///////////////////////
    for(const pat::Jet&jet : *jets){
-     if(jet.pt() < 20 || jet.eta() > 2.5)
+     //Jet Selection
+     if(jet.pt() < 30 || jet.eta() >= 2.5)
        continue;
+     
+     //Jet ID Loose selection
+     //if(jet.
+
      //bool untaggedJetCrit = (jet.pt() > 30 //tagged vs untagged jet criteria...
      //if(jet.pt() < 30 && 
 
@@ -581,8 +618,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    //Clear pointers
    JetVec->clear();
-   MuonVec->clear();
-   ElectronVec->clear();
+   selectedLepLVec->clear();
+   vetoLepLVec->clear();
    VertexVec->clear();
    qgPtDVec->clear();
    qgAxis1Vec->clear();
@@ -644,8 +681,8 @@ SLntupler::beginJob()
    // HLT__= -1;
    //FIXME
    JetVec = new std::vector<TLorentzVector>;
-   MuonVec = new std::vector<TLorentzVector>;
-   ElectronVec = new std::vector<TLorentzVector>;
+   selectedLepLVec = new std::vector<TLorentzVector>;
+   vetoLepLVec = new std::vector<TLorentzVector>;
    VertexVec = new std::vector<TLorentzVector>;
    qgPtDVec = new std::vector<double>;
    qgAxis1Vec = new std::vector<double>;
@@ -685,8 +722,9 @@ SLntupler::beginJob()
    tree->Branch("HLT_El_Bits", &HLT_El_Bits);
    tree->Branch("MET_Flt_Bits", &MET_Flt_Bits);
    tree->Branch("JetVec", "vector<TLorentzVector>", &JetVec, 32000,-1);
-   tree->Branch("MuonVec", "vector<TLorentzVector>", &MuonVec, 32000,-1);
-   tree->Branch("ElectronVec", "vector<TLorentzVector>", &ElectronVec, 32000,-1);
+   tree->Branch("selectedLepLVec", "vector<TLorentzVector>", &selectedLepLVec, 32000,-1);
+   //tree->Branch("vetoLepLVec", "vector<TLorentzVector>", &vetoLepLVec, 32000, -1);
+   //tree->Branch("ElectronVec", "vector<TLorentzVector>", &ElectronVec, 32000,-1);
    tree->Branch("VertexVec", "vector<TLorentzVector>", &VertexVec, 32000, -1);
    tree->Branch("qgPtD", &qgPtDVec);
    tree->Branch("qgAxis1", &qgAxis1Vec);
@@ -724,8 +762,9 @@ SLntupler::endJob()
    // tree->GetDirectory()->cd();
    // tree->Write("", TObject::kOverwrite);
    delete JetVec;
-   delete MuonVec;
-   delete ElectronVec;
+   delete selectedLepLVec;
+   //delete vetoLepLVec;
+   //delete ElectronVec;
    delete qgPtDVec;
    delete qgAxis1Vec;
    delete qgAxis2Vec;
