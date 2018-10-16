@@ -486,6 +486,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //Min cuts for the Loose (veto) Muon selection
      if(muon.pt() <= 10 || fabs(muon.eta()) >= 2.5)
        continue;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
 
      //Calculate the Relative Isolation
      double relIso = (muon.pfIsolationR04().sumChargedHadronPt + fmax(0., muon.pfIsolationR04().sumNeutralHadronEt + muon.pfIsolationR04().sumPhotonEt - 0.5*muon.pfIsolationR04().sumPUPt))/muon.pt();
@@ -493,6 +496,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //Cut on max isolation for the loose(veto) muon
      if(relIso >= 0.25)
        continue;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
 
      //Select Tight Muons (Tight ID, relIso < 0.15, pt > 25, |eta| < 2.1)
      if(muon.isTightMuon(*firstGoodVertex) && muon.pt() > 25 && fabs(muon.eta()) < 2.1 && relIso < 0.15 ){
@@ -522,30 +528,39 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////////
    for(const pat::Electron& electron : *electrons){
      //Select veto lepton cuts minimum
-     if(electron.pt() < 5 || fabs(electron.eta()) > 2.5)
+     if(electron.pt() < 15 || fabs(electron.eta()) > 2.5 )
        continue;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
 
+     if(electron.pt() > 35 && fabs(electron.eta()) < 2.1){ // && isTightID){
      //Set up Lorentz Vector for Electrons
      TLorentzVector perElectronLVec;
      perElectronLVec.SetPtEtaPhiE( electron.pt(), electron.eta(), electron.phi(), electron.energy() );
 
      //Add to selected leptons
      selectedLepLVec->push_back(perElectronLVec);
+     }
+     else if("FIXME" == 0)//isVetoID)
+       return;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
    }
+       
 
    ///////////////////////
    //// Selected Jets ////
    ///////////////////////
    for(const pat::Jet&jet : *jets){
-     //Jet Selection
-     if(jet.pt() < 30 || jet.eta() >= 2.5)
+     //Jet Selection 30GeV, usual calorimeter acceptance
+     if(jet.pt() < 30 || fabs(jet.eta()) >= 2.5)
        continue;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
      
-     //Jet ID Loose selection
-     //if(jet.
-
-     //bool untaggedJetCrit = (jet.pt() > 30 //tagged vs untagged jet criteria...
-     //if(jet.pt() < 30 && 
 
      ////JET CLEANING
      // for(int unj = 0; unj < selectedUncleanedJets.size(); unj++) {
@@ -556,7 +571,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //   }
      TLorentzVector perJetLVec;
      perJetLVec.SetPtEtaPhiE( jet.pt(), jet.eta(), jet.phi(), jet.energy() );
-     JetVec->push_back(perJetLVec);
 
      double qgPtD = jet.userFloat("QGTagger:ptD");
      double qgAxis1 = jet.userFloat("QGTagger:axis1");
@@ -582,7 +596,19 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double photonMultiplicity = jet.photonMultiplicity();
      double electronMultiplicity = jet.electronMultiplicity();
      double muonMultiplicity = jet.muonMultiplicity();
+
+     //Jet ID Loose selection for 2016 (doesn't exist for 2017 or 2018! Tight selection must be used!)
+     bool looseJetID = 
+       (neutralHadronEnergyFraction < 0.99 && neutralEmEnergyFraction < 0.99 && (jet.chargedMultiplicity() + jet.neutralMultiplicity() ) > 1) && 
+       ((fabs(jet.eta()) <= 2.4 && chargedHadronEnergyFraction > 0 && jet.chargedMultiplicity() > 0 && chargedEmEnergyFraction < 0.99) || fabs(jet.eta()) > 2.4 );
+     if(!looseJetID)
+       return;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
+
     
+     JetVec->push_back(perJetLVec);
      qgPtDVec->push_back(qgPtD);
      qgAxis1Vec->push_back(qgAxis1);
      qgAxis2Vec->push_back(qgAxis2);
