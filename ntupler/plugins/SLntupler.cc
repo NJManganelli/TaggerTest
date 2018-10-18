@@ -51,6 +51,10 @@
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+//#include "DataFormats/EgammaCandidates/interface/GsfElectron.h" //for isolation, not needed
+//#include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
+#include "DataFormats/EgammaCandidates/interface/Conversion.h"
+//#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/PatCandidates/interface/VIDCutFlowResult.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
@@ -95,18 +99,27 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   bool isData, isMC, deBug;
   bool is2016, is2017, is2018;
 
+  double HTMin;
+
   //Tokens
-  edm::EDGetTokenT<std::vector<pat::Jet>> JetToken;
-  edm::EDGetTokenT<std::vector<pat::Muon>> MuonToken;
-  edm::EDGetTokenT<std::vector<pat::Electron>> ElectronToken;
-  edm::EDGetTokenT<std::vector<pat::MET>> METToken;
-  edm::EDGetTokenT<std::vector<reco::Vertex>> VtxToken;
+  edm::EDGetTokenT<std::vector<pat::Jet> > JetToken;
+  edm::EDGetTokenT<std::vector<pat::Muon> > MuonToken;
+  edm::EDGetTokenT<std::vector<pat::Electron> > ElectronToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > EleVetoIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > EleLooseIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > EleMediumIdMapToken;
+  edm::EDGetTokenT<edm::ValueMap<bool> > EleTightIdMapToken;
+  edm::EDGetTokenT<std::vector<pat::MET> > METToken;
+  edm::EDGetTokenT<std::vector<reco::Vertex> > VtxToken;
   edm::EDGetTokenT<edm::TriggerResults> HLTToken;
   edm::EDGetTokenT<edm::TriggerResults> FltToken;
-  edm::EDGetTokenT<std::vector<pat::PackedGenParticle>> GenToken;
-  edm::EDGetTokenT<std::vector<reco::GenParticle>> PrunedGenToken;
-  edm::EDGetTokenT<std::vector<reco::GenJet>> GenJetToken;
-  edm::EDGetTokenT<std::vector<reco::GenJet>> GenJetAK8Token;
+  edm::EDGetTokenT<std::vector<reco::Conversion> > ConversionsToken;
+  edm::EDGetTokenT<reco::BeamSpot> BeamSpotToken;
+  edm::EDGetTokenT<double> RhoToken;
+  edm::EDGetTokenT<std::vector<pat::PackedGenParticle> > GenToken;
+  edm::EDGetTokenT<std::vector<reco::GenParticle> > PrunedGenToken;
+  edm::EDGetTokenT<std::vector<reco::GenJet> > GenJetToken;
+  edm::EDGetTokenT<std::vector<reco::GenJet> > GenJetAK8Token;
 
   //HLT Triggers
   std::vector<std::string> HLT_MuMu_S;
@@ -140,7 +153,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   uint nEvts, nRun, nLumiBlock, nEvent;
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
-  std::vector<TLorentzVector> *JetVec, *selectedLepLVec, *vetoLepLVec, *VertexVec;
+  std::vector<TLorentzVector> *JetLVec, *selectedLepLVec, *vetoLepLVec, *VertexVec, *METLVec; //Change to pointer vector of pointers for sorting efficiency! FIXME!
   std::vector<double> *qgPtDVec, *qgAxis1Vec, *qgAxis2Vec, *qgMultVec;
   std::vector<double> *deepCSVbVec, *deepCSVcVec, *deepCSVlVec, *deepCSVbbVec, *deepCSVccVec, *btagVec;
   std::vector<double> *chargedHadronEnergyFractionVec, *neutralHadronEnergyFractionVec, *chargedEmEnergyFractionVec;
@@ -153,9 +166,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 //
 // constants, enums and typedefs
 //
-  // MET Filters
-  //std::string HBHENoiseFilter_Selector_;
-  //std::string EEBadScNoiseFilter_Selector_;
+
 //
 // static data member definitions
 //
@@ -163,18 +174,17 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 //
 // constructors and destructor
 //
-SLntupler::SLntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
+SLntupler::SLntupler(const edm::ParameterSet& iConfig):
+  isData(false), isMC(true), deBug(true), is2016(true), is2017(false), is2018(false), //HTMin(10),
+  EleVetoIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap2016"))),
+  EleLooseIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap2016"))),
+  EleMediumIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap2016"))),
+  EleTightIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap2016")))
+  //mvaValuesMapToken(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap"))),
+  //mvaCategoriesMapToken(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap")))
 {
    //Explicitly declare shared resource TFileService to make it threadsafe
    usesResource("TFileService");
-
-   //FIXME : HardCoding for bools
-   isData = false;
-   isMC = true;
-   deBug = true;
-   is2016 = true;
-   is2017 = false;
-   is2018 = false;
 
    ////////////////////
    ////// Tokens //////
@@ -186,6 +196,9 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    VtxToken = consumes<std::vector<reco::Vertex> >(edm::InputTag("offlineSlimmedPrimaryVertices"));
    HLTToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "HLT"));
    FltToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "RECO"));
+   //ConversionsToken = consumes<std::vector<reco::Conversion> >(edm::InputTag("reducedConversions")); //EleID has conversion veto
+   BeamSpotToken = consumes<reco::BeamSpot>(edm::InputTag("offlineBeamSpot"));
+   //RhoToken = consumes<double>(edm::InputTag("fixedGridRhoFastjetAll")); //not necessary at this moment
    GenToken = consumes<std::vector<pat::PackedGenParticle> >(edm::InputTag("packedGenParticles"));
    PrunedGenToken = consumes<std::vector<reco::GenParticle> >(edm::InputTag("prunedGenParticles"));
    GenJetToken = consumes<std::vector<reco::GenJet> >(edm::InputTag("slimmedGenJets"));
@@ -197,6 +210,10 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    //HBHENoiseFilter_Selector_ = "HBHENoiseFilter_Selector_";
    //EEBadScNoiseFilter_Selector_ = "EEBadScNoiseFilter_Selector_";
 
+   ///////////////////////////////
+   /// HT Minimum Notification ///
+   ///////////////////////////////
+   std::cout << "The Minimum HT Cut is currently: " << HTMin << "GeV. Set HTMin = <value> in python configuration of ntupler." << std::endl;
    //////////////////////////////////////////////
    /// Per-Year definitions for future ReReco ///
    //////////////////////////////////////////////
@@ -236,13 +253,17 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig)//:nEvts(0)//, my_var(0)
    else if(is2017){
      std::cout << "Defining triggers for 2017" << std::endl;
      std::cout << "FIXME!" << std::endl;
+     throw cms::Exception("2017 triggers not defined!");
    }
    else if(is2018){
      std::cout << "Defining triggers for 2018" << std::endl;
      std::cout << "FIXME!" << std::endl;
+     throw cms::Exception("2018 triggers not defined!");
    }
-   else
+   else{
      std::cout << "Error: Data is not from 2016, 2017, or 2018. Is it ReReco?" << std::endl;
+     throw cms::Exception("Undefined data year (2016-2018)!");
+   }
 
    //Set HLT bits to zero via initialization, using the boost::dynamic_bitset, with the proper number of bits
    HLT_MuMu_B = boost::dynamic_bitset<>(HLT_MuMu_S.size(), 0ul); //sets number of bits corresponding to triggers per channel, and 0 unsigned long value
@@ -289,6 +310,31 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(!electrons.isValid()) {
      throw cms::Exception("Electron collection not valid!"); 
    }
+   edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+   iEvent.getByToken(EleVetoIdMapToken,veto_id_decisions);
+   if(!veto_id_decisions.isValid()){
+     throw::cms::Exception("Ele Cut-based Veto ID decisions not valid!");    // Note:  VID ID modules must have been run upstream.
+   }
+   edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+   iEvent.getByToken(EleLooseIdMapToken,loose_id_decisions);
+   if(!loose_id_decisions.isValid()){
+     throw::cms::Exception("Ele Cut-based Loose ID decisions not valid!");    // Note:  VID ID modules must have been run upstream.
+   }
+   edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+   iEvent.getByToken(EleMediumIdMapToken,medium_id_decisions);
+   if(!medium_id_decisions.isValid()){
+     throw::cms::Exception("Ele Cut-based Medium ID decisions not valid!");    // Note:  VID ID modules must have been run upstream.
+   }
+   edm::Handle<edm::ValueMap<bool> > tight_id_decisions; 
+   iEvent.getByToken(EleTightIdMapToken,tight_id_decisions);
+   if(!tight_id_decisions.isValid()){
+     throw::cms::Exception("Ele Cut-based Tight ID decisions(s) not valid!");    // Note:  VID ID modules must have been run upstream.
+   }
+   // Get MVA values and categories (optional)
+   // edm::Handle<edm::ValueMap<float> > mvaValues;
+   // edm::Handle<edm::ValueMap<int> > mvaCategories;
+   // iEvent.getByToken(mvaValuesMapToken_,mvaValues);
+   // iEvent.getByToken(mvaCategoriesMapToken_,mvaCategories);
    edm::Handle<std::vector<pat::MET> > mets;
    iEvent.getByToken(METToken, mets);
    if(!mets.isValid()) {
@@ -309,6 +355,20 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(!vertices.isValid()) {
      throw cms::Exception("Vertex collection not valid!"); 
    } 
+   // edm::Handle<reco::ConversionCollection> conversions;
+   // iEvent.getByToken(ConversionsToken, conversions);
+   // if(!conversions.isValid()) {
+   //   throw cms::Exception("Conversions collection not valid!");
+   // }
+
+   edm::Handle<reco::BeamSpot> theBeamSpot;
+   iEvent.getByToken(BeamSpotToken,theBeamSpot); 
+   if(!theBeamSpot.isValid()) {
+     throw cms::Exception("BeamSpot not valid!");
+   }
+   // edm::Handle<double> rho;
+   // iEvent.getByToken(RhoToken, rho);
+   //protect against bad parameter?
 
    if(isMC){
      edm::Handle <std::vector<pat::PackedGenParticle> > gens;
@@ -374,6 +434,45 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ end CP code
 
 
+   //Clear pointers
+   JetLVec->clear();
+   selectedLepLVec->clear();
+   METLVec->clear();
+   // vetoLepLVec->clear();
+   VertexVec->clear();
+   qgPtDVec->clear();
+   qgAxis1Vec->clear();
+   qgAxis2Vec->clear();
+   qgMultVec->clear();
+   deepCSVbVec->clear();
+   deepCSVcVec->clear();
+   deepCSVlVec->clear();
+   deepCSVbbVec->clear();
+   deepCSVccVec->clear();
+   btagVec->clear();
+   chargedHadronEnergyFractionVec->clear();
+   neutralHadronEnergyFractionVec->clear();
+   chargedEmEnergyFractionVec->clear();
+   neutralEmEnergyFractionVec->clear();
+   muonEnergyFractionVec->clear();
+   photonEnergyFractionVec->clear();
+   electronEnergyFractionVec->clear();
+   recoJetsHFHadronEnergyFractionVec->clear();
+   recoJetsHFEMEnergyFractionVec->clear();
+   chargedHadronMultiplicityVec->clear();
+   neutralHadronMultiplicityVec->clear();
+   photonMultiplicityVec->clear();
+   electronMultiplicityVec->clear();
+   muonMultiplicityVec->clear();
+
+   //reset bitsets
+   HLT_MuMu_B.reset();
+   HLT_ElMu_B.reset();
+   HLT_ElEl_B.reset();
+   HLT_Mu_B.reset();
+   HLT_El_B.reset();
+   MET_Flt_B.reset();
+
    /////////////////////////////
    /// HLT TRIGGER SELECTION ///
    /////////////////////////////
@@ -424,8 +523,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    HLT_Mu_Bits = HLT_Mu_B.to_ulong();
    HLT_El_Bits = HLT_El_B.to_ulong();
 
-   if(!(HLT_MuMu_B.any() || HLT_ElMu_B.any() || HLT_ElEl_B.any() || HLT_Mu_B.any() || HLT_El_B.any() ) ) //if NO triggers pass, want to skip rest of this module
-     return; //void main, so just return nothing
+   //SL + DL Triggers
+   // if(!(HLT_MuMu_B.any() || HLT_ElMu_B.any() || HLT_ElEl_B.any() || HLT_Mu_B.any() || HLT_El_B.any() ) ) //if NO triggers pass, want to skip rest of this module
+   //   return; //void main, so just return nothing 
+
+   //SL Trigger only
+   if(!(HLT_Mu_B.any() || HLT_El_B.any()))
+     return; //move to next event if not SL trigger
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -434,7 +538,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    /// MET FILTER SELECTION ///
    ////////////////////////////
    if(isData){
-     const pat::MET &met = mets->front();
      const edm::TriggerNames &names = iEvent.triggerNames(*METFlt);
      for (uint i = 0; i < METFlt->size(); ++i) {
        std::string fltName = names.triggerName(i); //convenient name storage
@@ -471,10 +574,25 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        break;
      }
    }
-   if(firstGoodVertex == vertices->end()) return;    // Require good vertex
+   //Require good vertex
+   if(firstGoodVertex == vertices->end()) return;
    TLorentzVector perVertexLVec;
-   perVertexLVec.SetXYZT(firstGoodVertex->position().X(), firstGoodVertex->position().Y(), firstGoodVertex->position().Z(), 0); //dummy variable 0 for Time coordinate
+   perVertexLVec.SetXYZT(firstGoodVertex->position().X(), firstGoodVertex->position().Y(), firstGoodVertex->position().Z(), 0); //dummy 0 for Time coordinate
    VertexVec->push_back(perVertexLVec); //First vertex in vector is primary. SVs can be emplaced afterwards
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
+
+   ///////////////////////
+   //// MET Selection ////
+   ///////////////////////
+   const pat::MET &met = mets->front();
+   if(deBug) std::cout << "MET Pt: " << met.pt() << " Phi: " << met.phi() << std::endl;
+   if(met.pt() < 50)
+     return;
+   // TLorentzVector perMETLVec;
+   // perMETLVec.SetPtEtaPhiE(met.pt(), met.eta(), met.phi(), met.energy());
+   // METLVec->push_back(perMETLVec);
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -533,6 +651,17 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===/////////////
    //===//// CUT ///
    //===///////////
+     if(deBug)
+       std::cout << "Pt: " << electron.pt() << " Eta: " << electron.eta() << " Phi: " << electron.phi() << " E-Iso: " << electron.ecalPFClusterIso() << " H-Iso: " << electron.hcalPFClusterIso() << std::endl;
+
+     //Calculate Isolation
+     //https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/IsoValueMapProducer.cc
+     // auto iso = electron.pfIsolationVariables();
+     // auto chg = iso.sumChargedHadronPt;
+     // auto neu = iso.sumNeutralHadronEt;
+     // auto pho = iso.sumPhotonEt;
+     //auto ea = ea_pfiso_->getEffectiveArea(fabs(getEtaForEA(&electron)));
+     //float scale = relative_ ? 1.0/obj.pt() : 1;
 
      if(electron.pt() > 35 && fabs(electron.eta()) < 2.1){ // && isTightID){
      //Set up Lorentz Vector for Electrons
@@ -549,6 +678,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===///////////
    }
        
+   //SL Select events with only 1 isolated lepton
+   if(selectedLepLVec->size() > 1) return;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
 
    ///////////////////////
    //// Selected Jets ////
@@ -561,17 +695,18 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===//// CUT ///
    //===///////////
      
-
-     ////JET CLEANING
-     // for(int unj = 0; unj < selectedUncleanedJets.size(); unj++) {
-     //   bool isClose = false;
-     //   for(int e = 0; e < selectedElectrons.size(); e++) {
-     // 	 if(selectedElectrons[e]->DeltaR(*selectedUncleanedJets[unj]) < 0.3)
-     // 	   isClose = true;
-     //   }
      TLorentzVector perJetLVec;
      perJetLVec.SetPtEtaPhiE( jet.pt(), jet.eta(), jet.phi(), jet.energy() );
-
+     double dR = perJetLVec.DeltaR(selectedLepLVec->at(0));
+     if(deBug) 
+       std::cout << "Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
+		 << " Lep Phi: " << selectedLepLVec->at(0).Phi() << " Jet-Lep DeltaR: " << dR << std::endl;
+     if(dR < 0.3)
+	continue;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
+     
      double qgPtD = jet.userFloat("QGTagger:ptD");
      double qgAxis1 = jet.userFloat("QGTagger:axis1");
      double qgAxis2 = jet.userFloat("QGTagger:axis2");
@@ -601,14 +736,17 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      bool looseJetID = 
        (neutralHadronEnergyFraction < 0.99 && neutralEmEnergyFraction < 0.99 && (jet.chargedMultiplicity() + jet.neutralMultiplicity() ) > 1) && 
        ((fabs(jet.eta()) <= 2.4 && chargedHadronEnergyFraction > 0 && jet.chargedMultiplicity() > 0 && chargedEmEnergyFraction < 0.99) || fabs(jet.eta()) > 2.4 );
+     if(deBug) std::cout << " Jet Loose ID: " << looseJetID << std::endl;
      if(!looseJetID)
-       return;
+       continue;
+     std::cout << "I'm not here!" << std::endl;
+     //FAILURE: This if(!looseJetID) return; statement was here before, and it seems to have been causing a crash after the clear() statements were added before delete in endJob, and such on Oct 19
    //===/////////////
    //===//// CUT ///
    //===///////////
 
     
-     JetVec->push_back(perJetLVec);
+     JetLVec->push_back(perJetLVec);
      qgPtDVec->push_back(qgPtD);
      qgAxis1Vec->push_back(qgAxis1);
      qgAxis2Vec->push_back(qgAxis2);
@@ -639,46 +777,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    nEvts++;
 
-   //Fill tree, to be written by TFileService
+   ///////////////////////////////////////////
+   /// Fill Tree (written by TFileService) ///
+   ///////////////////////////////////////////
    tree->Fill();
 
-   //Clear pointers
-   JetVec->clear();
-   selectedLepLVec->clear();
-   vetoLepLVec->clear();
-   VertexVec->clear();
-   qgPtDVec->clear();
-   qgAxis1Vec->clear();
-   qgAxis2Vec->clear();
-   qgMultVec->clear();
-   deepCSVbVec->clear();
-   deepCSVcVec->clear();
-   deepCSVlVec->clear();
-   deepCSVbbVec->clear();
-   deepCSVccVec->clear();
-   btagVec->clear();
-   chargedHadronEnergyFractionVec->clear();
-   neutralHadronEnergyFractionVec->clear();
-   chargedEmEnergyFractionVec->clear();
-   neutralEmEnergyFractionVec->clear();
-   muonEnergyFractionVec->clear();
-   photonEnergyFractionVec->clear();
-   electronEnergyFractionVec->clear();
-   recoJetsHFHadronEnergyFractionVec->clear();
-   recoJetsHFEMEnergyFractionVec->clear();
-   chargedHadronMultiplicityVec->clear();
-   neutralHadronMultiplicityVec->clear();
-   photonMultiplicityVec->clear();
-   electronMultiplicityVec->clear();
-   muonMultiplicityVec->clear();
-
-   //reset bitsets
-   HLT_MuMu_B.reset();
-   HLT_ElMu_B.reset();
-   HLT_ElEl_B.reset();
-   HLT_Mu_B.reset();
-   HLT_El_B.reset();
-   MET_Flt_B.reset();
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;
@@ -700,13 +803,14 @@ SLntupler::beginJob()
    nRun = -1;
    nLumiBlock = -1; 
    nEvent = -1;
-   // HLT__= -1;
-   // HLT__= -1;
+   // HLT_MuMu_Bits= 0;
+   // HLT_ElMu_Bits_= -1;
    // HLT__= -1;
    // HLT__= -1;
    // HLT__= -1;
    //FIXME
-   JetVec = new std::vector<TLorentzVector>;
+   JetLVec = new std::vector<TLorentzVector>;
+   METLVec = new std::vector<TLorentzVector>;
    selectedLepLVec = new std::vector<TLorentzVector>;
    vetoLepLVec = new std::vector<TLorentzVector>;
    VertexVec = new std::vector<TLorentzVector>;
@@ -747,7 +851,8 @@ SLntupler::beginJob()
    tree->Branch("HLT_Mu_Bits", &HLT_Mu_Bits);
    tree->Branch("HLT_El_Bits", &HLT_El_Bits);
    tree->Branch("MET_Flt_Bits", &MET_Flt_Bits);
-   tree->Branch("JetVec", "vector<TLorentzVector>", &JetVec, 32000,-1);
+   tree->Branch("JetLVec", "vector<TLorentzVector>", &JetLVec, 32000,-1);
+   tree->Branch("METLVec", "vector<TLorentzVector>", &METLVec, 32000,-1);
    tree->Branch("selectedLepLVec", "vector<TLorentzVector>", &selectedLepLVec, 32000,-1);
    //tree->Branch("vetoLepLVec", "vector<TLorentzVector>", &vetoLepLVec, 32000, -1);
    //tree->Branch("ElectronVec", "vector<TLorentzVector>", &ElectronVec, 32000,-1);
@@ -787,8 +892,41 @@ SLntupler::endJob()
    //Using tree->Write(***) will invoke Write() TWICE, as the cmsRun framework does this for you. This results in a duplicate tree in the file
    // tree->GetDirectory()->cd();
    // tree->Write("", TObject::kOverwrite);
-   delete JetVec;
+
+   //Clear pointers
+   JetLVec->clear();
+   selectedLepLVec->clear();
+   METLVec->clear();
+   vetoLepLVec->clear();
+   VertexVec->clear();
+   qgPtDVec->clear();
+   qgAxis1Vec->clear();
+   qgAxis2Vec->clear();
+   qgMultVec->clear();
+   deepCSVbVec->clear();
+   deepCSVcVec->clear();
+   deepCSVlVec->clear();
+   deepCSVbbVec->clear();
+   deepCSVccVec->clear();
+   btagVec->clear();
+   chargedHadronEnergyFractionVec->clear();
+   neutralHadronEnergyFractionVec->clear();
+   chargedEmEnergyFractionVec->clear();
+   neutralEmEnergyFractionVec->clear();
+   muonEnergyFractionVec->clear();
+   photonEnergyFractionVec->clear();
+   electronEnergyFractionVec->clear();
+   recoJetsHFHadronEnergyFractionVec->clear();
+   recoJetsHFEMEnergyFractionVec->clear();
+   chargedHadronMultiplicityVec->clear();
+   neutralHadronMultiplicityVec->clear();
+   photonMultiplicityVec->clear();
+   electronMultiplicityVec->clear();
+   muonMultiplicityVec->clear();
+
+   delete JetLVec;
    delete selectedLepLVec;
+   delete METLVec;
    //delete vetoLepLVec;
    //delete ElectronVec;
    delete qgPtDVec;

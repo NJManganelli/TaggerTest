@@ -20,7 +20,14 @@ process.source = cms.Source("PoolSource",
     )
 )
 
-process.tree = cms.EDAnalyzer('SLntupler')
+process.tree = cms.EDAnalyzer('SLntupler',
+                              deBug = cms.untracked.bool(True),
+                              HTMin = cms.untracked.double(100),
+                              eleVetoIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-veto"),
+                              eleLooseIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-loose"),
+                              eleMediumIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium"),
+                              eleTightIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-tight"),
+                              )
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('SLntuple.root'),
                                    closeFileFast = cms.untracked.bool(True) 

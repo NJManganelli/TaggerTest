@@ -84,6 +84,7 @@ process.BTAGSequence = cms.Sequence(process.QGTagger *
 ##### Electron ID Configuration #####
 #####################################
 #####################################
+#Mirena's code
 
 #Electron ID configuration
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
@@ -94,13 +95,17 @@ switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce
 my_id_modules = [
-    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronHLTPreselecition_Summer16_V1_cff'
+    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronHLTPreselecition_Summer16_V1_cff', # previously used with 2016 data
+    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Summer16_80X_V1_cff', # previously used with 2016 data
+    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff', # previously used with 2016 data
+    # 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V1_cff', # with 2017 data
+    # 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V1_cff', # with 2017 data 
+    # 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V1_cff', # with 2017 data
     ]
 
 #add them to the VID producer
 for idmod in my_id_modules:
-    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
-
+    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)    
 #################################
 #################################
 ##### NTupler Configuration #####
