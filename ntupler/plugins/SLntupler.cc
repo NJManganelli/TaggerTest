@@ -96,9 +96,10 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       virtual void endJob() override;
 
       // ----------member data ---------------------------
+
+  //Parameter Set
   bool isData, isMC, deBug;
   bool is2016, is2017, is2018;
-
   double HTMin;
 
   //Tokens
@@ -150,9 +151,11 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   //TTree
   TTree *tree;
 
+  //Data and collections
   uint nEvts, nRun, nLumiBlock, nEvent;
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
+  double HT, HTX, HT2M; //FIXME Calculate and add these...
   std::vector<TLorentzVector> *JetLVec, *selectedLepLVec, *vetoLepLVec, *VertexVec, *METLVec; //Change to pointer vector of pointers for sorting efficiency! FIXME!
   std::vector<double> *qgPtDVec, *qgAxis1Vec, *qgAxis2Vec, *qgMultVec;
   std::vector<double> *deepCSVbVec, *deepCSVcVec, *deepCSVlVec, *deepCSVbbVec, *deepCSVccVec, *btagVec;
@@ -440,7 +443,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    JetLVec->clear();
    selectedLepLVec->clear();
    METLVec->clear();
-   // vetoLepLVec->clear();
    VertexVec->clear();
    qgPtDVec->clear();
    qgAxis1Vec->clear();
@@ -689,6 +691,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ///////////////////////
    //// Selected Jets ////
    ///////////////////////
+
+   //Reset HT to 0
+   HT = 0;
    for(const pat::Jet&jet : *jets){
      //Jet Selection 30GeV, usual calorimeter acceptance
      if(jet.pt() < 30 || fabs(jet.eta()) >= 2.5)
@@ -708,7 +713,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===/////////////
    //===//// CUT ///
    //===///////////
-     
      double qgPtD = jet.userFloat("QGTagger:ptD");
      double qgAxis1 = jet.userFloat("QGTagger:axis1");
      double qgAxis2 = jet.userFloat("QGTagger:axis2");
@@ -741,13 +745,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      if(deBug) std::cout << " Jet Loose ID: " << looseJetID << std::endl;
      if(!looseJetID)
        continue;
-     std::cout << "I'm not here!" << std::endl;
-     //FAILURE: This if(!looseJetID) return; statement was here before, and it seems to have been causing a crash after the clear() statements were added before delete in endJob, and such on Oct 19
    //===/////////////
    //===//// CUT ///
    //===///////////
 
-    
+     //Sum HT for selected jets
+     HT += jet.pt();
+
+
      JetLVec->push_back(perJetLVec);
      qgPtDVec->push_back(qgPtD);
      qgAxis1Vec->push_back(qgAxis1);
@@ -777,6 +782,17 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      if(deBug) std::cout << " Pt: " << jet.pt() << " btag: " << btag << std::endl;
    }
 
+   //////////////////////
+   /// HT Minimum cut ///
+   //////////////////////
+   if(deBug)
+     std::cout << "HT: " << HT << std::endl;
+   if(HT < HTMin)
+     return;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
+
    nEvts++;
 
    ///////////////////////////////////////////
@@ -805,12 +821,8 @@ SLntupler::beginJob()
    nRun = -1;
    nLumiBlock = -1; 
    nEvent = -1;
-   // HLT_MuMu_Bits= 0;
-   // HLT_ElMu_Bits_= -1;
-   // HLT__= -1;
-   // HLT__= -1;
-   // HLT__= -1;
-   //FIXME
+   HT = -1;
+   //FIXME: Add missing variables for leptons, isolation, jetID, HT, etc.
    JetLVec = new std::vector<TLorentzVector>;
    METLVec = new std::vector<TLorentzVector>;
    selectedLepLVec = new std::vector<TLorentzVector>;
@@ -847,6 +859,9 @@ SLntupler::beginJob()
    tree->Branch("run", &nRun);
    tree->Branch("lumiBlock", &nLumiBlock);
    tree->Branch("event", &nEvent);
+   tree->Branch("HT", &HT);
+   // tree->Branch("HTX", &HTX);
+   // tree->Branch("HT2M", &HT2M);
    tree->Branch("HLT_MuMu_Bits", &HLT_MuMu_Bits);
    tree->Branch("HLT_ElMu_Bits", &HLT_ElMu_Bits);
    tree->Branch("HLT_ElEl_Bits", &HLT_ElEl_Bits);
@@ -856,8 +871,6 @@ SLntupler::beginJob()
    tree->Branch("JetLVec", "vector<TLorentzVector>", &JetLVec, 32000,-1);
    tree->Branch("METLVec", "vector<TLorentzVector>", &METLVec, 32000,-1);
    tree->Branch("selectedLepLVec", "vector<TLorentzVector>", &selectedLepLVec, 32000,-1);
-   //tree->Branch("vetoLepLVec", "vector<TLorentzVector>", &vetoLepLVec, 32000, -1);
-   //tree->Branch("ElectronVec", "vector<TLorentzVector>", &ElectronVec, 32000,-1);
    tree->Branch("VertexVec", "vector<TLorentzVector>", &VertexVec, 32000, -1);
    tree->Branch("qgPtD", &qgPtDVec);
    tree->Branch("qgAxis1", &qgAxis1Vec);
@@ -929,8 +942,6 @@ SLntupler::endJob()
    delete JetLVec;
    delete selectedLepLVec;
    delete METLVec;
-   //delete vetoLepLVec;
-   //delete ElectronVec;
    delete qgPtDVec;
    delete qgAxis1Vec;
    delete qgAxis2Vec;
