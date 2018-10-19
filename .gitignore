@@ -3,6 +3,7 @@ __init__.py
 .*.swp
 .#*
 #*#
+#*.*#
 *~
 **/data/*.root
 **/test/*.root

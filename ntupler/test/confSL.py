@@ -1,1 +1,1 @@
-../python/SL.py
+../python/confSL.py

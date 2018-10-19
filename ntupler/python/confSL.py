@@ -20,14 +20,16 @@ process.source = cms.Source("PoolSource",
     )
 )
 
-process.tree = cms.EDAnalyzer('SLntupler',
-                              deBug = cms.untracked.bool(True),
-                              HTMin = cms.untracked.double(100),
-                              eleVetoIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-veto"),
-                              eleLooseIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-loose"),
-                              eleMediumIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium"),
-                              eleTightIdMap2016 = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-tight"),
-                              )
+#Create process.tree with default values. 
+#One of isData and isMC must be set to true.
+#One of is2016, is2017, is2018 must be set to true.
+#deBug may be set to true to dump event details
+process.load("Demo.ntupler.CfiFile_SL")
+process.tree.isMC = cms.bool(True)
+process.tree.is2016 = cms.bool(True)
+process.tree.deBug = cms.bool(True)
+process.tree.HTMin = cms.double(50)
+
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('SLntuple.root'),
                                    closeFileFast = cms.untracked.bool(True) 

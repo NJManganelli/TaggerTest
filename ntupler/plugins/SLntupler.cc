@@ -175,7 +175,9 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 // constructors and destructor
 //
 SLntupler::SLntupler(const edm::ParameterSet& iConfig):
-  isData(false), isMC(true), deBug(true), is2016(true), is2017(false), is2018(false), //HTMin(10),
+  isData(iConfig.getParameter<bool>("isData")), isMC(iConfig.getParameter<bool>("isMC")), deBug(iConfig.getParameter<bool>("deBug")), 
+  is2016(iConfig.getParameter<bool>("is2016")), is2017(iConfig.getParameter<bool>("is2017")), is2018(iConfig.getParameter<bool>("is2018")), 
+  HTMin(iConfig.getParameter<double>("HTMin")),
   EleVetoIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap2016"))),
   EleLooseIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap2016"))),
   EleMediumIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap2016"))),
