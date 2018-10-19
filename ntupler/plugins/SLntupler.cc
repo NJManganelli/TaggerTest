@@ -106,6 +106,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   edm::EDGetTokenT<std::vector<pat::Jet> > JetToken;
   edm::EDGetTokenT<std::vector<pat::Muon> > MuonToken;
   edm::EDGetTokenT<std::vector<pat::Electron> > ElectronToken;
+  edm::EDGetTokenT<edm::View<reco::GsfElectron> > GsfElectronToken;
   edm::EDGetTokenT<edm::ValueMap<bool> > EleVetoIdMapToken;
   edm::EDGetTokenT<edm::ValueMap<bool> > EleLooseIdMapToken;
   edm::EDGetTokenT<edm::ValueMap<bool> > EleMediumIdMapToken;
@@ -197,6 +198,7 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig):
    JetToken = consumes<std::vector<pat::Jet> >(edm::InputTag("selectedUpdatedPatJetsDeepCSV"));
    MuonToken = consumes<std::vector<pat::Muon> >(edm::InputTag("slimmedMuons"));
    ElectronToken = consumes<std::vector<pat::Electron> >(edm::InputTag("slimmedElectrons"));
+   GsfElectronToken = consumes<edm::View<reco::GsfElectron> >(edm::InputTag("slimmedElectrons"));
    METToken = consumes<std::vector<pat::MET> >(edm::InputTag("slimmedMETs"));
    VtxToken = consumes<std::vector<reco::Vertex> >(edm::InputTag("offlineSlimmedPrimaryVertices"));
    HLTToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults", "", "HLT"));
@@ -310,10 +312,15 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(!muons.isValid()) {
      throw cms::Exception("Muon collection not valid!"); 
    }
-   edm::Handle<std::vector<pat::Electron> > electrons;
-   iEvent.getByToken(ElectronToken, electrons);
-   if(!electrons.isValid()) {
-     throw cms::Exception("Electron collection not valid!"); 
+   // edm::Handle<std::vector<pat::Electron> > electrons;
+   // iEvent.getByToken(ElectronToken, electrons);
+   // if(!electrons.isValid()) {
+   //   throw cms::Exception("Electron collection not valid!"); 
+   // }
+   edm::Handle<edm::View<reco::GsfElectron> > gsfelectrons; //Just a cast of pat::Electrons, so we can do gymnastics for IDs... not necessary in later CMSSW releases
+   iEvent.getByToken(GsfElectronToken, gsfelectrons);
+   if(!gsfelectrons.isValid()) {
+     throw cms::Exception("Casting electrons to reco::GsfElectron failed!");
    }
    edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
    iEvent.getByToken(EleVetoIdMapToken,veto_id_decisions);
@@ -365,7 +372,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    // if(!conversions.isValid()) {
    //   throw cms::Exception("Conversions collection not valid!");
    // }
-
    edm::Handle<reco::BeamSpot> theBeamSpot;
    iEvent.getByToken(BeamSpotToken,theBeamSpot); 
    if(!theBeamSpot.isValid()) {
@@ -374,7 +380,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    // edm::Handle<double> rho;
    // iEvent.getByToken(RhoToken, rho);
    //protect against bad parameter?
-
    if(isMC){
      edm::Handle <std::vector<pat::PackedGenParticle> > gens;
      iEvent.getByToken(GenToken, gens);
@@ -480,6 +485,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    /////////////////////////////
    /// HLT TRIGGER SELECTION ///
    /////////////////////////////
+   std::cout << "\n=============HLT=============\n";
    const edm::TriggerNames &HLTnames = iEvent.triggerNames(*HLTTrg);
    for (unsigned int i = 0, n = HLTTrg->size(); i < n; ++i) {
      //std::cout << HLTnames.triggerName(i) << std::endl;
@@ -491,33 +497,33 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::string trgSubName = trgName.substr(0, trgName.find(delimeter) + delimeter.length()); //only take the common portion of trigger (up through version marker _v)
      for(uint j = 0; j < HLT_MuMu_S.size(); j++)
        if (trgSubName == HLT_MuMu_S[j]){
-	 if(deBug) std::cout << "Initial Bits: " << HLT_MuMu_B << std::endl;
+	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_MuMu_B;
 	 HLT_MuMu_B[j] = trgBit; //sets individual bit, starting from most significant ("leftmost" in 'operator<<' language)
-	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_MuMu_B << std::endl;
+	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_MuMu_B << std::endl;
        }
      for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
        if (trgSubName == HLT_ElMu_S[jj]){
-	 if(deBug) std::cout << "Initial Bits: " << HLT_ElMu_B << std::endl;
+	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElMu_B;
 	 HLT_ElMu_B[jj] = trgBit;
-	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_ElMu_B << std::endl;
+	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElMu_B << std::endl;
        }
      for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
        if (trgSubName == HLT_ElEl_S[jjj]){
-	 if(deBug) std::cout << "Initial Bits: " << HLT_ElEl_B << std::endl;
+	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElEl_B;
 	 HLT_ElEl_B[jjj] = trgBit;
-	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_ElEl_B << std::endl;
+	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElEl_B << std::endl;
        }
      for(uint k = 0; k < HLT_Mu_S.size(); k++)
        if (trgSubName == HLT_Mu_S[k]){
-	 if(deBug) std::cout << "Initial Bits: " << HLT_Mu_B << std::endl;
+	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_Mu_B;
 	 HLT_Mu_B[k] = trgBit;
-	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_Mu_B << std::endl;
+	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_Mu_B << std::endl;
        }
      for(uint kk = 0; kk < HLT_El_S.size(); kk++)
        if (trgSubName == HLT_El_S[kk]){
-	 if(deBug) std::cout << "Initial Bits: " << HLT_El_B << std::endl;
+	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_El_B;
 	 HLT_El_B[kk] = trgBit;
-	 if(deBug) std::cout << " Name: " << trgName << " Accepted: " << trgBit << " Bits: " << HLT_El_B << std::endl;
+	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_El_B << std::endl;
        }     
    }
    //bitset -> unsigned long -> unsigned int (ROOT-compatible format)
@@ -532,8 +538,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //   return; //void main, so just return nothing 
 
    //SL Trigger only
-   if(!(HLT_Mu_B.any() || HLT_El_B.any()))
+   if(!(HLT_Mu_B.any() || HLT_El_B.any())){
+     if(deBug)
+       std::cout << "No SL triggers pass!" << std::endl;
      return; //move to next event if not SL trigger
+   }
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -549,7 +558,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        bool fltBit = METFlt->accept(i); //filter pass bit
        for(uint j = 0; j < MET_Flt_S.size(); j++){
 	 if (fltName == MET_Flt_S[j]){
-	   if(deBug) std::cout << "Initial Bits: " << MET_Flt_B << std::endl;
+	   if(deBug) std::cout << "Initial Bits: " << MET_Flt_B;
 	   MET_Flt_B[j] = fltBit; //store bit decision in bitset
 	   if(deBug) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
 	 }     
@@ -579,7 +588,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
    }
    //Require good vertex
-   if(firstGoodVertex == vertices->end()) return;
+   if(firstGoodVertex == vertices->end()){
+     if(deBug)
+       std::cout << "No good PV!" << std::endl;
+     return;
+   }
    TLorentzVector perVertexLVec;
    perVertexLVec.SetXYZT(firstGoodVertex->position().X(), firstGoodVertex->position().Y(), firstGoodVertex->position().Z(), 0); //dummy 0 for Time coordinate
    VertexVec->push_back(perVertexLVec); //First vertex in vector is primary. SVs can be emplaced afterwards
@@ -590,10 +603,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ///////////////////////
    //// MET Selection ////
    ///////////////////////
+   std::cout << "\n=============MET=============\n";
    const pat::MET &met = mets->front();
    if(deBug) std::cout << "MET Pt: " << met.pt() << " Phi: " << met.phi() << std::endl;
-   if(met.pt() < 50)
+   if(met.pt() < 50){
+     if(deBug) 
+       std::cout << "MET below 50GeV!" << std::endl;
      return;
+   }
    // TLorentzVector perMETLVec;
    // perMETLVec.SetPtEtaPhiE(met.pt(), met.eta(), met.phi(), met.energy());
    // METLVec->push_back(perMETLVec);
@@ -604,6 +621,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////
    //// Selected Muons ////
    ////////////////////////
+   std::cout << "\n============Muons============\n";
    for(const pat::Muon& muon : *muons){
      //Min cuts for the Loose (veto) Muon selection
      if(muon.pt() <= 10 || fabs(muon.eta()) >= 2.5)
@@ -633,12 +651,16 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        //debug info
        if(deBug)
-	 std::cout << "Tight ID: " << muon.isTightMuon(*firstGoodVertex) << " Pt: " << muon.pt() << " Eta: " << muon.eta() << " relIso: " << relIso << std::endl;
+	 std::cout << "Pt: " << muon.pt() << " Eta: " << muon.eta() << " Phi: " << muon.phi()  << "Tight ID: " << muon.isTightMuon(*firstGoodVertex)
+		   << " Loose ID: " << muon.isLooseMuon() << " relIso: " << relIso << std::endl;
      }
 
      //Select Loose Muons for Veto (Loose ID, relIso < 0.25, pt > 10, |eta| < 2.5)
-     else if(muon.isLooseMuon() )
+     else if(muon.isLooseMuon() ){
+       if(deBug)
+	 std::cout << "Loose Muon (2nd Lepton) detected!" << std::endl;
        return;  // If there are any Loose/Veto Leptons, then not in the SL channel!
+     }
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -648,15 +670,26 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////////
    //// Selected Electrons ////
    ////////////////////////////
-   for(const pat::Electron& electron : *electrons){
+   std::cout << "\n==========Electrons==========\n";
+   int ii = -1;
+   for(const reco::GsfElectron& electron : *gsfelectrons){
+     ii++;
      //Select veto lepton cuts minimum
      if(electron.pt() < 15 || fabs(electron.eta()) > 2.5 )
        continue;
    //===/////////////
    //===//// CUT ///
    //===///////////
+
+     //Need to do fucking juggling to get a GsfElectron pointer so that we can then get the ID. Thankfully fixed in MiniAOD V2 (94X +), where
+     //electron ID is just accessed with electronIterator->electronID("Name_Of_The_ID")
+     const auto el = gsfelectrons->ptrAt(ii);
+     bool vetoID = (*veto_id_decisions)[el];
+     bool tightID = (*tight_id_decisions)[el];
+
+     //deBug info
      if(deBug)
-       std::cout << "Pt: " << electron.pt() << " Eta: " << electron.eta() << " Phi: " << electron.phi() << " E-Iso: " << electron.ecalPFClusterIso() << " H-Iso: " << electron.hcalPFClusterIso() << std::endl;
+       std::cout << "Pt: " << electron.pt() << " Eta: " << electron.eta() << " Phi: " << electron.phi() << " Veto ID: " << vetoID << " Tight ID: " << tightID << std::endl;
 
      //Calculate Isolation
      //https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/plugins/IsoValueMapProducer.cc
@@ -667,7 +700,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //auto ea = ea_pfiso_->getEffectiveArea(fabs(getEtaForEA(&electron)));
      //float scale = relative_ ? 1.0/obj.pt() : 1;
 
-     if(electron.pt() > 35 && fabs(electron.eta()) < 2.1){ // && isTightID){
+     if(electron.pt() > 35 && fabs(electron.eta()) < 2.1 && tightID){
      //Set up Lorentz Vector for Electrons
      TLorentzVector perElectronLVec;
      perElectronLVec.SetPtEtaPhiE( electron.pt(), electron.eta(), electron.phi(), electron.energy() );
@@ -675,15 +708,22 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //Add to selected leptons
      selectedLepLVec->push_back(perElectronLVec);
      }
-     else if("FIXME" == 0)//isVetoID)
+     else if(vetoID){
+       if(deBug)
+	 std::cout << "Veto electron (2nd Lepton) detected!" << std::endl;
        return;
+     }
    //===/////////////
    //===//// CUT ///
    //===///////////
    }
        
    //SL Select events with only 1 isolated lepton
-   if(selectedLepLVec->size() > 1) return;
+   if(selectedLepLVec->size() > 1){
+     if(deBug)
+       std::cout << "Two well-ID'd, well-isolated leptons detected!" << std::endl;
+     return;
+   }
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -691,7 +731,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ///////////////////////
    //// Selected Jets ////
    ///////////////////////
-
+   std::cout << "\n=============Jets============\n";
    //Reset HT to 0
    HT = 0;
    for(const pat::Jet&jet : *jets){
@@ -706,10 +746,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      perJetLVec.SetPtEtaPhiE( jet.pt(), jet.eta(), jet.phi(), jet.energy() );
      double dR = perJetLVec.DeltaR(selectedLepLVec->at(0));
      if(deBug) 
-       std::cout << "Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
+       std::cout << ">>Cross-Cleaning<< Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
 		 << " Lep Phi: " << selectedLepLVec->at(0).Phi() << " Jet-Lep DeltaR: " << dR << std::endl;
-     if(dR < 0.3)
+     if(dR < 0.3){
+       std::cout << "Cross-cleaning jet!" << std::endl;
 	continue;
+     }
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -742,7 +784,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      bool looseJetID = 
        (neutralHadronEnergyFraction < 0.99 && neutralEmEnergyFraction < 0.99 && (jet.chargedMultiplicity() + jet.neutralMultiplicity() ) > 1) && 
        ((fabs(jet.eta()) <= 2.4 && chargedHadronEnergyFraction > 0 && jet.chargedMultiplicity() > 0 && chargedEmEnergyFraction < 0.99) || fabs(jet.eta()) > 2.4 );
-     if(deBug) std::cout << " Jet Loose ID: " << looseJetID << std::endl;
+     if(deBug) std::cout << "Pt: " << jet.pt() << " Eta: " << jet.eta() << " Phi: " << jet.phi() << " Jet Loose ID: " 
+			 << looseJetID << " CSVv2: " << btag << " DeepCSV(b+bb): " << deepCSVb + deepCSVbb << std::endl;
      if(!looseJetID)
        continue;
    //===/////////////
@@ -778,8 +821,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      photonMultiplicityVec->push_back(photonMultiplicity);
      electronMultiplicityVec->push_back(electronMultiplicity);
      muonMultiplicityVec->push_back(muonMultiplicity);
- 
-     if(deBug) std::cout << " Pt: " << jet.pt() << " btag: " << btag << std::endl;
    }
 
    //////////////////////
@@ -787,8 +828,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //////////////////////
    if(deBug)
      std::cout << "HT: " << HT << std::endl;
-   if(HT < HTMin)
+   if(HT < HTMin){
+     if(deBug)
+       std::cout << "HT below threshold of " << HTMin << "!" << std::endl;
      return;
+   }
    //===/////////////
    //===//// CUT ///
    //===///////////
