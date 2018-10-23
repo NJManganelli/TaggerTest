@@ -101,6 +101,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   bool isData, isMC, deBug;
   bool is2016, is2017, is2018;
   double HTMin;
+  int NjMin;
 
   //Tokens
   edm::EDGetTokenT<std::vector<pat::Jet> > JetToken;
@@ -181,7 +182,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 SLntupler::SLntupler(const edm::ParameterSet& iConfig):
   isData(iConfig.getParameter<bool>("isData")), isMC(iConfig.getParameter<bool>("isMC")), deBug(iConfig.getParameter<bool>("deBug")), 
   is2016(iConfig.getParameter<bool>("is2016")), is2017(iConfig.getParameter<bool>("is2017")), is2018(iConfig.getParameter<bool>("is2018")), 
-  HTMin(iConfig.getParameter<double>("HTMin")),
+  HTMin(iConfig.getParameter<double>("HTMin")), NjMin(iConfig.getParameter<int>("NjMin")),
   EleVetoIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap2016"))),
   EleLooseIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap2016"))),
   EleMediumIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap2016"))),
@@ -700,7 +701,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //auto ea = ea_pfiso_->getEffectiveArea(fabs(getEtaForEA(&electron)));
      //float scale = relative_ ? 1.0/obj.pt() : 1;
 
-     if(electron.pt() > 35 && fabs(electron.eta()) < 2.1 && tightID){
+     if(electron.pt() > 30 && fabs(electron.eta()) < 2.1 && tightID){
      //Set up Lorentz Vector for Electrons
      TLorentzVector perElectronLVec;
      perElectronLVec.SetPtEtaPhiE( electron.pt(), electron.eta(), electron.phi(), electron.energy() );
@@ -744,17 +745,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      
      TLorentzVector perJetLVec;
      perJetLVec.SetPtEtaPhiE( jet.pt(), jet.eta(), jet.phi(), jet.energy() );
-     double dR = perJetLVec.DeltaR(selectedLepLVec->at(0));
-     if(deBug) 
-       std::cout << ">>Cross-Cleaning<< Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
-		 << " Lep Phi: " << selectedLepLVec->at(0).Phi() << " Jet-Lep DeltaR: " << dR << std::endl;
-     if(dR < 0.3){
-       std::cout << "Cross-cleaning jet!" << std::endl;
-	continue;
-     }
-   //===/////////////
-   //===//// CUT ///
-   //===///////////
      double qgPtD = jet.userFloat("QGTagger:ptD");
      double qgAxis1 = jet.userFloat("QGTagger:axis1");
      double qgAxis2 = jet.userFloat("QGTagger:axis2");
@@ -788,6 +778,19 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			 << looseJetID << " CSVv2: " << btag << " DeepCSV(b+bb): " << deepCSVb + deepCSVbb << std::endl;
      if(!looseJetID)
        continue;
+   //===/////////////
+   //===//// CUT ///
+   //===///////////
+
+     double dR = perJetLVec.DeltaR(selectedLepLVec->at(0));
+     if(deBug) 
+       std::cout << ">>Cross-Cleaning<< Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
+		 << " Lep Phi: " << selectedLepLVec->at(0).Phi() << " Jet-Lep DeltaR: " << dR << std::endl;
+     //0.4 for SL, 0.3 for DL!
+     if(dR < 0.4){
+       std::cout << "Cross-cleaning jet!" << std::endl;
+	continue;
+     }
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -837,6 +840,17 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===//// CUT ///
    //===///////////
 
+   ////////////////////////
+   /// Njet Minimum cut ///
+   ////////////////////////
+   if(deBug)
+     std::cout << "Njet: " << JetLVec->size() << std::endl;
+   if(NjMin > -1)
+     if(JetLVec->size() < (uint)NjMin){
+       if(deBug) 
+	 std::cout << "Below threshold of minimum jets, continuing to next event" << std::endl;
+       return;
+     }
    nEvts++;
 
    ///////////////////////////////////////////

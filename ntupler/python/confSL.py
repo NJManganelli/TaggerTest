@@ -24,11 +24,14 @@ process.source = cms.Source("PoolSource",
 #One of isData and isMC must be set to true.
 #One of is2016, is2017, is2018 must be set to true.
 #deBug may be set to true to dump event details
+#HTMin may be set to any double value greater than 0
+#NjMin may be set to an int32 value noting minimum number of jets. Less than 0 indicates no cuts
 process.load("Demo.ntupler.CfiFile_SL")
 process.tree.isMC = cms.bool(True)
 process.tree.is2016 = cms.bool(True)
 process.tree.deBug = cms.bool(True)
 process.tree.HTMin = cms.double(50)
+process.tree.NjMin = cms.int32(3)
 
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('SLntuple.root'),
