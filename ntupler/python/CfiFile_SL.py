@@ -1,8 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 tree = cms.EDAnalyzer('SLntupler',
+                      theProblemEvent = cms.uint32(0),
                       isData = cms.bool(False),
                       isMC = cms.bool(False),
                       deBug = cms.bool(False),
+                      verBose = cms.bool(False),
                       is2016 = cms.bool(False),
                       is2017 = cms.bool(False),
                       is2018 = cms.bool(False),

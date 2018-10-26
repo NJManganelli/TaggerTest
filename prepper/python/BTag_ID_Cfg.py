@@ -20,7 +20,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #else:
 print "Running on MC"
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(2000) )
 
 ################################
 ################################

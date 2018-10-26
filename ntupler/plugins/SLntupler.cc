@@ -97,8 +97,11 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 
       // ----------member data ---------------------------
 
+  //Internal counter
+  uint counter, theProblemEvent;
+
   //Parameter Set
-  bool isData, isMC, deBug;
+  bool isData, isMC, deBug, verBose;
   bool is2016, is2017, is2018;
   double HTMin;
   int NjMin;
@@ -179,8 +182,9 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 //
 // constructors and destructor
 //
-SLntupler::SLntupler(const edm::ParameterSet& iConfig):
-  isData(iConfig.getParameter<bool>("isData")), isMC(iConfig.getParameter<bool>("isMC")), deBug(iConfig.getParameter<bool>("deBug")), 
+SLntupler::SLntupler(const edm::ParameterSet& iConfig): theProblemEvent(iConfig.getParameter<uint>("theProblemEvent")),
+  isData(iConfig.getParameter<bool>("isData")), isMC(iConfig.getParameter<bool>("isMC")), 
+  deBug(iConfig.getParameter<bool>("deBug")), verBose(iConfig.getParameter<bool>("verBose")), 
   is2016(iConfig.getParameter<bool>("is2016")), is2017(iConfig.getParameter<bool>("is2017")), is2018(iConfig.getParameter<bool>("is2018")), 
   HTMin(iConfig.getParameter<double>("HTMin")), NjMin(iConfig.getParameter<int>("NjMin")),
   EleVetoIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap2016"))),
@@ -192,6 +196,7 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig):
 {
    //Explicitly declare shared resource TFileService to make it threadsafe
    usesResource("TFileService");
+   counter = 0;
 
    ////////////////////
    ////// Tokens //////
@@ -302,6 +307,9 @@ SLntupler::~SLntupler()
 void
 SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+   counter++;
+   if(deBug) std::cout << "Counter: " << counter << std::endl;
+
    using namespace edm;
    edm::Handle<std::vector<pat::Jet> > jets;
    iEvent.getByToken(JetToken, jets);
@@ -486,7 +494,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    /////////////////////////////
    /// HLT TRIGGER SELECTION ///
    /////////////////////////////
-   std::cout << "\n=============HLT=============\n";
+   if(verBose) std::cout << "\n=============HLT=============\n";
    const edm::TriggerNames &HLTnames = iEvent.triggerNames(*HLTTrg);
    for (unsigned int i = 0, n = HLTTrg->size(); i < n; ++i) {
      //std::cout << HLTnames.triggerName(i) << std::endl;
@@ -498,33 +506,33 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::string trgSubName = trgName.substr(0, trgName.find(delimeter) + delimeter.length()); //only take the common portion of trigger (up through version marker _v)
      for(uint j = 0; j < HLT_MuMu_S.size(); j++)
        if (trgSubName == HLT_MuMu_S[j]){
-	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_MuMu_B;
+	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_MuMu_B;
 	 HLT_MuMu_B[j] = trgBit; //sets individual bit, starting from most significant ("leftmost" in 'operator<<' language)
-	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_MuMu_B << std::endl;
+	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_MuMu_B << std::endl;
        }
      for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
        if (trgSubName == HLT_ElMu_S[jj]){
-	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElMu_B;
+	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElMu_B;
 	 HLT_ElMu_B[jj] = trgBit;
-	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElMu_B << std::endl;
+	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElMu_B << std::endl;
        }
      for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
        if (trgSubName == HLT_ElEl_S[jjj]){
-	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElEl_B;
+	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElEl_B;
 	 HLT_ElEl_B[jjj] = trgBit;
-	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElEl_B << std::endl;
+	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElEl_B << std::endl;
        }
      for(uint k = 0; k < HLT_Mu_S.size(); k++)
        if (trgSubName == HLT_Mu_S[k]){
-	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_Mu_B;
+	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_Mu_B;
 	 HLT_Mu_B[k] = trgBit;
-	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_Mu_B << std::endl;
+	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_Mu_B << std::endl;
        }
      for(uint kk = 0; kk < HLT_El_S.size(); kk++)
        if (trgSubName == HLT_El_S[kk]){
-	 if(deBug) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_El_B;
+	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_El_B;
 	 HLT_El_B[kk] = trgBit;
-	 if(deBug) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_El_B << std::endl;
+	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_El_B << std::endl;
        }     
    }
    //bitset -> unsigned long -> unsigned int (ROOT-compatible format)
@@ -540,7 +548,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    //SL Trigger only
    if(!(HLT_Mu_B.any() || HLT_El_B.any())){
-     if(deBug)
+     if(verBose)
        std::cout << "No SL triggers pass!" << std::endl;
      return; //move to next event if not SL trigger
    }
@@ -555,13 +563,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      const edm::TriggerNames &names = iEvent.triggerNames(*METFlt);
      for (uint i = 0; i < METFlt->size(); ++i) {
        std::string fltName = names.triggerName(i); //convenient name storage
-       if(deBug) std::cout << fltName << std::endl;
+       if(verBose) std::cout << fltName << std::endl;
        bool fltBit = METFlt->accept(i); //filter pass bit
        for(uint j = 0; j < MET_Flt_S.size(); j++){
 	 if (fltName == MET_Flt_S[j]){
-	   if(deBug) std::cout << "Initial Bits: " << MET_Flt_B;
+	   if(verBose) std::cout << "Initial Bits: " << MET_Flt_B;
 	   MET_Flt_B[j] = fltBit; //store bit decision in bitset
-	   if(deBug) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
+	   if(verBose) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
 	 }     
        }
      }
@@ -590,7 +598,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
    //Require good vertex
    if(firstGoodVertex == vertices->end()){
-     if(deBug)
+     if(verBose)
        std::cout << "No good PV!" << std::endl;
      return;
    }
@@ -604,11 +612,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ///////////////////////
    //// MET Selection ////
    ///////////////////////
-   std::cout << "\n=============MET=============\n";
+   if(verBose) std::cout << "\n=============MET=============\n";
    const pat::MET &met = mets->front();
-   if(deBug) std::cout << "MET Pt: " << met.pt() << " Phi: " << met.phi() << std::endl;
+   if(verBose) std::cout << "MET Pt: " << met.pt() << " Phi: " << met.phi() << std::endl;
    if(met.pt() < 50){
-     if(deBug) 
+     if(verBose) 
        std::cout << "MET below 50GeV!" << std::endl;
      return;
    }
@@ -622,7 +630,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////
    //// Selected Muons ////
    ////////////////////////
-   std::cout << "\n============Muons============\n";
+   if(verBose) std::cout << "\n============Muons============\n";
    for(const pat::Muon& muon : *muons){
      //Min cuts for the Loose (veto) Muon selection
      if(muon.pt() <= 10 || fabs(muon.eta()) >= 2.5)
@@ -651,14 +659,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        selectedLepLVec->push_back(perMuonLVec);
 
        //debug info
-       if(deBug)
+       if(verBose)
 	 std::cout << "Pt: " << muon.pt() << " Eta: " << muon.eta() << " Phi: " << muon.phi()  << "Tight ID: " << muon.isTightMuon(*firstGoodVertex)
 		   << " Loose ID: " << muon.isLooseMuon() << " relIso: " << relIso << std::endl;
      }
 
      //Select Loose Muons for Veto (Loose ID, relIso < 0.25, pt > 10, |eta| < 2.5)
      else if(muon.isLooseMuon() ){
-       if(deBug)
+       if(verBose)
 	 std::cout << "Loose Muon (2nd Lepton) detected!" << std::endl;
        return;  // If there are any Loose/Veto Leptons, then not in the SL channel!
      }
@@ -671,7 +679,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////////
    //// Selected Electrons ////
    ////////////////////////////
-   std::cout << "\n==========Electrons==========\n";
+   if(verBose) std::cout << "\n==========Electrons==========\n";
    int ii = -1;
    for(const reco::GsfElectron& electron : *gsfelectrons){
      ii++;
@@ -688,8 +696,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      bool vetoID = (*veto_id_decisions)[el];
      bool tightID = (*tight_id_decisions)[el];
 
-     //deBug info
-     if(deBug)
+     //verBose info
+     if(verBose)
        std::cout << "Pt: " << electron.pt() << " Eta: " << electron.eta() << " Phi: " << electron.phi() << " Veto ID: " << vetoID << " Tight ID: " << tightID << std::endl;
 
      //Calculate Isolation
@@ -710,7 +718,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      selectedLepLVec->push_back(perElectronLVec);
      }
      else if(vetoID){
-       if(deBug)
+       if(verBose)
 	 std::cout << "Veto electron (2nd Lepton) detected!" << std::endl;
        return;
      }
@@ -721,8 +729,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        
    //SL Select events with only 1 isolated lepton
    if(selectedLepLVec->size() > 1){
-     if(deBug)
+     if(verBose)
        std::cout << "Two well-ID'd, well-isolated leptons detected!" << std::endl;
+     return;
+   }
+   if(selectedLepLVec->size() < 1){
+     if(verBose)
+       std::cout << "No well-ID'd, well isolated leptons detected!" << std::endl;
      return;
    }
    //===/////////////
@@ -732,9 +745,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ///////////////////////
    //// Selected Jets ////
    ///////////////////////
-   std::cout << "\n=============Jets============\n";
+   if(verBose) std::cout << "\n=============Jets============\n";
    //Reset HT to 0
    HT = 0;
+   if(deBug && counter == theProblemEvent) std::cout << "L1 ";
    for(const pat::Jet&jet : *jets){
      //Jet Selection 30GeV, usual calorimeter acceptance
      if(jet.pt() < 30 || fabs(jet.eta()) >= 2.5)
@@ -742,7 +756,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===/////////////
    //===//// CUT ///
    //===///////////
-     
+   if(deBug && counter == theProblemEvent) std::cout << "L2 ";     
      TLorentzVector perJetLVec;
      perJetLVec.SetPtEtaPhiE( jet.pt(), jet.eta(), jet.phi(), jet.energy() );
      double qgPtD = jet.userFloat("QGTagger:ptD");
@@ -751,6 +765,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double qgMult = static_cast<double>(jet.userInt("QGTagger:mult"));
      double deepCSVb = jet.bDiscriminator("pfDeepCSVJetTags:probb");
      double deepCSVc = jet.bDiscriminator("pfDeepCSVJetTags:probc");
+   if(deBug && counter == theProblemEvent) std::cout << "L3 ";
      double deepCSVl = jet.bDiscriminator("pfDeepCSVJetTags:probudsg");
      double deepCSVbb = jet.bDiscriminator("pfDeepCSVJetTags:probbb");
      double deepCSVcc = jet.bDiscriminator("pfDeepCSVJetTags:probcc");
@@ -762,6 +777,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double muonEnergyFraction = jet.muonEnergyFraction();
      double photonEnergyFraction = jet.photonEnergyFraction();
      double electronEnergyFraction = jet.electronEnergyFraction();
+   if(deBug && counter == theProblemEvent) std::cout << "L4 ";
      double recoJetsHFHadronEnergyFraction = jet.HFHadronEnergyFraction();
      double recoJetsHFEMEnergyFraction = jet.HFEMEnergyFraction();
      double chargedHadronMultiplicity = jet.chargedHadronMultiplicity();
@@ -769,28 +785,38 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double photonMultiplicity = jet.photonMultiplicity();
      double electronMultiplicity = jet.electronMultiplicity();
      double muonMultiplicity = jet.muonMultiplicity();
-
+   if(deBug && counter == theProblemEvent) std::cout << "L5 ";
      //Jet ID Loose selection for 2016 (doesn't exist for 2017 or 2018! Tight selection must be used!)
      bool looseJetID = 
        (neutralHadronEnergyFraction < 0.99 && neutralEmEnergyFraction < 0.99 && (jet.chargedMultiplicity() + jet.neutralMultiplicity() ) > 1) && 
        ((fabs(jet.eta()) <= 2.4 && chargedHadronEnergyFraction > 0 && jet.chargedMultiplicity() > 0 && chargedEmEnergyFraction < 0.99) || fabs(jet.eta()) > 2.4 );
-     if(deBug) std::cout << "Pt: " << jet.pt() << " Eta: " << jet.eta() << " Phi: " << jet.phi() << " Jet Loose ID: " 
+     if(verBose) std::cout << "Pt: " << jet.pt() << " Eta: " << jet.eta() << " Phi: " << jet.phi() << " Jet Loose ID: " 
 			 << looseJetID << " CSVv2: " << btag << " DeepCSV(b+bb): " << deepCSVb + deepCSVbb << std::endl;
+   if(deBug && counter == theProblemEvent) std::cout << "L6 ";
      if(!looseJetID)
        continue;
    //===/////////////
    //===//// CUT ///
    //===///////////
-
+   if(deBug && counter == theProblemEvent) std::cout << "L7 ";
+   // try{
+   //   selectedLepLVec->at(0);
+   // }
+   // catch{
+   //   std::cout << "It appears, good Madam/Sir, that this Lepton Vector is indeed empty! Hats off!" << std::endl;
+   // }
      double dR = perJetLVec.DeltaR(selectedLepLVec->at(0));
-     if(deBug) 
+   if(deBug && counter == theProblemEvent) std::cout << "L7B ";
+     if(verBose) 
        std::cout << ">>Cross-Cleaning<< Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
 		 << " Lep Phi: " << selectedLepLVec->at(0).Phi() << " Jet-Lep DeltaR: " << dR << std::endl;
      //0.4 for SL, 0.3 for DL!
      if(dR < 0.4){
-       std::cout << "Cross-cleaning jet!" << std::endl;
-	continue;
+       if(verBose)
+	 std::cout << "Cross-cleaning jet!" << std::endl;
+       continue;
      }
+   if(deBug && counter == theProblemEvent) std::cout << "L8 ";
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -798,12 +824,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //Sum HT for selected jets
      HT += jet.pt();
 
-
+   if(deBug && counter == theProblemEvent) std::cout << "L9 ";
      JetLVec->push_back(perJetLVec);
      qgPtDVec->push_back(qgPtD);
      qgAxis1Vec->push_back(qgAxis1);
      qgAxis2Vec->push_back(qgAxis2);
      qgMultVec->push_back(qgMult);
+   if(deBug && counter == theProblemEvent) std::cout << "L10 ";
      deepCSVbVec->push_back(deepCSVb);
      deepCSVcVec->push_back(deepCSVc);
      deepCSVlVec->push_back(deepCSVl);
@@ -816,6 +843,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      neutralEmEnergyFractionVec->push_back(neutralEmEnergyFraction);
      muonEnergyFractionVec->push_back(muonEnergyFraction);
      photonEnergyFractionVec->push_back(photonEnergyFraction);
+   if(deBug && counter == theProblemEvent) std::cout << "L11 ";
      electronEnergyFractionVec->push_back(electronEnergyFraction);
      recoJetsHFHadronEnergyFractionVec->push_back(recoJetsHFHadronEnergyFraction);
      recoJetsHFEMEnergyFractionVec->push_back(recoJetsHFEMEnergyFraction);
@@ -824,18 +852,20 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      photonMultiplicityVec->push_back(photonMultiplicity);
      electronMultiplicityVec->push_back(electronMultiplicity);
      muonMultiplicityVec->push_back(muonMultiplicity);
+   if(deBug && counter == theProblemEvent) std::cout << "L12 ";
    }
 
    //////////////////////
    /// HT Minimum cut ///
    //////////////////////
-   if(deBug)
+   if(verBose)
      std::cout << "HT: " << HT << std::endl;
    if(HT < HTMin){
-     if(deBug)
+     if(verBose)
        std::cout << "HT below threshold of " << HTMin << "!" << std::endl;
      return;
    }
+   if(deBug && counter == theProblemEvent) std::cout << "L13 ";
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -843,21 +873,22 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////
    /// Njet Minimum cut ///
    ////////////////////////
-   if(deBug)
+   if(verBose)
      std::cout << "Njet: " << JetLVec->size() << std::endl;
    if(NjMin > -1)
      if(JetLVec->size() < (uint)NjMin){
-       if(deBug) 
+       if(verBose) 
 	 std::cout << "Below threshold of minimum jets, continuing to next event" << std::endl;
        return;
      }
+   if(deBug && counter == theProblemEvent) std::cout << "L14 ";
    nEvts++;
 
    ///////////////////////////////////////////
    /// Fill Tree (written by TFileService) ///
    ///////////////////////////////////////////
    tree->Fill();
-
+   if(deBug && counter == theProblemEvent) std::cout << "L15 ";
 
 #ifdef THIS_IS_AN_EVENT_EXAMPLE
    Handle<ExampleData> pIn;

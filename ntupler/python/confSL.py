@@ -10,7 +10,7 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -27,9 +27,11 @@ process.source = cms.Source("PoolSource",
 #HTMin may be set to any double value greater than 0
 #NjMin may be set to an int32 value noting minimum number of jets. Less than 0 indicates no cuts
 process.load("Demo.ntupler.CfiFile_SL")
+process.tree.theProblemEvent = cms.uint32(0)
 process.tree.isMC = cms.bool(True)
 process.tree.is2016 = cms.bool(True)
-process.tree.deBug = cms.bool(True)
+process.tree.deBug = cms.bool(False)
+process.tree.verBose = cms.bool(False)
 process.tree.HTMin = cms.double(50)
 process.tree.NjMin = cms.int32(3)
 
