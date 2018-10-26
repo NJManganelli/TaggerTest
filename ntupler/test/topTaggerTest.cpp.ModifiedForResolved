@@ -18,8 +18,9 @@
 
 int main()
 {
-  bool runStdExample = true;
+  bool runStdExample = false;
   TFile *tf, *tf2;
+  TDirectory *td;
   TTree *tree;
   std::cout << "Testing the file for Top Quarks" << std::endl;
   
@@ -33,18 +34,16 @@ int main()
   }
   else if(runStdExample == false){
     //Open input ntuple file
-    TFile *tf2 = TFile::Open("SLntuple.root");
+    //TFile *tf2 = TFile::Open("SLntuple_old.root");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntuple.root");
 
     //Get TDirectory next
-    TDirectory *td = (TDirectory*)tf2->Get("tree");
+    td = (TDirectory*)tf2->Get("tree");
 
     //Get tree from file
-    TTree *tree = (TTree*)td->Get("nTuple");
+    tree = (TTree*)td->Get("nTuple");
   }
-
-    std::cout << "Well, we made it this far... " << std::endl;
-    //Deactivate all branches, then activate the branches of interest
-    tree->SetBranchStatus("*", 0);
+  std::cout << "Loaded the file" << std::endl;
 
     //Variables to hold inputs
     //AK4 jet variables
@@ -74,7 +73,8 @@ int main()
     std::vector<float>** AK4DeepCSVc = new std::vector<float>*();
     std::vector<float>** AK4DeepCSVcc = new std::vector<float>*();
     std::vector<float>** AK4DeepCSVl = new std::vector<float>*();
-
+    std::cout << "Created all AK4 jet variables" << std::endl;
+    
     //AK8 jet varaibles
     //The elements of each vector refer to one AK8 jet
     std::vector<TLorentzVector>** AK8JetLV = new std::vector<TLorentzVector>*();
@@ -82,6 +82,11 @@ int main()
     std::vector<float>** AK8JetDeepAK8Top = new std::vector<float>*();
     std::vector<float>** AK8JetDeepAK8W = new std::vector<float>*();
     std::vector<std::vector<TLorentzVector>>** AK8SubjetLV = new std::vector<std::vector<TLorentzVector>>*();
+    std::cout << "Created all AK8 jet variables, preparing to Deactivate then reactivate branches..." << std::endl;
+
+    //Deactivate all branches, then activate the branches of interest
+    tree->SetBranchStatus("*", 0);
+    std::cout << "Deactivated all branches" << std::endl;
 
     //standard exampleInputs.root settings
     if(runStdExample == true){
@@ -309,6 +314,7 @@ int main()
       //AK4 deepCSV light discriminator
       tree->SetBranchStatus( "deepCSVl", 1);
       tree->SetBranchAddress("deepCSVl", AK4DeepCSVl);
+      std::cout << "tree branches attached" << std::endl;
     }
 
     //Create top tagger object
@@ -454,5 +460,6 @@ int main()
     // delete AK8JetDeepAK8Top;
     // delete AK8JetSoftdropMass;
 
+    delete tf, tf2, td, tree;
     exit(0);
 }
