@@ -771,7 +771,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double deepCSVbb;
      double deepCSVcc;
      if(maskDeepCSV){
-       std::cout << "Masking DeepCSV values (set to -1000)" << std::endl;
        deepCSVb = -1000;
        deepCSVc = -1000; 
        deepCSVl = -1000;
