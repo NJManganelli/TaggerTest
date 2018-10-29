@@ -101,7 +101,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   uint counter, theProblemEvent;
 
   //Parameter Set
-  bool isData, isMC, deBug, verBose;
+  bool isData, isMC, deBug, verBose, maskDeepCSV;
   bool is2016, is2017, is2018;
   double HTMin;
   int NjMin;
@@ -182,10 +182,12 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 //
 // constructors and destructor
 //
-SLntupler::SLntupler(const edm::ParameterSet& iConfig): theProblemEvent(iConfig.getParameter<uint>("theProblemEvent")),
+SLntupler::SLntupler(const edm::ParameterSet& iConfig): 
+  theProblemEvent(iConfig.getParameter<uint>("theProblemEvent")),
   isData(iConfig.getParameter<bool>("isData")), isMC(iConfig.getParameter<bool>("isMC")), 
-  deBug(iConfig.getParameter<bool>("deBug")), verBose(iConfig.getParameter<bool>("verBose")), 
-  is2016(iConfig.getParameter<bool>("is2016")), is2017(iConfig.getParameter<bool>("is2017")), is2018(iConfig.getParameter<bool>("is2018")), 
+  deBug(iConfig.getParameter<bool>("deBug")), verBose(iConfig.getParameter<bool>("verBose")),
+  maskDeepCSV(iConfig.getParameter<bool>("maskDeepCSV")), is2016(iConfig.getParameter<bool>("is2016")), 
+  is2017(iConfig.getParameter<bool>("is2017")), is2018(iConfig.getParameter<bool>("is2018")), 
   HTMin(iConfig.getParameter<double>("HTMin")), NjMin(iConfig.getParameter<int>("NjMin")),
   EleVetoIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap2016"))),
   EleLooseIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap2016"))),
@@ -763,12 +765,27 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double qgAxis1 = jet.userFloat("QGTagger:axis1");
      double qgAxis2 = jet.userFloat("QGTagger:axis2");
      double qgMult = static_cast<double>(jet.userInt("QGTagger:mult"));
-     double deepCSVb = jet.bDiscriminator("pfDeepCSVJetTags:probb");
-     double deepCSVc = jet.bDiscriminator("pfDeepCSVJetTags:probc");
-   if(deBug && counter == theProblemEvent) std::cout << "L3 ";
-     double deepCSVl = jet.bDiscriminator("pfDeepCSVJetTags:probudsg");
-     double deepCSVbb = jet.bDiscriminator("pfDeepCSVJetTags:probbb");
-     double deepCSVcc = jet.bDiscriminator("pfDeepCSVJetTags:probcc");
+     double deepCSVb;
+     double deepCSVc;
+     double deepCSVl;
+     double deepCSVbb;
+     double deepCSVcc;
+     if(maskDeepCSV){
+       std::cout << "Masking DeepCSV values (set to -1000)" << std::endl;
+       deepCSVb = -1000;
+       deepCSVc = -1000; 
+       deepCSVl = -1000;
+       deepCSVbb = -1000;
+       deepCSVcc = -1000;
+     }
+     else{
+       deepCSVb = jet.bDiscriminator("pfDeepCSVJetTags:probb");
+       deepCSVc = jet.bDiscriminator("pfDeepCSVJetTags:probc");
+       deepCSVl = jet.bDiscriminator("pfDeepCSVJetTags:probudsg");
+       deepCSVbb = jet.bDiscriminator("pfDeepCSVJetTags:probbb");
+       deepCSVcc = jet.bDiscriminator("pfDeepCSVJetTags:probcc");
+     }
+     if(deBug && counter == theProblemEvent) std::cout << "L3 ";
      double btag = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
      double chargedHadronEnergyFraction = jet.chargedHadronEnergyFraction();
      double neutralHadronEnergyFraction = jet.neutralHadronEnergyFraction();

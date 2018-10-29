@@ -32,11 +32,12 @@ process.tree.isMC = cms.bool(True)
 process.tree.is2016 = cms.bool(True)
 process.tree.deBug = cms.bool(False)
 process.tree.verBose = cms.bool(False)
+process.tree.maskDeepCSV = cms.bool(True)
 process.tree.HTMin = cms.double(50)
 process.tree.NjMin = cms.int32(3)
 
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string('SLntuple.root'),
+                                   fileName = cms.string('SLntupleMasked.root'),
                                    closeFileFast = cms.untracked.bool(True) 
                                    )
 process.p = cms.Path(process.tree)
