@@ -391,28 +391,28 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    // edm::Handle<double> rho;
    // iEvent.getByToken(RhoToken, rho);
    //protect against bad parameter?
+     edm::Handle <std::vector<pat::PackedGenParticle> > packedgens;
+     edm::Handle <std::vector<reco::GenParticle> > gens;
+     edm::Handle <std::vector<reco::GenJet> > genjets;
+     edm::Handle <std::vector<reco::GenJet> > genjetsak8;
    if(isMC){
-     edm::Handle <std::vector<pat::PackedGenParticle> > gens;
-     iEvent.getByToken(GenToken, gens);
-     if(!gens.isValid()) {
+     iEvent.getByToken(GenToken, packedgens);
+     if(!packedgens.isValid()) {
        throw cms::Exception("Gen Particle collection not valid!");
      }
 
-     edm::Handle <std::vector<reco::GenParticle> > prunedGens;
-     iEvent.getByToken(PrunedGenToken, prunedGens);
-     if(!prunedGens.isValid()) {
+     iEvent.getByToken(PrunedGenToken, gens);
+     if(!gens.isValid()) {
        throw cms::Exception("Pruned Gen Particle collection not valid!");
      }
 
-     edm::Handle <std::vector<reco::GenJet> > genjets;
      iEvent.getByToken(GenJetToken, genjets);
-     if(!prunedGens.isValid()) {
+     if(!genjets.isValid()) {
        throw cms::Exception("Gen Jet collection not valid!");
      }
 
-     edm::Handle <std::vector<reco::GenJet> > genjetsak8;
      iEvent.getByToken(GenJetAK8Token, genjetsak8);
-     if(!prunedGens.isValid()) {
+     if(!genjetsak8.isValid()) {
        throw cms::Exception("Gen Jet AK8 collection not valid!");
      }
    }
@@ -628,6 +628,41 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===/////////////
    //===//// CUT ///
    //===///////////
+
+   std::vector<std::vector<reco::GenParticle>> hadtops;
+   for(const reco::GenParticle& part: *gens){
+     std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
+     if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2){
+       std::vector<reco::GenParticle> temp;
+       const reco::GenParticle top = part;
+       auto dau1 = *(top.daughterRefVector()[0]);
+       auto dau2 = *(top.daughterRefVector()[1]);
+       if(fabs(dau1.pdgId()) == 24){
+	 while(dau1.numberOfDaughters() == 1){
+	   dau1 = *(dau1.daughterRefVector()[0]);
+	 }
+	 auto Wdau1 = *(dau1.daughterRefVector()[0]);
+	 auto Wdau2 = *(dau1.daughterRefVector()[1]);
+	 std::cout << "===> W daughters: " << dau1.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
+       }
+       else if(fabs(dau2.pdgId()) == 24){
+	 while(dau2.numberOfDaughters() == 1){
+	   dau2 = *(dau2.daughterRefVector()[0]);
+	 }
+	 auto Wdau1 = *(dau2.daughterRefVector()[0]);
+	 auto Wdau2 = *(dau2.daughterRefVector()[1]);
+	 std::cout << "===> W daughters: " << dau2.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
+       }
+       //std::cout << "===> W daughters: " << Dubya.numberOfDaughters() << " dau ID's: " << Dubya.daughter(0)->pdgId() << " " << Dubya.daughter(1)->pdgId() << std::endl;
+       //const reco::Candidate dau1 = *part.daughter(0); //can't do this because CMSSW is fucking trash-tier
+       //const reco::Candidate dau2 = *part.daughter(1);
+       //temp.push_back(top);
+       //std::cout << "top daughters: daughter 0 Id: " << dau1.pdgId() << " numDaughters: " << dau1.numberOfDaughters() << " daughter 1 Id: " << dau2.pdgId() << " numDaugthers: " << dau2.numberOfDaughters() << std::endl;
+       //std::cout << dau1.pdgId();
+       }
+   }
+
+
 
    ////////////////////////
    //// Selected Muons ////
