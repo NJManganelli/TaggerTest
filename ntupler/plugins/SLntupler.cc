@@ -165,6 +165,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
   double HT, HTX, HT2M; //FIXME Calculate and add these...
   std::vector<TLorentzVector> *JetLVec, *selectedLepLVec, *vetoLepLVec, *VertexVec, *METLVec; //Change to pointer vector of pointers for sorting efficiency! FIXME!
+  std::vector<TLorentzVector> *hadTop1Constit, *hadTop2Constit, *hadTop3Constit;
   std::vector<double> *qgPtDVec, *qgAxis1Vec, *qgAxis2Vec, *qgMultVec;
   std::vector<double> *deepCSVbVec, *deepCSVcVec, *deepCSVlVec, *deepCSVbbVec, *deepCSVccVec, *btagVec;
   std::vector<double> *chargedHadronEnergyFractionVec, *neutralHadronEnergyFractionVec, *chargedEmEnergyFractionVec;
@@ -460,6 +461,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    //Clear pointers
    JetLVec->clear();
+   hadTop1Constit->clear();
+   hadTop2Constit->clear();
+   hadTop3Constit->clear();
    selectedLepLVec->clear();
    METLVec->clear();
    VertexVec->clear();
@@ -796,7 +800,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double muonEnergyFraction = jet.muonEnergyFraction();
      double photonEnergyFraction = jet.photonEnergyFraction();
      double electronEnergyFraction = jet.electronEnergyFraction();
-   if(deBug && counter == theProblemEvent) std::cout << "L4 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L4 ";
      double recoJetsHFHadronEnergyFraction = jet.HFHadronEnergyFraction();
      double recoJetsHFEMEnergyFraction = jet.HFEMEnergyFraction();
      double chargedHadronMultiplicity = jet.chargedHadronMultiplicity();
@@ -804,20 +808,20 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      double photonMultiplicity = jet.photonMultiplicity();
      double electronMultiplicity = jet.electronMultiplicity();
      double muonMultiplicity = jet.muonMultiplicity();
-   if(deBug && counter == theProblemEvent) std::cout << "L5 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L5 ";
      //Jet ID Loose selection for 2016 (doesn't exist for 2017 or 2018! Tight selection must be used!)
      bool looseJetID = 
        (neutralHadronEnergyFraction < 0.99 && neutralEmEnergyFraction < 0.99 && (jet.chargedMultiplicity() + jet.neutralMultiplicity() ) > 1) && 
        ((fabs(jet.eta()) <= 2.4 && chargedHadronEnergyFraction > 0 && jet.chargedMultiplicity() > 0 && chargedEmEnergyFraction < 0.99) || fabs(jet.eta()) > 2.4 );
      if(verBose) std::cout << "Pt: " << jet.pt() << " Eta: " << jet.eta() << " Phi: " << jet.phi() << " Jet Loose ID: " 
 			 << looseJetID << " CSVv2: " << btag << " DeepCSV(b+bb): " << deepCSVb + deepCSVbb << std::endl;
-   if(deBug && counter == theProblemEvent) std::cout << "L6 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L6 ";
      if(!looseJetID)
        continue;
    //===/////////////
    //===//// CUT ///
    //===///////////
-   if(deBug && counter == theProblemEvent) std::cout << "L7 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L7 ";
    // try{
    //   selectedLepLVec->at(0);
    // }
@@ -825,7 +829,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //   std::cout << "It appears, good Madam/Sir, that this Lepton Vector is indeed empty! Hats off!" << std::endl;
    // }
      double dR = perJetLVec.DeltaR(selectedLepLVec->at(0));
-   if(deBug && counter == theProblemEvent) std::cout << "L7B ";
+     if(deBug && counter == theProblemEvent) std::cout << "L7B ";
      if(verBose) 
        std::cout << ">>Cross-Cleaning<< Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
 		 << " Lep Phi: " << selectedLepLVec->at(0).Phi() << " Jet-Lep DeltaR: " << dR << std::endl;
@@ -835,7 +839,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 std::cout << "Cross-cleaning jet!" << std::endl;
        continue;
      }
-   if(deBug && counter == theProblemEvent) std::cout << "L8 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L8 ";
    //===/////////////
    //===//// CUT ///
    //===///////////
@@ -843,13 +847,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //Sum HT for selected jets
      HT += jet.pt();
 
-   if(deBug && counter == theProblemEvent) std::cout << "L9 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L9 ";
      JetLVec->push_back(perJetLVec);
      qgPtDVec->push_back(qgPtD);
      qgAxis1Vec->push_back(qgAxis1);
      qgAxis2Vec->push_back(qgAxis2);
      qgMultVec->push_back(qgMult);
-   if(deBug && counter == theProblemEvent) std::cout << "L10 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L10 ";
      deepCSVbVec->push_back(deepCSVb);
      deepCSVcVec->push_back(deepCSVc);
      deepCSVlVec->push_back(deepCSVl);
@@ -862,7 +866,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      neutralEmEnergyFractionVec->push_back(neutralEmEnergyFraction);
      muonEnergyFractionVec->push_back(muonEnergyFraction);
      photonEnergyFractionVec->push_back(photonEnergyFraction);
-   if(deBug && counter == theProblemEvent) std::cout << "L11 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L11 ";
      electronEnergyFractionVec->push_back(electronEnergyFraction);
      recoJetsHFHadronEnergyFractionVec->push_back(recoJetsHFHadronEnergyFraction);
      recoJetsHFEMEnergyFractionVec->push_back(recoJetsHFEMEnergyFraction);
@@ -871,7 +875,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      photonMultiplicityVec->push_back(photonMultiplicity);
      electronMultiplicityVec->push_back(electronMultiplicity);
      muonMultiplicityVec->push_back(muonMultiplicity);
-   if(deBug && counter == theProblemEvent) std::cout << "L12 ";
+     if(deBug && counter == theProblemEvent) std::cout << "L12 ";
    }
 
    //////////////////////
@@ -907,7 +911,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //// Gen Matching ////
    //////////////////////
 
-   std::vector<std::vector<reco::GenParticle>> hadtops;
+   //std::vector<std::vector<reco::GenParticle>> hadtops;
+   std::vector<TLorentzVector> hadtop1, hadtop2, hadtop3;
    nHadronicTops = 0;
    nElectronicTops = 0;
    nMuonicTops = 0;
@@ -1026,6 +1031,9 @@ SLntupler::beginJob()
    t3q2 = 0;
    //FIXME: Add missing variables for leptons, isolation, jetID, HT, etc.
    JetLVec = new std::vector<TLorentzVector>;
+   hadTop1Constit = new std::vector<TLorentzVector>;
+   hadTop2Constit = new std::vector<TLorentzVector>;
+   hadTop3Constit = new std::vector<TLorentzVector>;
    METLVec = new std::vector<TLorentzVector>;
    selectedLepLVec = new std::vector<TLorentzVector>;
    vetoLepLVec = new std::vector<TLorentzVector>;
@@ -1087,6 +1095,9 @@ SLntupler::beginJob()
    tree->Branch("HLT_El_Bits", &HLT_El_Bits);
    tree->Branch("MET_Flt_Bits", &MET_Flt_Bits);
    tree->Branch("JetLVec", "vector<TLorentzVector>", &JetLVec, 32000,-1);
+   tree->Branch("hadTop1Constit", "vector<TLorentzVector>", &hadTop1Constit, 32000,-1);
+   tree->Branch("hadTop2Constit", "vector<TLorentzVector>", &hadTop2Constit, 32000,-1);
+   tree->Branch("hadTop3Constit", "vector<TLorentzVector>", &hadTop3Constit, 32000,-1);
    tree->Branch("METLVec", "vector<TLorentzVector>", &METLVec, 32000,-1);
    tree->Branch("selectedLepLVec", "vector<TLorentzVector>", &selectedLepLVec, 32000,-1);
    tree->Branch("VertexVec", "vector<TLorentzVector>", &VertexVec, 32000, -1);
@@ -1128,6 +1139,9 @@ SLntupler::endJob()
 
    //Clear pointers
    JetLVec->clear();
+   hadTop1Constit->clear();
+   hadTop2Constit->clear();
+   hadTop3Constit->clear();
    selectedLepLVec->clear();
    METLVec->clear();
    vetoLepLVec->clear();
