@@ -180,7 +180,7 @@ process.tree.NjMin = cms.int32(3)
 
 #for the ntupler
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string('fullpathSLntuple.root'),
+                                   fileName = cms.string('fullpathSLntuple_postGenSanityFix.root'),
                                    closeFileFast = cms.untracked.bool(True) 
                                    )
 

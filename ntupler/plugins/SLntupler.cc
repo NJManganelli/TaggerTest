@@ -933,61 +933,83 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(isMC){
      for(const reco::GenParticle& part: *gens){
        if(verBose) std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
-       if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2){
+       if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2 
+	  && ( fabs(part.daughterRefVector()[0]->pdgId()) == 24 || fabs(part.daughterRefVector()[1]->pdgId()) == 24) ){
 	 const reco::GenParticle top = part;
-	 auto dau1 = *(top.daughterRefVector()[0]);
-	 auto dau2 = *(top.daughterRefVector()[1]);
-	 if(fabs(dau1.pdgId()) == 24){
-	   //assign dau2 as b
-	   TLorentzVector perTopConstitbLVec, perTopConstitq1LVec, perTopConstitq2LVec;
-	   perTopConstitbLVec.SetPtEtaPhiE( dau2.pt(), dau2.eta(), dau2.phi(), dau2.energy() );
-	   while(dau1.numberOfDaughters() == 1){
-	     dau1 = *(dau1.daughterRefVector()[0]);
-	   }
-	   auto Wdau1 = *(dau1.daughterRefVector()[0]);
-	   perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
-	   auto Wdau2 = *(dau1.daughterRefVector()[1]);
-	   perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
-	   if(verBose) std::cout << "===> W daughters: " << dau1.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
-	   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
-	     nHadronicTops++;
-	   //assign Wdaus as q1, q2, check |eta| for reconstructability
-	   else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13)
-	     nElectronicTops++;
-	   else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15)
-	     nMuonicTops++;
-	   else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
-	     nTauonicTops++;
+	 //auto dau1 = *(top.daughterRefVector()[0]);
+	 //auto dau2 = *(top.daughterRefVector()[1]);
+	 //assume first daughter is W at first, which appears safe, but...
+	 auto W = *(top.daughterRefVector()[0]);
+	 auto bottom = *(top.daughterRefVector()[1]);
+	 //std::cout << " \"W\": " << W.pdgId();
+	 //protect against incorrect daughter assignment
+	 if(fabs(W.pdgId()) != 24){
+	   W = *(top.daughterRefVector()[1]);
+	   bottom = *(top.daughterRefVector()[0]);
 	 }
-	 else if(fabs(dau2.pdgId()) == 24){
-	   //assign dau1 as b
-	   TLorentzVector perTopConstitbLVec, perTopConstitq1LVec, perTopConstitq2LVec;
-	   perTopConstitbLVec.SetPtEtaPhiE( dau1.pt(), dau1.eta(), dau1.phi(), dau1.energy() );
-	   while(dau2.numberOfDaughters() == 1){
-	     dau2 = *(dau2.daughterRefVector()[0]);
-	   }
-	   auto Wdau1 = *(dau2.daughterRefVector()[0]);
-	   perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
-	   auto Wdau2 = *(dau2.daughterRefVector()[1]);
-	   perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
-	   if(verBose) std::cout << "===> W daughters: " << dau2.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
-	   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
-	     nHadronicTops++;
-	   //assign Wdaus as q1, q2, check |eta| for reconstructability
-	   else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13)
-	     nElectronicTops++;
-	   else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15)
-	     nMuonicTops++;
-	   else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
-	     nTauonicTops++;
+	 //std::cout << " -> " << W.pdgId() << " bottom: " << bottom.pdgId();
+	 //if(fabs(dau1.pdgId()) == 24){
+	   //placeholder LVecs for the 3 generated partons
+	 TLorentzVector perTopConstitbLVec, perTopConstitq1LVec, perTopConstitq2LVec;
+	 perTopConstitbLVec.SetPtEtaPhiE( bottom.pt(), bottom.eta(), bottom.phi(), bottom.energy() );
+	 //loop through daughter chain until reaching decaying status
+	 while(W.numberOfDaughters() == 1){
+	   W = *(W.daughterRefVector()[0]);
 	 }
+	 
+	 std::cout << " BottomDaughtersIDs ";
+	 for(uint i = 0; i < bottom.numberOfDaughters(); i++)
+	   std::cout << bottom.daughterRefVector()[i]->pdgId() << "\t";
+	 std::cout  << "\n\"W\": " << W.pdgId() << std::endl;
+	 auto Wdau1 = *(W.daughterRefVector()[0]);
+	 perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
+	 auto Wdau2 = *(W.daughterRefVector()[1]);
+	 perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
+	 //loop through all selected jets and find any that closely match the hadronic top constituents
+
+	 if(verBose) std::cout << "===> W daughters: " << W.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
+	 if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
+	   nHadronicTops++;
+	 //assign Wdaus as q1, q2, check |eta| for reconstructability
+	 else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13)
+	   nElectronicTops++;
+	 else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15)
+	   nMuonicTops++;
+	 else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
+	   nTauonicTops++;
+	   //}
+       // //dumbly coded duplicate of above, for the other case. the problem with hastily written code is...
+	 // else if(fabs(dau2.pdgId()) == 24){
+	 //   //assign dau1 as b
+	 //   TLorentzVector perTopConstitbLVec, perTopConstitq1LVec, perTopConstitq2LVec;
+	 //   perTopConstitbLVec.SetPtEtaPhiE( dau1.pt(), dau1.eta(), dau1.phi(), dau1.energy() );
+	 //   while(dau2.numberOfDaughters() == 1){
+	 //     dau2 = *(dau2.daughterRefVector()[0]);
+	 //   }
+	 //   auto Wdau1 = *(dau2.daughterRefVector()[0]);
+	 //   perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
+	 //   auto Wdau2 = *(dau2.daughterRefVector()[1]);
+	 //   perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
+	 //   if(verBose) std::cout << "===> W daughters: " << dau2.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
+	 //   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
+	 //     nHadronicTops++;
+	 //   //assign Wdaus as q1, q2, check |eta| for reconstructability
+	 //   else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13)
+	 //     nElectronicTops++;
+	 //   else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15)
+	 //     nMuonicTops++;
+	 //   else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
+	 //     nTauonicTops++;
+	 // }
+
+	 //really old code
 	 //std::cout << "===> W daughters: " << Dubya.numberOfDaughters() << " dau ID's: " << Dubya.daughter(0)->pdgId() << " " << Dubya.daughter(1)->pdgId() << std::endl;
 	 //const reco::Candidate dau1 = *part.daughter(0); //can't do this because CMSSW is fucking trash-tier
 	 //const reco::Candidate dau2 = *part.daughter(1);
 	 //temp.push_back(top);
 	 //std::cout << "top daughters: daughter 0 Id: " << dau1.pdgId() << " numDaughters: " << dau1.numberOfDaughters() << " daughter 1 Id: " << dau2.pdgId() << " numDaugthers: " << dau2.numberOfDaughters() << std::endl;
 	 //std::cout << dau1.pdgId();
-       }
+       } //this parenthesis...
      }
    }
    if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
