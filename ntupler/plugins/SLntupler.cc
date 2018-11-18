@@ -934,17 +934,20 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      for(const reco::GenParticle& part: *gens){
        if(verBose) std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
        if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2){
-	 std::vector<reco::GenParticle> temp;
 	 const reco::GenParticle top = part;
 	 auto dau1 = *(top.daughterRefVector()[0]);
 	 auto dau2 = *(top.daughterRefVector()[1]);
 	 if(fabs(dau1.pdgId()) == 24){
 	   //assign dau2 as b
+	   TLorentzVector perTopConstitbLVec, perTopConstitq1LVec, perTopConstitq2LVec;
+	   perTopConstitbLVec.SetPtEtaPhiE( dau2.pt(), dau2.eta(), dau2.phi(), dau2.energy() );
 	   while(dau1.numberOfDaughters() == 1){
 	     dau1 = *(dau1.daughterRefVector()[0]);
 	   }
 	   auto Wdau1 = *(dau1.daughterRefVector()[0]);
+	   perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
 	   auto Wdau2 = *(dau1.daughterRefVector()[1]);
+	   perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
 	   if(verBose) std::cout << "===> W daughters: " << dau1.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
 	   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
 	     nHadronicTops++;
@@ -958,11 +961,15 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }
 	 else if(fabs(dau2.pdgId()) == 24){
 	   //assign dau1 as b
+	   TLorentzVector perTopConstitbLVec, perTopConstitq1LVec, perTopConstitq2LVec;
+	   perTopConstitbLVec.SetPtEtaPhiE( dau1.pt(), dau1.eta(), dau1.phi(), dau1.energy() );
 	   while(dau2.numberOfDaughters() == 1){
 	     dau2 = *(dau2.daughterRefVector()[0]);
 	   }
 	   auto Wdau1 = *(dau2.daughterRefVector()[0]);
+	   perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
 	   auto Wdau2 = *(dau2.daughterRefVector()[1]);
+	   perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
 	   if(verBose) std::cout << "===> W daughters: " << dau2.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
 	   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
 	     nHadronicTops++;
