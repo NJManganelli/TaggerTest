@@ -957,10 +957,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   W = *(W.daughterRefVector()[0]);
 	 }
 	 
-	 std::cout << " BottomDaughtersIDs ";
-	 for(uint i = 0; i < bottom.numberOfDaughters(); i++)
-	   std::cout << bottom.daughterRefVector()[i]->pdgId() << "\t";
-	 std::cout  << "\n\"W\": " << W.pdgId() << std::endl;
+	 std::cout << " Bottom quark daughters \n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
+	 for(uint i = 0; i < bottom.numberOfDaughters(); i++){
+	   auto deDau = *(bottom.daughterRefVector()[i]);
+	   if(fabs(deDau.pdgId()) == 5)
+	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
+	 }
+	 std::cout << "\n" << std::endl;
+	 //std::cout  << "\n\"W\": " << W.pdgId() << std::endl;
 	 auto Wdau1 = *(W.daughterRefVector()[0]);
 	 perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
 	 auto Wdau2 = *(W.daughterRefVector()[1]);
