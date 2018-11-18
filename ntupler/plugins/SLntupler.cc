@@ -1,3 +1,4 @@
+
 // -*- C++ -*-
 //
 // Package:    Demo/SLntupler
@@ -158,6 +159,8 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 
   //Data and collections
   uint nEvts, nRun, nLumiBlock, nEvent;
+  uint nHadronicTops, nElectronicTops, nMuonicTops, nTauonicTops;
+  int t1, t2, t3, t1b, t1q1, t1q2, t2b, t2q1, t2q2, t3b, t3q1, t3q2; //pseudo-bits for hadronic tops; 0 = not present; +/-1 =  present; + = reconstructable, - = unreconstructable 
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
   double HT, HTX, HT2M; //FIXME Calculate and add these...
@@ -629,41 +632,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //===//// CUT ///
    //===///////////
 
-   std::vector<std::vector<reco::GenParticle>> hadtops;
-   for(const reco::GenParticle& part: *gens){
-     std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
-     if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2){
-       std::vector<reco::GenParticle> temp;
-       const reco::GenParticle top = part;
-       auto dau1 = *(top.daughterRefVector()[0]);
-       auto dau2 = *(top.daughterRefVector()[1]);
-       if(fabs(dau1.pdgId()) == 24){
-	 while(dau1.numberOfDaughters() == 1){
-	   dau1 = *(dau1.daughterRefVector()[0]);
-	 }
-	 auto Wdau1 = *(dau1.daughterRefVector()[0]);
-	 auto Wdau2 = *(dau1.daughterRefVector()[1]);
-	 std::cout << "===> W daughters: " << dau1.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
-       }
-       else if(fabs(dau2.pdgId()) == 24){
-	 while(dau2.numberOfDaughters() == 1){
-	   dau2 = *(dau2.daughterRefVector()[0]);
-	 }
-	 auto Wdau1 = *(dau2.daughterRefVector()[0]);
-	 auto Wdau2 = *(dau2.daughterRefVector()[1]);
-	 std::cout << "===> W daughters: " << dau2.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
-       }
-       //std::cout << "===> W daughters: " << Dubya.numberOfDaughters() << " dau ID's: " << Dubya.daughter(0)->pdgId() << " " << Dubya.daughter(1)->pdgId() << std::endl;
-       //const reco::Candidate dau1 = *part.daughter(0); //can't do this because CMSSW is fucking trash-tier
-       //const reco::Candidate dau2 = *part.daughter(1);
-       //temp.push_back(top);
-       //std::cout << "top daughters: daughter 0 Id: " << dau1.pdgId() << " numDaughters: " << dau1.numberOfDaughters() << " daughter 1 Id: " << dau2.pdgId() << " numDaugthers: " << dau2.numberOfDaughters() << std::endl;
-       //std::cout << dau1.pdgId();
-       }
-   }
-
-
-
    ////////////////////////
    //// Selected Muons ////
    ////////////////////////
@@ -935,6 +903,84 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(deBug && counter == theProblemEvent) std::cout << "L14 ";
    nEvts++;
 
+   //////////////////////
+   //// Gen Matching ////
+   //////////////////////
+
+   std::vector<std::vector<reco::GenParticle>> hadtops;
+   nHadronicTops = 0;
+   nElectronicTops = 0;
+   nMuonicTops = 0;
+   nTauonicTops = 0;
+   //reset flags for hadronic tops
+   t1 = 0;
+   t2 = 0;
+   t3 = 0;
+   t1b = 0;
+   t1q1 = 0;
+   t1q2 = 0;
+   t2b = 0;
+   t2q1 = 0;
+   t2q2 = 0;
+   t3b = 0;
+   t3q1 = 0;
+   t3q2 = 0;
+   if(isMC){
+     for(const reco::GenParticle& part: *gens){
+       if(verBose) std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
+       if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2){
+	 std::vector<reco::GenParticle> temp;
+	 const reco::GenParticle top = part;
+	 auto dau1 = *(top.daughterRefVector()[0]);
+	 auto dau2 = *(top.daughterRefVector()[1]);
+	 if(fabs(dau1.pdgId()) == 24){
+	   //assign dau2 as b
+	   while(dau1.numberOfDaughters() == 1){
+	     dau1 = *(dau1.daughterRefVector()[0]);
+	   }
+	   auto Wdau1 = *(dau1.daughterRefVector()[0]);
+	   auto Wdau2 = *(dau1.daughterRefVector()[1]);
+	   if(verBose) std::cout << "===> W daughters: " << dau1.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
+	   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
+	     nHadronicTops++;
+	   //assign Wdaus as q1, q2, check |eta| for reconstructability
+	   else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13)
+	     nElectronicTops++;
+	   else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15)
+	     nMuonicTops++;
+	   else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
+	     nTauonicTops++;
+	 }
+	 else if(fabs(dau2.pdgId()) == 24){
+	   //assign dau1 as b
+	   while(dau2.numberOfDaughters() == 1){
+	     dau2 = *(dau2.daughterRefVector()[0]);
+	   }
+	   auto Wdau1 = *(dau2.daughterRefVector()[0]);
+	   auto Wdau2 = *(dau2.daughterRefVector()[1]);
+	   if(verBose) std::cout << "===> W daughters: " << dau2.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
+	   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
+	     nHadronicTops++;
+	   //assign Wdaus as q1, q2, check |eta| for reconstructability
+	   else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13)
+	     nElectronicTops++;
+	   else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15)
+	     nMuonicTops++;
+	   else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
+	     nTauonicTops++;
+	 }
+	 //std::cout << "===> W daughters: " << Dubya.numberOfDaughters() << " dau ID's: " << Dubya.daughter(0)->pdgId() << " " << Dubya.daughter(1)->pdgId() << std::endl;
+	 //const reco::Candidate dau1 = *part.daughter(0); //can't do this because CMSSW is fucking trash-tier
+	 //const reco::Candidate dau2 = *part.daughter(1);
+	 //temp.push_back(top);
+	 //std::cout << "top daughters: daughter 0 Id: " << dau1.pdgId() << " numDaughters: " << dau1.numberOfDaughters() << " daughter 1 Id: " << dau2.pdgId() << " numDaugthers: " << dau2.numberOfDaughters() << std::endl;
+	 //std::cout << dau1.pdgId();
+       }
+     }
+   }
+   if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
+
+
    ///////////////////////////////////////////
    /// Fill Tree (written by TFileService) ///
    ///////////////////////////////////////////
@@ -962,6 +1008,22 @@ SLntupler::beginJob()
    nLumiBlock = -1; 
    nEvent = -1;
    HT = -1;
+   nHadronicTops = 0;
+   nElectronicTops = 0;
+   nMuonicTops = 0;
+   nTauonicTops = 0;
+   t1 = 0;
+   t2 = 0;
+   t3 = 0;
+   t1b = 0;
+   t1q1 = 0;
+   t1q2 = 0;
+   t2b = 0;
+   t2q1 = 0;
+   t2q2 = 0;
+   t3b = 0;
+   t3q1 = 0;
+   t3q2 = 0;
    //FIXME: Add missing variables for leptons, isolation, jetID, HT, etc.
    JetLVec = new std::vector<TLorentzVector>;
    METLVec = new std::vector<TLorentzVector>;
@@ -992,14 +1054,30 @@ SLntupler::beginJob()
    photonMultiplicityVec = new std::vector<double>;
    electronMultiplicityVec = new std::vector<double>;
    muonMultiplicityVec = new std::vector<double>;
-
+   
    usesResource("TFileService");
    edm::Service<TFileService> fs;
    tree = fs->make<TTree>("nTuple", "Event nTuple");
    tree->Branch("run", &nRun);
    tree->Branch("lumiBlock", &nLumiBlock);
    tree->Branch("event", &nEvent);
+   tree->Branch("nHadronicTops", &nHadronicTops);
+   tree->Branch("nElectronicTops", &nElectronicTops);
+   tree->Branch("nMuonicTops", &nMuonicTops);
+   tree->Branch("nTauonicTops", &nTauonicTops);
    tree->Branch("HT", &HT);
+   tree->Branch("t1", &t1);
+   tree->Branch("t2", &t2);
+   tree->Branch("t3", &t3);
+   tree->Branch("t1b", &t1b);
+   tree->Branch("t1q1", &t1q1);
+   tree->Branch("t1q2", &t1q2);
+   tree->Branch("t2b", &t2b);
+   tree->Branch("t2q1", &t2q1);
+   tree->Branch("t2q2", &t2q2);
+   tree->Branch("t3b", &t3b);
+   tree->Branch("t3q1", &t3q1);
+   tree->Branch("t3q2", &t3q2);
    // tree->Branch("HTX", &HTX);
    // tree->Branch("HT2M", &HT2M);
    tree->Branch("HLT_MuMu_Bits", &HLT_MuMu_Bits);

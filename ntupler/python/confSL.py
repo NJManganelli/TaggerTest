@@ -10,7 +10,7 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(20) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(2000) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -32,12 +32,12 @@ process.tree.isMC = cms.bool(True)
 process.tree.is2016 = cms.bool(True)
 process.tree.deBug = cms.bool(False)
 process.tree.verBose = cms.bool(False)
-process.tree.maskDeepCSV = cms.bool(True)
+process.tree.maskDeepCSV = cms.bool(False)
 process.tree.HTMin = cms.double(50)
 process.tree.NjMin = cms.int32(3)
 
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string('SLntupleMasked.root'),
+                                   fileName = cms.string('SLntuple.root'),
                                    closeFileFast = cms.untracked.bool(True) 
                                    )
 process.p = cms.Path(process.tree)
