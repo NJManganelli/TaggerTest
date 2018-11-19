@@ -962,8 +962,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   bottom = *(bottom.daughterRefVector()[0]);
 	 }
 	 //debug info from bottom daughters... not always a nice fragmentation
-	 std::cout << "\nBottom quark daughters (b Id: " << bottom.pdgId() << " Pt: " << bottom.pt() << " Eta: " << bottom.eta() 
-		   << ")\n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
+	 std::cout << "\nBottom quark and daughters \n pdgId \t p \t pt \t eta \t phi  \nb Id: " 
+		   << bottom.pdgId() << " Pt: " << bottom.pt() << " Eta: " << bottom.eta() << " Phi: " << bottom.phi()
+		   << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < bottom.numberOfDaughters(); i++){
 	   auto deDau = *(bottom.daughterRefVector()[i]);
 	   //if(fabs(deDau.pdgId()) == 5)
@@ -977,8 +978,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   Wdau1 = *(Wdau1.daughterRefVector()[0]);
 	 }
 	 //debug info from Wdau1 daughters...
-	 std::cout << "\nW daughter q1 daughters (q1 Id: " << Wdau1.pdgId() << " Pt: " << Wdau1.pt() << " Eta: " << Wdau1.eta() 
-		   << ")\n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
+	 std::cout << "\nW daughter q1 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq1 Id: " 
+		   << Wdau1.pdgId() << " Pt: " << Wdau1.pt() << " Eta: " << Wdau1.eta() << " Phi: " << Wdau1.phi()
+		   << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < Wdau1.numberOfDaughters(); i++){
 	   auto deDau = *(Wdau1.daughterRefVector()[i]);
 	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
@@ -990,8 +992,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   Wdau2 = *(Wdau2.daughterRefVector()[0]);
 	 }
 	 //debug info from Wdau1 daughters...
-	 std::cout << "\nW daughter q2 daughters (q2 Id: " << Wdau2.pdgId() << " Pt: " << Wdau2.pt() << " Eta: " << Wdau2.eta() 
-		   << ")\n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
+	 std::cout << "\nW daughter q2 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq2 Id: " 
+		   << Wdau2.pdgId() << " Pt: " << Wdau2.pt() << " Eta: " << Wdau2.eta() << " Phi: " << Wdau2.phi()
+		   << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < Wdau2.numberOfDaughters(); i++){
 	   auto deDau = *(Wdau2.daughterRefVector()[i]);
 	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
@@ -1009,42 +1012,23 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   nMuonicTops++;
 	 else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
 	   nTauonicTops++;
-	   //}
-       // //dumbly coded duplicate of above, for the other case. the problem with hastily written code is...
-	 // else if(fabs(dau2.pdgId()) == 24){
-	 //   //assign dau1 as b
-	 //   TLorentzVector perTopConstitbLVec, perTopConstitq1LVec, perTopConstitq2LVec;
-	 //   perTopConstitbLVec.SetPtEtaPhiE( dau1.pt(), dau1.eta(), dau1.phi(), dau1.energy() );
-	 //   while(dau2.numberOfDaughters() == 1){
-	 //     dau2 = *(dau2.daughterRefVector()[0]);
-	 //   }
-	 //   auto Wdau1 = *(dau2.daughterRefVector()[0]);
-	 //   perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
-	 //   auto Wdau2 = *(dau2.daughterRefVector()[1]);
-	 //   perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
-	 //   if(verBose) std::cout << "===> W daughters: " << dau2.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
-	 //   if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10)
-	 //     nHadronicTops++;
-	 //   //assign Wdaus as q1, q2, check |eta| for reconstructability
-	 //   else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13)
-	 //     nElectronicTops++;
-	 //   else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15)
-	 //     nMuonicTops++;
-	 //   else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17)
-	 //     nTauonicTops++;
-	 // }
 
-	 //really old code
-	 //std::cout << "===> W daughters: " << Dubya.numberOfDaughters() << " dau ID's: " << Dubya.daughter(0)->pdgId() << " " << Dubya.daughter(1)->pdgId() << std::endl;
-	 //const reco::Candidate dau1 = *part.daughter(0); //can't do this because CMSSW is fucking trash-tier
-	 //const reco::Candidate dau2 = *part.daughter(1);
-	 //temp.push_back(top);
-	 //std::cout << "top daughters: daughter 0 Id: " << dau1.pdgId() << " numDaughters: " << dau1.numberOfDaughters() << " daughter 1 Id: " << dau2.pdgId() << " numDaugthers: " << dau2.numberOfDaughters() << std::endl;
-	 //std::cout << dau1.pdgId();
+	 double dRb, dRbMin, dRq1, dRq1Min, dRq2, dRq2Min;
+	 dRb = dRbMin = dRq1 = dRq1Min = dRq2 = dRq2Min = 9999.9;
+	 for(uint jj = 0; jj < JetLVec->size(); jj++){
+	   dRb = perTopConstitbLVec.DeltaR(JetLVec->at(jj));
+	   dRbMin = (dRb < dRbMin ? dRb : dRbMin);
+	   dRq1 = perTopConstitq1LVec.DeltaR(JetLVec->at(jj));
+	   dRq1Min = (dRq1 < dRq1Min ? dRq1 : dRq1Min);
+	   dRq2 = perTopConstitq2LVec.DeltaR(JetLVec->at(jj));
+	   dRq2Min = (dRq2 < dRq2Min ? dRq2 : dRq2Min);
+	 }
+	 std::cout << "\ndRb: " << dRbMin << " dRq1: " << dRq1Min << " dRq2: " << dRq2Min << std::endl;
        }
      }
    }
-   std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event!\n===========================================================================" << std::endl;
+   std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
+	     << nEvent << "\n===========================================================================" << std::endl;
    if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
 
 
