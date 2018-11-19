@@ -943,7 +943,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 auto bottom = *(top.daughterRefVector()[1]);
 	 //std::cout << " \"W\": " << W.pdgId();
 	 //protect against incorrect daughter assignment
-	 if(fabs(W.pdgId()) != 24){
+	 if(fabs(W.pdgId()) != 24 && fabs(bottom.pdgId()) == 24){
 	   W = *(top.daughterRefVector()[1]);
 	   bottom = *(top.daughterRefVector()[0]);
 	 }
@@ -956,18 +956,46 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 while(W.numberOfDaughters() == 1){
 	   W = *(W.daughterRefVector()[0]);
 	 }
-	 
-	 std::cout << " Bottom quark daughters \n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
+
+	 //loop through daughter chain until reaching decaying status
+	 while(bottom.numberOfDaughters() == 1){
+	   bottom = *(bottom.daughterRefVector()[0]);
+	 }
+	 //debug info from bottom daughters... not always a nice fragmentation
+	 std::cout << "\nBottom quark daughters (b Id: " << bottom.pdgId() << " Pt: " << bottom.pt() << " Eta: " << bottom.eta() 
+		   << ")\n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
 	 for(uint i = 0; i < bottom.numberOfDaughters(); i++){
 	   auto deDau = *(bottom.daughterRefVector()[i]);
-	   if(fabs(deDau.pdgId()) == 5)
+	   //if(fabs(deDau.pdgId()) == 5)
 	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
 	 }
-	 std::cout << "\n" << std::endl;
 	 //std::cout  << "\n\"W\": " << W.pdgId() << std::endl;
+
+	 //assign and loop through daughter chains
 	 auto Wdau1 = *(W.daughterRefVector()[0]);
+	 while(Wdau1.numberOfDaughters() == 1){
+	   Wdau1 = *(Wdau1.daughterRefVector()[0]);
+	 }
+	 //debug info from Wdau1 daughters...
+	 std::cout << "\nW daughter q1 daughters (q1 Id: " << Wdau1.pdgId() << " Pt: " << Wdau1.pt() << " Eta: " << Wdau1.eta() 
+		   << ")\n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
+	 for(uint i = 0; i < Wdau1.numberOfDaughters(); i++){
+	   auto deDau = *(Wdau1.daughterRefVector()[i]);
+	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
+	 }
 	 perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
+
 	 auto Wdau2 = *(W.daughterRefVector()[1]);
+	 while(Wdau2.numberOfDaughters() == 1){
+	   Wdau2 = *(Wdau2.daughterRefVector()[0]);
+	 }
+	 //debug info from Wdau1 daughters...
+	 std::cout << "\nW daughter q2 daughters (q2 Id: " << Wdau2.pdgId() << " Pt: " << Wdau2.pt() << " Eta: " << Wdau2.eta() 
+		   << ")\n =================================== \n pdgId \t p \t pt \t eta \t phi " << std::endl;
+	 for(uint i = 0; i < Wdau2.numberOfDaughters(); i++){
+	   auto deDau = *(Wdau2.daughterRefVector()[i]);
+	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
+	 }
 	 perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
 	 //loop through all selected jets and find any that closely match the hadronic top constituents
 
@@ -1013,9 +1041,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 //temp.push_back(top);
 	 //std::cout << "top daughters: daughter 0 Id: " << dau1.pdgId() << " numDaughters: " << dau1.numberOfDaughters() << " daughter 1 Id: " << dau2.pdgId() << " numDaugthers: " << dau2.numberOfDaughters() << std::endl;
 	 //std::cout << dau1.pdgId();
-       } //this parenthesis...
+       }
      }
    }
+   std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event!\n===========================================================================" << std::endl;
    if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
 
 
