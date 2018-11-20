@@ -759,6 +759,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    HT = 0;
    if(deBug && counter == theProblemEvent) std::cout << "L1 ";
    for(const pat::Jet&jet : *jets){
+     if(jet.genParton()){
+       std::cout << "============================Jet Gen Dump===================================" << std::endl;
+       std::cout << jet.genParton()->pdgId() << " DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) ) << std::endl;; //<< " " << jet.genParton()->eta()
+															  //<< " Phi's: " << jet.phi() << " " << jet.genParton()->phi() << std::endl;
+     }
      //Jet Selection 30GeV, usual calorimeter acceptance
      if(jet.pt() < 30 || fabs(jet.eta()) >= 2.5)
        continue;
