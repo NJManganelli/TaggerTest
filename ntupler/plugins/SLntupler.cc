@@ -937,35 +937,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(isMC){
      //bottom up gen approach
      std::cout << "============================Jet Gen Dump===================================" << std::endl;
-     for(const pat::Jet&jet : *jets){
-       if(jet.genParton()){
-	 auto theGen = jet.genParton();
-	 //if(*(theGen->motherRefVector()[0]))
-	 auto theMom = theGen->motherRefVector().begin();
-	 //std::cout << " dump theMom: " << typeid(*theMom).name() << std::endl;
-	 std::cout << "pdgId chain: " << theGen->pdgId() << " -> " << (*theMom)->pdgId();
-	 while((*theMom)->motherRefVector().size()){
-	   //std::cout << " size: " << (*theMom)->motherRefVector().size() << std::endl;
-	   if( fabs((*theMom)->pdgId()) == 6){
-	     // This worked for some events, but caused a crash and core dump partway through four top section. In any case, I saw what I needed to see here.
-	     // auto theTopMoms =  (*theMom)->motherRefVector().begin();
-	     // std::cout << " -> [" << (*theTopMoms)->pdgId() << ", ";
-	     // theTopMoms++;
-	     // if( (*theTopMoms)->pdgId())
-	     //   std::cout << (*theTopMoms)->pdgId() << "]" << std::endl;
-	     break;
-	   }
-	   theMom = (*theMom)->motherRefVector().begin();
-	   std::cout << " -> " << (*theMom)->pdgId();
-	 }
-	 const reco::GenParticle *test1 = &(**theMom);
-	 //auto test2 = *theMom;
-	 const reco::GenParticle *test2 = &(**theMom);
-	 const reco::GenParticle *test3 = theGen;
-	 std::cout << " debugging .... pdgId: " << test1->pdgId() << std::endl;
-	 std::cout << "    DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) ) << " parton equality: " << (test1 == test2) << " and parton inequality: " << (test1 == test3) << std::endl;; //<< " " << jet.genParton()->eta()
-       }
-     }
+     std::vector<const reco::GenParticle*> jetquarks, tquarks, uniquetquarks;
+     //std::vector<const pat::Jet*> candTop1, candTop2, candTop3, candTop4;
+     std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > candTop1, candTop2, candTop3, candTop4;
+     std::vector<std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > > candTopVec;
+     uint nWithGen = 0;
+     std::vector<uint> isBottom, jetIndex;
+     uint offsetIndex = 0;
+
      
      //top down gen approach
      //If you're reading this now, you owe me for this magnificent set of puns. Please send USD$5.00 to my paypal account at Tu...
@@ -974,8 +953,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2 
 	  && ( fabs(part.daughterRefVector()[0]->pdgId()) == 24 || fabs(part.daughterRefVector()[1]->pdgId()) == 24) ){
 	 const reco::GenParticle top = part;
-	 //auto dau1 = *(top.daughterRefVector()[0]);
-	 //auto dau2 = *(top.daughterRefVector()[1]);
+	 uniquetquarks.push_back(&part);
+	
+	 //auto dau1 = *(top.daughterRefVector()[0]); 	 //auto dau2 = *(top.daughterRefVector()[1]);
 	 //assume first daughter is W at first, which appears safe, but...
 	 auto W = *(top.daughterRefVector()[0]);
 	 auto bottom = *(top.daughterRefVector()[1]);
@@ -1064,11 +1044,128 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 //std::cout << "\ndRb: " << dRbMin << " dRq1: " << dRq1Min << " dRq2: " << dRq2Min << std::endl;
        }
      }
+   
+     if(uniquetquarks.size() == 4){
+       candTopVec.push_back(candTop1);
+       candTopVec.push_back(candTop2);
+       candTopVec.push_back(candTop3);
+       candTopVec.push_back(candTop4);
+     }
+     else if(uniquetquarks.size() == 3){
+       candTopVec.push_back(candTop1);
+       candTopVec.push_back(candTop2);
+       candTopVec.push_back(candTop3);
+     }
+     else if(uniquetquarks.size() == 2){
+       candTopVec.push_back(candTop1);
+       candTopVec.push_back(candTop2);
+     }
+     else if(uniquetquarks.size() == 1)
+       candTopVec.push_back(candTop1);
+     //std::cout << "The top vector of pairs has size: " << candTopVec.size() << std::endl;
+     
+     for(const pat::Jet& jet : *jets){
+       //increment index before any early breakout, to be "safer"
+       offsetIndex++;
+       if(jet.genParton()){
+	 auto theGen = jet.genParton();
+	 //if(*(theGen->motherRefVector()[0]))
+	 auto theMom = theGen->motherRefVector().begin();
+	 //std::cout << " dump theMom: " << typeid(*theMom).name() << std::endl;
+	 std::cout << "pdgId chain: " << theGen->pdgId() << " -> " << (*theMom)->pdgId();
+	 while((*theMom)->motherRefVector().size()){
+	   //std::cout << " size: " << (*theMom)->motherRefVector().size() << std::endl;
+	   if( fabs((*theMom)->pdgId()) == 6){
+	     //std::cout << "Printing match booleans to unique top quarks: ";
+	     for(uint y = 0; y < uniquetquarks.size(); y++){
+	       auto top = &(**theMom);
+	       bool gmatch = (uniquetquarks[y] == top);
+	       //std::cout << gmatch << " ";
+	       if(gmatch){
+		 candTopVec[y].first.push_back(theGen);
+		 candTopVec[y].second.push_back(&jet);
+	       }
+		 
+		 
+	     }
+	     // This worked for some events, but caused a crash and core dump partway through four top section. In any case, I saw what I needed to see here.
+	     // auto theTopMoms =  (*theMom)->motherRefVector().begin();
+	     // std::cout << " -> [" << (*theTopMoms)->pdgId() << ", ";
+	     // theTopMoms++;
+	     // if( (*theTopMoms)->pdgId())
+	     //   std::cout << (*theTopMoms)->pdgId() << "]" << std::endl;
+	     break;
+	   }
+	   theMom = (*theMom)->motherRefVector().begin();
+	   std::cout << " -> " << (*theMom)->pdgId();
+	 }
+	   
+	 //easy references to the partons and jet
+	 const reco::GenParticle *theProgeny = theGen;
+	 const reco::GenParticle *theProgenitor = &(**theMom);
+	 const pat::Jet *theJet = &jet;
+
+	 //skip non-top candidates
+	 if(fabs(theProgenitor->pdgId()) != 6)
+	   continue;
+
+	 //for(uint cycler = 0; cycler 
+
+
+
+	 //vectorize candidates for family divination
+	 jetquarks.push_back(theProgeny);
+	 tquarks.push_back(theProgenitor);
+
+	 // bool isNew = true;
+	 // if(uniquetquarks.size() == 0)
+	 //   uniquetquarks.push_back(theProgenitor);
+	 // else 
+	 //   for(uint blah = 0; blah < uniquetquarks.size(); blah++){
+	 //     if ( false) std::cout << "This isn't finished" << std::endl;
+	 //   }
+
+
+	 //jetIndex.push_back((offsetIndex-1));
+	 if(fabs(theProgeny->pdgId()) == 5)
+	   isBottom.push_back(1);
+	 else if(fabs(theProgeny->pdgId()) < 5)
+	   isBottom.push_back(0);
+	 else
+	   std::cout << "We got a live one! And it ain't no quark! Has pdgId = " << theProgeny->pdgId() << std::endl;
+
+	 // const reco::GenParticle *test1 = &(**theMom);
+	 // //auto test2 = *theMom;
+	 // const reco::GenParticle *test2 = &(**theMom);
+	 // const reco::GenParticle *test3 = theGen;
+	 // std::cout << " debugging .... pdgId: " << test1->pdgId() << std::endl;
+	 std::cout << "    DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) )  << std::endl; //<< " parton equality: " << (test1 == test2) << " and parton inequality: " << (test1 == test3)
+       }
+     }
+
+
+     //debug print id's of all quarks in vectors
+     std::cout << "\n================vectorized gen particles================" << std::endl;
+     for(uint r = 0; r < tquarks.size(); r++){
+       //std::cout << tquarks[r]->pdgId() << "\t" << jetquarks[r]->pdgId() << "\t" << isBottom[r] << "\t" << jetIndex[r] << std::endl;
+     }
+   
+
+   for(uint yy = 0; yy < candTopVec.size(); yy++){
+     std::cout << "Top Candidate " << yy+1 << std::endl;
+     std::cout << " (" << candTopVec[yy].first.size() << ") " << std::endl;
+     for(uint zz = 0; zz < candTopVec[yy].first.size(); zz++)
+       std::cout << " pdgId: " << candTopVec[yy].first[zz]->pdgId() << " CSVv2: " 
+		 << candTopVec[yy].second[zz]->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") << " pT's: " 
+		 << candTopVec[yy].first[zz]->pt() << " " << candTopVec[yy].second[zz]->pt() << " Eta's: " 
+		 << candTopVec[yy].first[zz]->eta() << " " << candTopVec[yy].second[zz]->eta() << " Phi's: " 
+		 << candTopVec[yy].first[zz]->phi() << " " << candTopVec[yy].second[zz]->phi();
    }
+   
    std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
 	     << nEvent << "\n===========================================================================" << std::endl;
    if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
-
+   }
 
    ///////////////////////////////////////////
    /// Fill Tree (written by TFileService) ///
