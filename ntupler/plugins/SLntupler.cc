@@ -759,11 +759,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    HT = 0;
    if(deBug && counter == theProblemEvent) std::cout << "L1 ";
    for(const pat::Jet&jet : *jets){
-     if(jet.genParton()){
-       std::cout << "============================Jet Gen Dump===================================" << std::endl;
-       std::cout << jet.genParton()->pdgId() << " DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) ) << std::endl;; //<< " " << jet.genParton()->eta()
-															  //<< " Phi's: " << jet.phi() << " " << jet.genParton()->phi() << std::endl;
-     }
+     // if(jet.genParton()){
+     //   std::cout << "============================Jet Gen Dump===================================" << std::endl;
+     //   std::cout << jet.genParton()->pdgId() << " DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) ) << std::endl;; //<< " " << jet.genParton()->eta()
+     // 															  //<< " Phi's: " << jet.phi() << " " << jet.genParton()->phi() << std::endl;
+     // }
      //Jet Selection 30GeV, usual calorimeter acceptance
      if(jet.pt() < 30 || fabs(jet.eta()) >= 2.5)
        continue;
@@ -936,6 +936,28 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    t3q1 = 0;
    t3q2 = 0;
    if(isMC){
+     //bottom up gen approach
+     std::cout << "============================Jet Gen Dump===================================" << std::endl;
+     for(const pat::Jet&jet : *jets){
+       if(jet.genParton()){
+	 auto theGen = jet.genParton();
+	 //if(*(theGen->motherRefVector()[0]))
+	 auto theMom = theGen->motherRefVector().begin();
+	 //std::cout << " dump theMom: " << typeid(*theMom).name() << std::endl;
+	 std::cout << "pdgId chain: " << theGen->pdgId() << " -> " << (*theMom)->pdgId();
+	 while((*theMom)->motherRefVector().size()){
+	   std::cout << " size: " << (*theMom)->motherRefVector().size() << std::endl;
+	   if( fabs((*theMom)->pdgId()) == 6)
+	     break;
+	   theMom = (*theMom)->motherRefVector().begin();
+	   std::cout << " -> " << (*theMom)->pdgId();
+	 }
+	 std::cout << "    DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) ) << std::endl;; //<< " " << jet.genParton()->eta()
+       }
+     }
+     
+     //dop down gen approach
+     //If you're reading this now, you owe me for this magnificent set of puns. Please send USD$5.00 to my paypal account at Tu...
      for(const reco::GenParticle& part: *gens){
        if(verBose) std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
        if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2 
