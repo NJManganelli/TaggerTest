@@ -1,4 +1,3 @@
-
 // -*- C++ -*-
 //
 // Package:    Demo/SLntupler
@@ -946,17 +945,29 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 //std::cout << " dump theMom: " << typeid(*theMom).name() << std::endl;
 	 std::cout << "pdgId chain: " << theGen->pdgId() << " -> " << (*theMom)->pdgId();
 	 while((*theMom)->motherRefVector().size()){
-	   std::cout << " size: " << (*theMom)->motherRefVector().size() << std::endl;
-	   if( fabs((*theMom)->pdgId()) == 6)
+	   //std::cout << " size: " << (*theMom)->motherRefVector().size() << std::endl;
+	   if( fabs((*theMom)->pdgId()) == 6){
+	     // This worked for some events, but caused a crash and core dump partway through four top section. In any case, I saw what I needed to see here.
+	     // auto theTopMoms =  (*theMom)->motherRefVector().begin();
+	     // std::cout << " -> [" << (*theTopMoms)->pdgId() << ", ";
+	     // theTopMoms++;
+	     // if( (*theTopMoms)->pdgId())
+	     //   std::cout << (*theTopMoms)->pdgId() << "]" << std::endl;
 	     break;
+	   }
 	   theMom = (*theMom)->motherRefVector().begin();
 	   std::cout << " -> " << (*theMom)->pdgId();
 	 }
-	 std::cout << "    DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) ) << std::endl;; //<< " " << jet.genParton()->eta()
+	 const reco::GenParticle *test1 = &(**theMom);
+	 //auto test2 = *theMom;
+	 const reco::GenParticle *test2 = &(**theMom);
+	 const reco::GenParticle *test3 = theGen;
+	 std::cout << " debugging .... pdgId: " << test1->pdgId() << std::endl;
+	 std::cout << "    DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) ) << " parton equality: " << (test1 == test2) << " and parton inequality: " << (test1 == test3) << std::endl;; //<< " " << jet.genParton()->eta()
        }
      }
      
-     //dop down gen approach
+     //top down gen approach
      //If you're reading this now, you owe me for this magnificent set of puns. Please send USD$5.00 to my paypal account at Tu...
      for(const reco::GenParticle& part: *gens){
        if(verBose) std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
@@ -989,13 +1000,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   bottom = *(bottom.daughterRefVector()[0]);
 	 }
 	 //debug info from bottom daughters... not always a nice fragmentation
-	 std::cout << "\nBottom quark and daughters \n pdgId \t p \t pt \t eta \t phi  \nb Id: " 
+	 if(verBose) std::cout << "\nBottom quark and daughters \n pdgId \t p \t pt \t eta \t phi  \nb Id: " 
 		   << bottom.pdgId() << " Pt: " << bottom.pt() << " Eta: " << bottom.eta() << " Phi: " << bottom.phi()
 		   << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < bottom.numberOfDaughters(); i++){
 	   auto deDau = *(bottom.daughterRefVector()[i]);
 	   //if(fabs(deDau.pdgId()) == 5)
-	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
+	   if(verBose) std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
 	 }
 	 //std::cout  << "\n\"W\": " << W.pdgId() << std::endl;
 
@@ -1005,12 +1016,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   Wdau1 = *(Wdau1.daughterRefVector()[0]);
 	 }
 	 //debug info from Wdau1 daughters...
-	 std::cout << "\nW daughter q1 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq1 Id: " 
+	 if(verBose) std::cout << "\nW daughter q1 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq1 Id: " 
 		   << Wdau1.pdgId() << " Pt: " << Wdau1.pt() << " Eta: " << Wdau1.eta() << " Phi: " << Wdau1.phi()
 		   << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < Wdau1.numberOfDaughters(); i++){
 	   auto deDau = *(Wdau1.daughterRefVector()[i]);
-	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
+	   if(verBose) std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
 	 }
 	 perTopConstitq1LVec.SetPtEtaPhiE( Wdau1.pt(), Wdau1.eta(), Wdau1.phi(), Wdau1.energy() );
 
@@ -1019,12 +1030,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   Wdau2 = *(Wdau2.daughterRefVector()[0]);
 	 }
 	 //debug info from Wdau1 daughters...
-	 std::cout << "\nW daughter q2 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq2 Id: " 
+	 if(verBose) std::cout << "\nW daughter q2 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq2 Id: " 
 		   << Wdau2.pdgId() << " Pt: " << Wdau2.pt() << " Eta: " << Wdau2.eta() << " Phi: " << Wdau2.phi()
 		   << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < Wdau2.numberOfDaughters(); i++){
 	   auto deDau = *(Wdau2.daughterRefVector()[i]);
-	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
+	   if(verBose) std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
 	 }
 	 perTopConstitq2LVec.SetPtEtaPhiE( Wdau2.pt(), Wdau2.eta(), Wdau2.phi(), Wdau2.energy() );
 	 //loop through all selected jets and find any that closely match the hadronic top constituents
@@ -1050,7 +1061,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   dRq2 = perTopConstitq2LVec.DeltaR(JetLVec->at(jj));
 	   dRq2Min = (dRq2 < dRq2Min ? dRq2 : dRq2Min);
 	 }
-	 std::cout << "\ndRb: " << dRbMin << " dRq1: " << dRq1Min << " dRq2: " << dRq2Min << std::endl;
+	 //std::cout << "\ndRb: " << dRbMin << " dRq1: " << dRq1Min << " dRq2: " << dRq2Min << std::endl;
        }
      }
    }
