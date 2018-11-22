@@ -928,7 +928,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        std::cout << "============================Jet Gen Dump===================================" << std::endl;
      //std::vector<const reco::GenParticle*> tquarks, uniquetquarks;
      std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > candTop1, candTop2, candTop3, candTop4;
-     std::vector< std::pair <std::vector<const reco::GenParticle*>, uint> > TopVec;
+     std::vector< std::pair <std::vector<const reco::GenParticle*>, int> > TopVec;
      std::vector<std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > > candTopVec;
 
      
@@ -1026,7 +1026,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   std::cout << "===> W daughters: " << W->numberOfDaughters() << " dau ID's: " << Wdau1->pdgId() << " " << Wdau2->pdgId() << std::endl;
 	 if(fabs(Wdau1->pdgId()) < 10 || fabs(Wdau2->pdgId()) < 10){
 	   nHadronicTops++;
-	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   std::pair<std::vector<const reco::GenParticle*>, int> temp;
 	   temp.first.push_back(&part);
 	   temp.first.push_back(bottom);
 	   temp.first.push_back(Wdau1);
@@ -1037,32 +1037,32 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 //assign Wdaus as q1, q2, check |eta| for reconstructability
 	 else if(fabs(Wdau1->pdgId()) < 13 || fabs(Wdau2->pdgId()) < 13){
 	   nElectronicTops++;
-	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   std::pair<std::vector<const reco::GenParticle*>, int> temp;
 	   temp.first.push_back(&part);
 	   temp.first.push_back(bottom);
 	   temp.first.push_back(Wdau1);
 	   temp.first.push_back(Wdau2);
-	   temp.second = 10;
+	   temp.second = 30000;
 	   TopVec.push_back(temp);
 	 }
 	 else if(fabs(Wdau1->pdgId()) < 15 || fabs(Wdau2->pdgId()) < 15){
 	   nMuonicTops++;
-	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   std::pair<std::vector<const reco::GenParticle*>, int> temp;
 	   temp.first.push_back(&part);
 	   temp.first.push_back(bottom);
 	   temp.first.push_back(Wdau1);
 	   temp.first.push_back(Wdau2);
-	   temp.second = 20;
+	   temp.second = 20000;
 	   TopVec.push_back(temp);
 	 }
 	 else if(fabs(Wdau1->pdgId()) < 17 || fabs(Wdau2->pdgId()) < 17){
 	   nTauonicTops++;
-	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   std::pair<std::vector<const reco::GenParticle*>, int> temp;
 	   temp.first.push_back(&part);
 	   temp.first.push_back(bottom);
 	   temp.first.push_back(Wdau1);
 	   temp.first.push_back(Wdau2);
-	   temp.second = 30;
+	   temp.second = 10000;
 	   TopVec.push_back(temp);
 	 }
 
@@ -1079,6 +1079,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 // }
 	 //std::cout << "\ndRb: " << dRbMin << " dRq1: " << dRq1Min << " dRq2: " << dRq2Min << std::endl;
        }
+     }
+
+     //Set flag bits to 0, initialized with length corresponding to top candidates
+     for(uint ex = 0; ex < TopVec.size(); ex++){
+       FlagTop->push_back(4096);
+       FlagBottom->push_back(0);
+       FlagQ1->push_back(0);
+       FlagQ2->push_back(0);
      }
 
      if(TopVec.size() == 4){
@@ -1117,9 +1125,54 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	       if(gmatch){
 		 candTopVec[y].first.push_back(theGen);
 		 candTopVec[y].second.push_back(&jet);
+		 //bottom quark flags
+		 if(fabs(theGen->pdgId()) == 5){
+		   int tmpBot = 1; //first bit, jet is present for b hadron
+		   if( fabs(jet.eta()) <= 2.4 ){
+		     tmpBot += 2; //second bit, eta requirement
+		     if( jet.pt() > 25.0){
+		       tmpBot += 4; //third bit, pt requirement
+		       if( jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.8484){
+		       	 tmpBot += 8; //foutrh bit, medium csv-v2 tagged;
+		       }
+		     }
+		   }
+		   FlagBottom->at(y) = tmpBot;
+		 }
+		 //Q1 flags
+		 //		 if(fabs(theGen->pdgId()) == 4 || fabs(theGen->pdgId()) == 2){
+		 else if(FlagQ1->at(y) == 0){ //see if another non-b quark was added first, fill that one first
+		   int tmpQ1 = 16;
+		   if( fabs(jet.eta()) <= 2.4 ){
+		     tmpQ1 += 32;
+		     if( jet.pt() > 30){
+		       tmpQ1 += 64;
+		     }
+		   }
+		   FlagQ1->at(y) = tmpQ1;
+		 }
+		 //Q1 flags
+		 else{
+		   //if(fabs(theGen->pdgId()) == 3 || fabs(theGen->pdgId()) == 1){
+		   int tmpQ2 = 128;
+		   if( fabs(jet.eta()) <= 2.4 ){
+		     tmpQ2 += 256;
+		     if( jet.pt() > 30){
+		       tmpQ2 += 512;
+		     }
+		   }
+		   FlagQ2->at(y) = tmpQ2;
+		 }
+		 
+		 FlagTop->at(y) = TopVec[y].second + FlagBottom->at(y) + FlagQ1->at(y) + FlagQ2->at(y);
+		 std::cout << "\nFlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second;
+		 // std::cout << "\n FlagBottom: " << FlagBottom->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta() << " CSVv2: "  
+		 // 	   << jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+		 // std::cout << "\n FlagQ1: " << FlagQ1->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
+		 // std::cout << "\n FlagQ2: " << FlagQ2->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
 	       }
 		 
-		 
+	      
 	     }
 	     // This worked for some events, but caused a crash and core dump partway through four top section. In any case, I saw what I needed to see here.
 	     // auto theTopMoms =  (*theMom)->motherRefVector().begin();
@@ -1164,8 +1217,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
 	       << nEvent << "\n===========================================================================" << std::endl;
      if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
-   }
-
+     }
+   
    ///////////////////////////////////////////
    /// Fill Tree (written by TFileService) ///
    ///////////////////////////////////////////
