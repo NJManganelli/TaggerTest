@@ -159,7 +159,8 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   //Data and collections
   uint nEvts, nRun, nLumiBlock, nEvent;
   uint nHadronicTops, nElectronicTops, nMuonicTops, nTauonicTops;
-  int t1, t2, t3, t1b, t1q1, t1q2, t2b, t2q1, t2q2, t3b, t3q1, t3q2; //pseudo-bits for hadronic tops; 0 = not present; +/-1 =  present; + = reconstructable, - = unreconstructable 
+  //int t1, t2, t3, t1b, t1q1, t1q2, t2b, t2q1, t2q2, t3b, t3q1, t3q2; //pseudo-bits for hadronic tops; 0 = not present; +/-1 =  present; + = reconstructable, - = unreconstructable 
+  std::vector<int> *FlagTop, *FlagBottom, *FlagQ1, *FlagQ2; //flag bits for playing nicely with Top candidate construction
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
   double HT, HTX, HT2M; //FIXME Calculate and add these...
@@ -921,19 +922,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nElectronicTops = 0;
    nMuonicTops = 0;
    nTauonicTops = 0;
-   //reset flags for hadronic tops
-   t1 = 0;
-   t2 = 0;
-   t3 = 0;
-   t1b = 0;
-   t1q1 = 0;
-   t1q2 = 0;
-   t2b = 0;
-   t2q1 = 0;
-   t2q2 = 0;
-   t3b = 0;
-   t3q1 = 0;
-   t3q2 = 0;
    if(isMC){
      //bottom up gen approach
      if(verBose)
@@ -1209,19 +1197,11 @@ SLntupler::beginJob()
    nElectronicTops = 0;
    nMuonicTops = 0;
    nTauonicTops = 0;
-   t1 = 0;
-   t2 = 0;
-   t3 = 0;
-   t1b = 0;
-   t1q1 = 0;
-   t1q2 = 0;
-   t2b = 0;
-   t2q1 = 0;
-   t2q2 = 0;
-   t3b = 0;
-   t3q1 = 0;
-   t3q2 = 0;
    //FIXME: Add missing variables for leptons, isolation, jetID, HT, etc.
+   FlagTop = new std::vector<int>;
+   FlagBottom = new std::vector<int>;
+   FlagQ1 = new std::vector<int>;
+   FlagQ2 = new std::vector<int>;
    JetLVec = new std::vector<TLorentzVector>;
    hadTop1Constit = new std::vector<TLorentzVector>;
    hadTop2Constit = new std::vector<TLorentzVector>;
@@ -1266,20 +1246,10 @@ SLntupler::beginJob()
    tree->Branch("nMuonicTops", &nMuonicTops);
    tree->Branch("nTauonicTops", &nTauonicTops);
    tree->Branch("HT", &HT);
-   tree->Branch("t1", &t1);
-   tree->Branch("t2", &t2);
-   tree->Branch("t3", &t3);
-   tree->Branch("t1b", &t1b);
-   tree->Branch("t1q1", &t1q1);
-   tree->Branch("t1q2", &t1q2);
-   tree->Branch("t2b", &t2b);
-   tree->Branch("t2q1", &t2q1);
-   tree->Branch("t2q2", &t2q2);
-   tree->Branch("t3b", &t3b);
-   tree->Branch("t3q1", &t3q1);
-   tree->Branch("t3q2", &t3q2);
-   // tree->Branch("HTX", &HTX);
-   // tree->Branch("HT2M", &HT2M);
+   tree->Branch("FlagTop", &FlagTop);
+   tree->Branch("FlagBottom", &FlagBottom);
+   tree->Branch("FlagQ1", &FlagQ1);
+   tree->Branch("FlagQ2", &FlagQ2);
    tree->Branch("HLT_MuMu_Bits", &HLT_MuMu_Bits);
    tree->Branch("HLT_ElMu_Bits", &HLT_ElMu_Bits);
    tree->Branch("HLT_ElEl_Bits", &HLT_ElEl_Bits);
@@ -1330,6 +1300,10 @@ SLntupler::endJob()
    // tree->Write("", TObject::kOverwrite);
 
    //Clear pointers
+   FlagTop->clear();
+   FlagBottom->clear();
+   FlagQ1->clear();
+   FlagQ2->clear();
    JetLVec->clear();
    hadTop1Constit->clear();
    hadTop2Constit->clear();
@@ -1363,6 +1337,10 @@ SLntupler::endJob()
    electronMultiplicityVec->clear();
    muonMultiplicityVec->clear();
 
+   delete FlagTop;
+   delete FlagBottom;
+   delete FlagQ1;
+   delete FlagQ2;
    delete JetLVec;
    delete selectedLepLVec;
    delete METLVec;
