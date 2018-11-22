@@ -971,10 +971,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }
 
 	 //loop through daughter chain until reaching decaying status
-	 while(bottom->numberOfDaughters() == 1){
-	   //std::cout << "/" << bottom->pt() << "/";
-	   bottom = &(**(bottom->daughterRefVector().begin()));
-	 }
+	 // while(bottom->numberOfDaughters() == 1){
+	 //   //std::cout << "/" << bottom->pt() << "/";
+	 //   bottom = &(**(bottom->daughterRefVector().begin()));
+	 // }
 
 	 //debug info from bottom daughters... not always a nice fragmentation
 	 if(verBose) 
@@ -994,11 +994,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 if(verBose)
 	   std:: cout << "Wdau1 pdgId reads: " << Wdau1->pdgId() << std::endl;
 	 int rcount = 0;
-	 while(Wdau1->numberOfDaughters() == 1 && rcount < 100){
-	   rcount++;
-	   //std::cout << "^" << Wdau1->pt() << "^";
-	   Wdau1 = &(**(W->daughterRefVector().begin()));
-	 }
+	 // while(Wdau1->numberOfDaughters() == 1 && rcount < 100){
+	 //   rcount++;
+	 //   //std::cout << "^" << Wdau1->pt() << "^";
+	 //   Wdau1 = &(**(W->daughterRefVector().begin()));
+	 // }
+
 	 //debug info from Wdau1 daughters...
 	 if(verBose) 
 	   std::cout << "\nW daughter q1 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq1 Id: " 
@@ -1014,13 +1015,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 if(verBose)
 	   std:: cout << "Wdau2 pdgId reads: " << Wdau2->pdgId() << std::endl;
 	 int lcount = 0;
-	 while(Wdau2->numberOfDaughters() == 1 && lcount < 100){
-	   lcount++;
-	   //Wdau2 = *(Wdau2->daughterRefVector()[0]);
-	   //std::cout << "\\" << Wdau2->pt() << "\\";
-	   Wdau2 = &(**(++W->daughterRefVector().begin()));
-	 }
+	 // while(Wdau2->numberOfDaughters() == 1 && lcount < 100){
+	 //   lcount++;
+	 //   //Wdau2 = *(Wdau2->daughterRefVector()[0]);
+	 //   //std::cout << "\\" << Wdau2->pt() << "\\";
+	 //   Wdau2 = &(**(++W->daughterRefVector().begin()));
+	 // }
 	 //debug info from Wdau1 daughters...
+
 	 if(verBose) 
 	   std::cout << "\nW daughter q2 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq2 Id: " 
 		     << Wdau2->pdgId() << " Pt: " << Wdau2->pt() << " Eta: " << Wdau2->eta() << " Phi: " << Wdau2->phi()
