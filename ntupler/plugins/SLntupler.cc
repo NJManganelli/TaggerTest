@@ -938,9 +938,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //bottom up gen approach
      std::cout << "============================Jet Gen Dump===================================" << std::endl;
      std::vector<const reco::GenParticle*> jetquarks, tquarks, uniquetquarks;
-     //std::vector<const pat::Jet*> candTop1, candTop2, candTop3, candTop4;
      std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > candTop1, candTop2, candTop3, candTop4;
-     std::vector< std::pair <const reco::GenParticle*, uint> > TopVec;
+     std::vector< std::pair <std::vector<const reco::GenParticle*>, uint> > TopVec;
      std::vector<std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > > candTopVec;
      std::vector<uint> isBottom, jetIndex;
      uint offsetIndex = 0;
@@ -1023,30 +1022,30 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 if(verBose) std::cout << "===> W daughters: " << W.numberOfDaughters() << " dau ID's: " << Wdau1.pdgId() << " " << Wdau2.pdgId() << std::endl;
 	 if(fabs(Wdau1.pdgId()) < 10 && fabs(Wdau2.pdgId()) < 10){
 	   nHadronicTops++;
-	   std::pair<const reco::GenParticle*, uint> temp;
-	   temp.first = &part;
+	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   temp.first.push_back(&part);
 	   temp.second = 1;
 	   TopVec.push_back(temp);
 	 }
 	 //assign Wdaus as q1, q2, check |eta| for reconstructability
 	 else if(fabs(Wdau1.pdgId()) < 13 && fabs(Wdau2.pdgId()) < 13){
 	   nElectronicTops++;
-	   std::pair<const reco::GenParticle*, uint> temp;
-	   temp.first = &part;
+	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   temp.first.push_back(&part);
 	   temp.second = 2;
 	   TopVec.push_back(temp);
 	 }
 	 else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15){
 	   nMuonicTops++;
-	   std::pair<const reco::GenParticle*, uint> temp;
-	   temp.first = &part;
+	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   temp.first.push_back(&part);
 	   temp.second = 3;
 	   TopVec.push_back(temp);
 	 }
 	 else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17){
 	   nTauonicTops++;
-	   std::pair<const reco::GenParticle*, uint> temp;
-	   temp.first = &part;
+	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
+	   temp.first.push_back(&part);
 	   temp.second = 4;
 	   TopVec.push_back(temp);
 	 }
