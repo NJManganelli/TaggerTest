@@ -1024,7 +1024,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   nHadronicTops++;
 	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
 	   temp.first.push_back(&part);
-	   temp.second = 1;
+	   temp.first.push_back(&bottom);
+	   temp.first.push_back(&Wdau1);
+	   temp.first.push_back(&Wdau2);
+	   temp.second = 0;
 	   TopVec.push_back(temp);
 	 }
 	 //assign Wdaus as q1, q2, check |eta| for reconstructability
@@ -1032,21 +1035,30 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   nElectronicTops++;
 	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
 	   temp.first.push_back(&part);
-	   temp.second = 2;
+	   temp.first.push_back(&bottom);
+	   temp.first.push_back(&Wdau1);
+	   temp.first.push_back(&Wdau2);
+	   temp.second = 10;
 	   TopVec.push_back(temp);
 	 }
 	 else if(fabs(Wdau1.pdgId()) < 15 && fabs(Wdau2.pdgId()) < 15){
 	   nMuonicTops++;
 	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
 	   temp.first.push_back(&part);
-	   temp.second = 3;
+	   temp.first.push_back(&bottom);
+	   temp.first.push_back(&Wdau1);
+	   temp.first.push_back(&Wdau2);
+	   temp.second = 20;
 	   TopVec.push_back(temp);
 	 }
 	 else if(fabs(Wdau1.pdgId()) < 17 && fabs(Wdau2.pdgId()) < 17){
 	   nTauonicTops++;
 	   std::pair<std::vector<const reco::GenParticle*>, uint> temp;
 	   temp.first.push_back(&part);
-	   temp.second = 4;
+	   temp.first.push_back(&bottom);
+	   temp.first.push_back(&Wdau1);
+	   temp.first.push_back(&Wdau2);
+	   temp.second = 30;
 	   TopVec.push_back(temp);
 	 }
 
