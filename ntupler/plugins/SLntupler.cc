@@ -936,13 +936,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    t3q2 = 0;
    if(isMC){
      //bottom up gen approach
-     std::cout << "============================Jet Gen Dump===================================" << std::endl;
-     std::vector<const reco::GenParticle*> jetquarks, tquarks, uniquetquarks;
+     if(verBose)
+       std::cout << "============================Jet Gen Dump===================================" << std::endl;
+     //std::vector<const reco::GenParticle*> tquarks, uniquetquarks;
      std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > candTop1, candTop2, candTop3, candTop4;
      std::vector< std::pair <std::vector<const reco::GenParticle*>, uint> > TopVec;
      std::vector<std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > > candTopVec;
-     std::vector<uint> isBottom, jetIndex;
-     uint offsetIndex = 0;
 
      
      //top down gen approach
@@ -953,7 +952,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2 
 	  && ( fabs(part.daughterRefVector()[0]->pdgId()) == 24 || fabs(part.daughterRefVector()[1]->pdgId()) == 24) ){
 	 const reco::GenParticle top = part;
-	 uniquetquarks.push_back(&part);
+	 //uniquetquarks.push_back(&part);
 
 	 //assume first daughter is W at first, which appears safe, but...
 	 const reco::GenParticle* W = &(**(top.daughterRefVector().begin()));
@@ -992,7 +991,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	 //assign and loop through daughter chains
 	 const reco::GenParticle* Wdau1 = &(**(W->daughterRefVector().begin()));
-	 std:: cout << "Wdau1 pdgId reads: " << Wdau1->pdgId() << std::endl;
+	 if(verBose)
+	   std:: cout << "Wdau1 pdgId reads: " << Wdau1->pdgId() << std::endl;
 	 int rcount = 0;
 	 while(Wdau1->numberOfDaughters() == 1 && rcount < 100){
 	   rcount++;
@@ -1011,7 +1011,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }
 
 	 const reco::GenParticle* Wdau2 = &(**(++(W->daughterRefVector().begin())));
-	 std:: cout << "Wdau2 pdgId reads: " << Wdau2->pdgId() << std::endl;
+	 if(verBose)
+	   std:: cout << "Wdau2 pdgId reads: " << Wdau2->pdgId() << std::endl;
 	 int lcount = 0;
 	 while(Wdau2->numberOfDaughters() == 1 && lcount < 100){
 	   lcount++;
@@ -1031,7 +1032,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }
 
 	 //loop through all selected jets and find any that closely match the hadronic top constituents
-	 //if(verBose) 
+	 if(verBose) 
 	   std::cout << "===> W daughters: " << W->numberOfDaughters() << " dau ID's: " << Wdau1->pdgId() << " " << Wdau2->pdgId() << std::endl;
 	 if(fabs(Wdau1->pdgId()) < 10 || fabs(Wdau2->pdgId()) < 10){
 	   nHadronicTops++;
@@ -1089,7 +1090,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 //std::cout << "\ndRb: " << dRbMin << " dRq1: " << dRq1Min << " dRq2: " << dRq2Min << std::endl;
        }
      }
-     std::cout << "moving to candTopVec creation";
+
      if(TopVec.size() == 4){
        candTopVec.push_back(candTop1);
        candTopVec.push_back(candTop2);
@@ -1109,13 +1110,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        candTopVec.push_back(candTop1);
      
      for(const pat::Jet& jet : *jets){
-       //increment index before any early breakout, to be "safer"
-       offsetIndex++;
        if(jet.genParton()){
 	 auto theGen = jet.genParton();
 	 auto theMom = theGen->motherRefVector().begin();
 	 //std::cout << " dump theMom: " << typeid(*theMom).name() << std::endl;
-	 std::cout << "\npdgId chain: " << theGen->pdgId() << " -> " << (*theMom)->pdgId();
+	 if(verBose)
+	   std::cout << "\npdgId chain: " << theGen->pdgId() << " -> " << (*theMom)->pdgId();
 	 while((*theMom)->motherRefVector().size()){
 	   //std::cout << " size: " << (*theMom)->motherRefVector().size() << std::endl;
 	   if( fabs((*theMom)->pdgId()) == 6){
@@ -1140,49 +1140,9 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     break;
 	   }
 	   theMom = (*theMom)->motherRefVector().begin();
-	   std::cout << " -> " << (*theMom)->pdgId();
+	   if(verBose)
+	     std::cout << " -> " << (*theMom)->pdgId();
 	 }
-	   
-	 //easy references to the partons and jet
-	 // const reco::GenParticle *theProgeny = theGen;
-	 // const reco::GenParticle *theProgenitor = &(**theMom);
-	 // const pat::Jet *theJet = &jet;
-
-	 // //skip non-top candidates
-	 // if(fabs(theProgenitor->pdgId()) != 6)
-	 //   continue;
-
-	 //for(uint cycler = 0; cycler 
-
-
-
-	 //vectorize candidates for family divination
-	 // jetquarks.push_back(theProgeny);
-	 // tquarks.push_back(theProgenitor);
-
-	 // bool isNew = true;
-	 // if(uniquetquarks.size() == 0)
-	 //   uniquetquarks.push_back(theProgenitor);
-	 // else 
-	 //   for(uint blah = 0; blah < uniquetquarks.size(); blah++){
-	 //     if ( false) std::cout << "This isn't finished" << std::endl;
-	 //   }
-
-
-	 // //jetIndex.push_back((offsetIndex-1));
-	 // if(fabs(theProgeny->pdgId()) == 5)
-	 //   isBottom.push_back(1);
-	 // else if(fabs(theProgeny->pdgId()) < 5)
-	 //   isBottom.push_back(0);
-	 // else
-	 //   std::cout << "We got a live one! And it ain't no quark! Has pdgId = " << theProgeny->pdgId() << std::endl;
-
-	 // const reco::GenParticle *test1 = &(**theMom);
-	 // //auto test2 = *theMom;
-	 // const reco::GenParticle *test2 = &(**theMom);
-	 // const reco::GenParticle *test3 = theGen;
-	 // std::cout << " debugging .... pdgId: " << test1->pdgId() << std::endl;
-	 //std::cout << "    DeltaR: " << sqrt( (jet.eta() - jet.genParton()->eta())*(jet.eta() - jet.genParton()->eta()) + (jet.phi() - jet.genParton()->phi())*(jet.phi() - jet.genParton()->phi()) )  << std::endl; //<< " parton equality: " << (test1 == test2) << " and parton inequality: " << (test1 == test3)
        }
      }
 
