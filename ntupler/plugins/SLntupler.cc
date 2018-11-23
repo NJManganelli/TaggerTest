@@ -460,6 +460,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
    //Clear pointers
+   FlagTop->clear();
+   FlagBottom->clear();
+   FlagQ1->clear();
+   FlagQ2->clear();
    JetLVec->clear();
    hadTop1Constit->clear();
    hadTop2Constit->clear();
@@ -1088,6 +1092,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        FlagQ1->push_back(0);
        FlagQ2->push_back(0);
      }
+     //Ensure above bits have been set and CLEARED correctly
+     if(deBug){
+       std::cout << "Flag Bits (Top, Bottom, Q1, Q2)" << std::endl;
+       for(uint meh = 0; meh < TopVec.size(); meh++)
+	 std::cout << FlagTop->at(meh) << "\t" << FlagBottom->at(meh) << "\t" << FlagQ1->at(meh) 
+		   << "\t" << FlagQ2->at(meh) << "\t" << (FlagQ1->at(meh) < 128) << std::endl;
+     }
 
      if(TopVec.size() == 4){
        candTopVec.push_back(candTop1);
@@ -1138,10 +1149,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		     }
 		   }
 		   FlagBottom->at(y) = tmpBot;
+		   std::cout << "\n" << y << " || FlagBottom: " << FlagBottom->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta() << " CSVv2: "  
+			     << jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
 		 }
 		 //Q1 flags
 		 //		 if(fabs(theGen->pdgId()) == 4 || fabs(theGen->pdgId()) == 2){
-		 else if(FlagQ1->at(y) == 0){ //see if another non-b quark was added first, fill that one first
+		 else if(FlagQ1->at(y) < 16){
 		   int tmpQ1 = 16;
 		   if( fabs(jet.eta()) <= 2.4 ){
 		     tmpQ1 += 32;
@@ -1150,9 +1163,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		     }
 		   }
 		   FlagQ1->at(y) = tmpQ1;
+		   std::cout << "\n" << y << " || FlagQ1: " << FlagQ1->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
 		 }
 		 //Q1 flags
-		 else{
+		 else if(FlagQ2->at(y) < 128){
 		   //if(fabs(theGen->pdgId()) == 3 || fabs(theGen->pdgId()) == 1){
 		   int tmpQ2 = 128;
 		   if( fabs(jet.eta()) <= 2.4 ){
@@ -1162,14 +1176,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		     }
 		   }
 		   FlagQ2->at(y) = tmpQ2;
+		   std::cout << "\n" << y << " || FlagQ2: " << FlagQ2->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
 		 }
-		 
-		 FlagTop->at(y) = TopVec[y].second + FlagBottom->at(y) + FlagQ1->at(y) + FlagQ2->at(y);
-		 std::cout << "\nFlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second;
-		 // std::cout << "\n FlagBottom: " << FlagBottom->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta() << " CSVv2: "  
-		 // 	   << jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
-		 // std::cout << "\n FlagQ1: " << FlagQ1->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
-		 // std::cout << "\n FlagQ2: " << FlagQ2->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
+		 else
+		   std::cout << "Well that wasn't expected....... " << std::endl;
 	       }
 		 
 	      
@@ -1193,10 +1203,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //debug print id's of all quarks in vectors
      std::cout << "\n================Gen-Reco Matched Top Candidates================";
      for(uint ww = 0; ww < TopVec.size(); ww++){
-       std::cout << "\nTop Object " << ww << " Constituents: ";
+       std::cout << "\nTop Object " << ww+1 << " Constituents: ";
        //for(uint w = 0; w < TopVec[ww].first.size(); w++)
        for(uint w = 0; w < TopVec[ww].first.size(); w++)
-	 std::cout << "\n" << TopVec[ww].first[w]->pdgId() << " Pt: " <<TopVec[ww].first[w]->pt();
+	 std::cout << "\n" << TopVec[ww].first[w]->pdgId() << " Pt: " <<TopVec[ww].first[w]->pt() << " Eta: " << TopVec[ww].first[w]->eta();
      }
    
 
@@ -1213,11 +1223,18 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		   << "\t Phi's: " << candTopVec[yy].first[zz]->phi() << " " << candTopVec[yy].second[zz]->phi()
 		   << std::endl;
      }
+
+     //Set final Top flag
+     std::cout << "+++++++++++++++++++++++" << std::endl;
+     for(uint y = 0; y < TopVec.size(); y++){
+       FlagTop->at(y) = TopVec[y].second + FlagBottom->at(y) + FlagQ1->at(y) + FlagQ2->at(y);
+       std::cout << "FlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second << std::endl;
+     }
    
      std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
 	       << nEvent << "\n===========================================================================" << std::endl;
      if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
-     }
+   }
    
    ///////////////////////////////////////////
    /// Fill Tree (written by TFileService) ///
