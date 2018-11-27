@@ -1138,45 +1138,45 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		 candTopVec[y].second.push_back(&jet);
 		 //bottom quark flags
 		 if(fabs(theGen->pdgId()) == 5){
-		   int tmpBot = 1; //first bit, jet is present for b hadron
+		   int tmpBot = 128; //first bit, jet is present for b hadron
 		   if( fabs(jet.eta()) <= 2.4 ){
-		     tmpBot += 2; //second bit, eta requirement
-		     if( jet.pt() > 25.0){
-		       tmpBot += 4; //third bit, pt requirement
-		       if( jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.8484){
-		       	 tmpBot += 8; //foutrh bit, medium csv-v2 tagged;
-		       }
+		     tmpBot += 16; //second bit, eta requirement
+		     if( jet.pt() > 25.0 && jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") > 0.8484){
+		       tmpBot += 2; //third bit, pt requirement with medium csvv2 tag
+		     }
+		     else if( jet.pt() > 30){
+		       tmpBot += 1; //fourth bit, pt requirement without tag
 		     }
 		   }
 		   FlagBottom->at(y) = tmpBot;
-		   std::cout << "\n" << y << " || FlagBottom: " << FlagBottom->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta() << " CSVv2: "  
+		   std::cout << "\n" << y+1 << " || FlagBottom: " << FlagBottom->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta() << " CSVv2: "  
 			     << jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
 		 }
 		 //Q1 flags
 		 //		 if(fabs(theGen->pdgId()) == 4 || fabs(theGen->pdgId()) == 2){
 		 else if(FlagQ1->at(y) < 16){
-		   int tmpQ1 = 16;
+		   int tmpQ1 = 512;
 		   if( fabs(jet.eta()) <= 2.4 ){
-		     tmpQ1 += 32;
+		     tmpQ1 += 64;
 		     if( jet.pt() > 30){
-		       tmpQ1 += 64;
+		       tmpQ1 += 8;
 		     }
 		   }
 		   FlagQ1->at(y) = tmpQ1;
-		   std::cout << "\n" << y << " || FlagQ1: " << FlagQ1->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
+		   std::cout << "\n" << y+1 << " || FlagQ1: " << FlagQ1->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
 		 }
 		 //Q1 flags
 		 else if(FlagQ2->at(y) < 128){
 		   //if(fabs(theGen->pdgId()) == 3 || fabs(theGen->pdgId()) == 1){
-		   int tmpQ2 = 128;
+		   int tmpQ2 = 256;
 		   if( fabs(jet.eta()) <= 2.4 ){
-		     tmpQ2 += 256;
+		     tmpQ2 += 32;
 		     if( jet.pt() > 30){
-		       tmpQ2 += 512;
+		       tmpQ2 += 4;
 		     }
 		   }
 		   FlagQ2->at(y) = tmpQ2;
-		   std::cout << "\n" << y << " || FlagQ2: " << FlagQ2->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
+		   std::cout << "\n" << y+1 << " || FlagQ2: " << FlagQ2->at(y) << " Pt: " << jet.pt() << " Eta: " << jet.eta();
 		 }
 		 else
 		   std::cout << "Well that wasn't expected....... " << std::endl;
@@ -1199,7 +1199,6 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        }
      }
 
-
      //debug print id's of all quarks in vectors
      std::cout << "\n================Gen-Reco Matched Top Candidates================";
      for(uint ww = 0; ww < TopVec.size(); ww++){
@@ -1210,10 +1209,28 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
    
 
+     //Set final Top flag
+     std::cout << "\n================Final Top Flags================" << std::endl;
+     for(uint y = 0; y < TopVec.size(); y++){
+       FlagTop->at(y) = TopVec[y].second + FlagBottom->at(y) + FlagQ1->at(y) + FlagQ2->at(y);
+       std::cout << "FlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second << std::endl;
+     }
+
+     //print development information
+     //Fill TLorentzVectors for top candidates, to be matched post-top tagging
+     //bools for filling the final output vectors
+     bool filledOne = false;
+     bool filledTwo = false;
+     bool filledThree = false;
      for(uint yy = 0; yy < candTopVec.size(); yy++){
        std::cout << "\nTop Object " << yy+1 << std::endl;
        std::cout << " (" << candTopVec[yy].first.size() << ") " << std::endl;
-       for(uint zz = 0; zz < candTopVec[yy].first.size(); zz++)
+       
+       TLorentzVector theBJet, theQ1Jet, theQ2Jet;
+       bool madeB = false;
+       bool madeQ1 = false;
+       bool madeQ2 = false;
+       for(uint zz = 0; zz < candTopVec[yy].first.size(); zz++){
 	 std::cout << " position: " << yy+1
 		   << " pdgIds: " << candTopVec[yy].first[zz]->pdgId() << " " << candTopVec[yy].second[zz]->genParticle()->pdgId()
 		   << "\t gen matching true: " << ( candTopVec[yy].second[zz]->genParticle() == candTopVec[yy].first[zz])
@@ -1222,13 +1239,56 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		   << "\t Eta's: " << candTopVec[yy].first[zz]->eta() << " " << candTopVec[yy].second[zz]->eta() 
 		   << "\t Phi's: " << candTopVec[yy].first[zz]->phi() << " " << candTopVec[yy].second[zz]->phi()
 		   << std::endl;
-     }
 
-     //Set final Top flag
-     std::cout << "+++++++++++++++++++++++" << std::endl;
-     for(uint y = 0; y < TopVec.size(); y++){
-       FlagTop->at(y) = TopVec[y].second + FlagBottom->at(y) + FlagQ1->at(y) + FlagQ2->at(y);
-       std::cout << "FlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second << std::endl;
+	 //fill TLorentzVectors
+	 if( fabs(candTopVec[yy].first[zz]->pdgId()) == 5){
+	   theBJet.SetPtEtaPhiE(candTopVec[yy].second[zz]->pt(), candTopVec[yy].second[zz]->eta(), candTopVec[yy].second[zz]->phi(), candTopVec[yy].second[zz]->energy());
+	   madeB = true;
+	 }
+	 else if (!madeQ1){
+	   theQ1Jet.SetPtEtaPhiE(candTopVec[yy].second[zz]->pt(), candTopVec[yy].second[zz]->eta(), candTopVec[yy].second[zz]->phi(), candTopVec[yy].second[zz]->energy());
+	   madeQ1 = true;
+	 }
+	 else{
+	   theQ2Jet.SetPtEtaPhiE(candTopVec[yy].second[zz]->pt(), candTopVec[yy].second[zz]->eta(), candTopVec[yy].second[zz]->phi(), candTopVec[yy].second[zz]->energy());
+	   madeQ2 = true;
+	 }
+       } //end for(uint zz = 0; zz < candTopVec[yy].first.size(); zz++)
+
+       //fill empty vectors to organize sets
+       if(!madeB)
+	 theBJet.SetPtEtaPhiE(0, 6.0, 0, 0);
+       if(!madeQ1)
+	 theQ1Jet.SetPtEtaPhiE(0, 7.0, 0, 0);
+       if(!madeQ2)
+	 theQ2Jet.SetPtEtaPhiE(0, 8.0, 0, 0);
+
+       //fill candidate sets
+       //if(candTopVec[yy].first.size()
+       if(FlagTop->at(yy) < 10000 && !filledOne){
+	 hadTop1Constit->push_back(theBJet);
+	 hadTop1Constit->push_back(theQ1Jet);
+	 hadTop1Constit->push_back(theQ2Jet);
+	 filledOne = true;
+       }
+       else if(FlagTop->at(yy) < 10000 && !filledTwo){
+	 filledTwo = true;
+	 hadTop2Constit->push_back(theBJet);
+	 hadTop2Constit->push_back(theQ1Jet);
+	 hadTop2Constit->push_back(theQ2Jet);
+       }
+       else if(FlagTop->at(yy) < 10000 && !filledThree){
+	 filledThree = true;
+	 hadTop3Constit->push_back(theBJet);
+	 hadTop3Constit->push_back(theQ1Jet);
+	 hadTop3Constit->push_back(theQ2Jet);
+       }
+       else if(FlagTop->at(yy) < 10000)
+	 std::cout << "Unexpectadly, a fourth hadronic top walks into the saloon. He pulls his 6-shooter and destroys 13 bottles of precious whiskey. The town is devastated" << std::endl;
+     } // end for(uint yy = 0; yy < candTopVec.size(); yy++)
+
+     for(uint yyy = 0; yyy < candTopVec.size(); yyy++){
+       
      }
    
      std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
