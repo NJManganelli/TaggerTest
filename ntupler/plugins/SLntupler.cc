@@ -1265,19 +1265,19 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        //fill candidate sets
        //if(candTopVec[yy].first.size()
-       if(FlagTop->at(yy) < 10000 && !filledOne){
+       if(FlagTop->at(yy) < 10000 && FlagTop->at(yy) > 0 && !filledOne){
 	 hadTop1Constit->push_back(theBJet);
 	 hadTop1Constit->push_back(theQ1Jet);
 	 hadTop1Constit->push_back(theQ2Jet);
 	 filledOne = true;
        }
-       else if(FlagTop->at(yy) < 10000 && !filledTwo){
+       else if(FlagTop->at(yy) < 10000 && FlagTop->at(yy) > 0 && !filledTwo){
 	 filledTwo = true;
 	 hadTop2Constit->push_back(theBJet);
 	 hadTop2Constit->push_back(theQ1Jet);
 	 hadTop2Constit->push_back(theQ2Jet);
        }
-       else if(FlagTop->at(yy) < 10000 && !filledThree){
+       else if(FlagTop->at(yy) < 10000 && FlagTop->at(yy) > 0 && !filledThree){
 	 filledThree = true;
 	 hadTop3Constit->push_back(theBJet);
 	 hadTop3Constit->push_back(theQ1Jet);
@@ -1287,8 +1287,15 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 std::cout << "Unexpectadly, a fourth hadronic top walks into the saloon. He pulls his 6-shooter and destroys 13 bottles of precious whiskey. The town is devastated" << std::endl;
      } // end for(uint yy = 0; yy < candTopVec.size(); yy++)
 
-     for(uint yyy = 0; yyy < candTopVec.size(); yyy++){
-       
+     //debug print info to check these jets look right....
+     bool deBugMCTruth = true;
+     if(deBugMCTruth){
+       if(filledOne)
+	 std::cout << "\nB Pt: " << (hadTop1Constit->at(0)).Pt() << " Q1 Pt: "  << (hadTop1Constit->at(1)).Pt() << " Q2 Pt: " << (hadTop1Constit->at(2)).Pt() << std::endl;
+       if(filledTwo)
+	 std::cout << "B Pt: " << (hadTop2Constit->at(0)).Pt() << " Q1 Pt: "  << (hadTop2Constit->at(1)).Pt() << " Q2 Pt: " << (hadTop2Constit->at(2)).Pt() << std::endl;
+       if(filledThree)
+	 std::cout << "B Pt: " << (hadTop3Constit->at(0)).Pt() << " Q1 Pt: "  << (hadTop3Constit->at(1)).Pt() << " Q2 Pt: " << (hadTop3Constit->at(2)).Pt() << std::endl;
      }
    
      std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
