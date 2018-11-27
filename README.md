@@ -21,8 +21,9 @@ cd TopTagger/TopTagger/test
 make -j8
 source taggerSetup.sh
 getTaggerCfg.sh -t DeepResolved_DeepCSV_GR_Medium_v1.0.1
+#Modify the configuration to lower the discriminant cut to ZERO and change the eta cutoff to 2.4, as training was done without such an eta restriction
 cp topTaggerTest.cpp topTaggerTest_original.cpp
-ln -s ~/THE/PATH/TO/Demo/ntupler/plugins/customTopTaggerCode.cpp topTaggerTest.cpp
+ln -s ~/THE/PATH/TO/Demo/ntupler/plugins/.customTopTaggerCode.cpp topTaggerTest.cpp
 emacs topTaggerTest.cpp #modify to point to the ntuple created in CMSSW 80X
 make
 ./topTaggerTest
