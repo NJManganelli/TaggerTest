@@ -164,7 +164,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
   double HT, HTX, HT2M; //FIXME Calculate and add these...
-  std::vector<TLorentzVector> *JetLVec, *selectedLepLVec, *vetoLepLVec, *VertexVec, *METLVec; //Change to pointer vector of pointers for sorting efficiency! FIXME!
+  std::vector<TLorentzVector> *JetLVec, *selectedLepLVec, *VertexVec, *METLVec; //Change to pointer vector of pointers for sorting efficiency! FIXME!
   std::vector<TLorentzVector> *hadTop1Constit, *hadTop2Constit, *hadTop3Constit;
   std::vector<double> *qgPtDVec, *qgAxis1Vec, *qgAxis2Vec, *qgMultVec;
   std::vector<double> *deepCSVbVec, *deepCSVcVec, *deepCSVlVec, *deepCSVbbVec, *deepCSVccVec, *btagVec;
@@ -464,10 +464,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    FlagBottom->clear();
    FlagQ1->clear();
    FlagQ2->clear();
-   JetLVec->clear();
    hadTop1Constit->clear();
    hadTop2Constit->clear();
    hadTop3Constit->clear();
+   JetLVec->clear();
    selectedLepLVec->clear();
    METLVec->clear();
    VertexVec->clear();
@@ -1339,13 +1339,12 @@ SLntupler::beginJob()
    FlagBottom = new std::vector<int>;
    FlagQ1 = new std::vector<int>;
    FlagQ2 = new std::vector<int>;
-   JetLVec = new std::vector<TLorentzVector>;
    hadTop1Constit = new std::vector<TLorentzVector>;
    hadTop2Constit = new std::vector<TLorentzVector>;
    hadTop3Constit = new std::vector<TLorentzVector>;
+   JetLVec = new std::vector<TLorentzVector>;
    METLVec = new std::vector<TLorentzVector>;
    selectedLepLVec = new std::vector<TLorentzVector>;
-   vetoLepLVec = new std::vector<TLorentzVector>;
    VertexVec = new std::vector<TLorentzVector>;
    qgPtDVec = new std::vector<double>;
    qgAxis1Vec = new std::vector<double>;
@@ -1441,13 +1440,12 @@ SLntupler::endJob()
    FlagBottom->clear();
    FlagQ1->clear();
    FlagQ2->clear();
-   JetLVec->clear();
    hadTop1Constit->clear();
    hadTop2Constit->clear();
    hadTop3Constit->clear();
+   JetLVec->clear();
    selectedLepLVec->clear();
    METLVec->clear();
-   vetoLepLVec->clear();
    VertexVec->clear();
    qgPtDVec->clear();
    qgAxis1Vec->clear();
@@ -1478,9 +1476,13 @@ SLntupler::endJob()
    delete FlagBottom;
    delete FlagQ1;
    delete FlagQ2;
+   delete hadTop1Constit;
+   delete hadTop2Constit;
+   delete hadTop3Constit;
    delete JetLVec;
    delete selectedLepLVec;
    delete METLVec;
+   delete VertexVec;
    delete qgPtDVec;
    delete qgAxis1Vec;
    delete qgAxis2Vec;
