@@ -85,6 +85,15 @@ int main()
     std::vector<std::vector<TLorentzVector>>** AK8SubjetLV = new std::vector<std::vector<TLorentzVector>>*();
     std::cout << "Created all AK8 jet variables, preparing to Deactivate then reactivate branches..." << std::endl;
 
+    //Create custom variables for reading in top gen-matched jets and status flags
+    std::vector<TLorentzVector>** hadTop1Constit = new std::vector<TLorentzVector>*();
+    std::vector<TLorentzVector>** hadTop2Constit = new std::vector<TLorentzVector>*();
+    std::vector<TLorentzVector>** hadTop3Constit = new std::vector<TLorentzVector>*();
+    std::vector<uint>** FlagTop = new std::vector<uint>*();
+    std::vector<uint>** FlagBottom = new std::vector<uint>*();
+    std::vector<uint>** FlagQ1 = new std::vector<uint>*();
+    std::vector<uint>** FlagQ2 = new std::vector<uint>*();
+
     //Deactivate all branches, then activate the branches of interest
     tree->SetBranchStatus("*", 0);
     std::cout << "Deactivated all branches" << std::endl;
@@ -315,6 +324,35 @@ int main()
       //AK4 deepCSV light discriminator
       tree->SetBranchStatus( "deepCSVl", 1);
       tree->SetBranchAddress("deepCSVl", AK4DeepCSVl);
+
+      //Hadronic Top candidate 1 vector of TLV's
+      tree->SetBranchStatus( "hadTop1Constit", 1);
+      tree->SetBranchAddress("hadTop1Constit", hadTop1Constit);
+
+      //Hadronic Top candidate 2 vector of TLV's
+      tree->SetBranchStatus( "hadTop2Constit", 1);
+      tree->SetBranchAddress("hadTop2Constit", hadTop2Constit);
+
+      //Hadronic Top candidate 3 vector of TLV's
+      tree->SetBranchStatus( "hadTop3Constit", 1);
+      tree->SetBranchAddress("hadTop3Constit", hadTop3Constit);
+
+      //Top flags for overall object. >=1000 indicates leptonic top
+      tree->SetBranchStatus( "FlagTop", 1);
+      tree->SetBranchAddress("FlagTop", FlagTop);
+
+      //Bottom flags, Reconstructible if >= ???
+      tree->SetBranchStatus( "FlagBottom", 1);
+      tree->SetBranchAddress("FlagBottom", FlagBottom);
+
+      //Q1 flags, Reconstructible if >= ???
+      tree->SetBranchStatus( "FlagQ1", 1);
+      tree->SetBranchAddress("FlagQ1", FlagQ1);
+
+      //Q2 flags, Reconstructible if >= ???
+      tree->SetBranchStatus( "FlagQ2", 1);
+      tree->SetBranchAddress("FlagQ2", FlagQ2);
+
       std::cout << "tree branches attached" << std::endl;
     }
 
@@ -408,6 +446,27 @@ int main()
                 for(const Constituent* constituent : constituents)
                 {
                     printf("\t\tConstituent properties: Constituent type: %3d,   Pt: %6.1lf,   Eta: %7.3lf,   Phi: %7.3lf\n", constituent->getType(), constituent->p().Pt(), constituent->p().Eta(), constituent->p().Phi());
+
+		    //Here, we are become gods, matching TLorentzVectors 
+		    uint yui = 0;
+		    uint yu2 = 0;
+		    uint yu3 = 0;
+		    uint yu4 = 0;
+		    for(const TLorentzVector inJet : **AK4JetLV){
+		      printf("\t\t\tJet %3d, Pt: %6.1lf, Match: %3d\n", yui++, inJet.Pt(), (inJet  == constituent->p()) );
+		    }
+		    printf("\n");
+		    for(const TLorentzVector inJet : **hadTop1Constit){
+		      printf("\t\t\thT1 %3d, Pt: %6.1lf, Match: %3d\n", yu2++, inJet.Pt(), (inJet  == constituent->p()) );
+		    }
+		    printf("\n");
+		    for(const TLorentzVector inJet : **hadTop2Constit){
+		      printf("\t\t\thT2 %3d, Pt: %6.1lf, Match: %3d\n", yu3++, inJet.Pt(), (inJet  == constituent->p()) );
+		    }
+		    printf("\n");
+		    for(const TLorentzVector inJet : **hadTop3Constit){
+		      printf("\t\t\thT3 %3d, Pt: %6.1lf, Match: %3d\n", yu4++, inJet.Pt(), (inJet  == constituent->p()) );
+		    }
                 }                
             }
 

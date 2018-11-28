@@ -21,7 +21,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #else:
 print "Running on MC"
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(2000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(200000) )
 
 ################################
 ################################
@@ -161,7 +161,7 @@ process.tree.is2016 = cms.bool(True)
 process.tree.deBug = cms.bool(False)
 process.tree.verBose = cms.bool(False)
 process.tree.maskDeepCSV = cms.bool(False)
-process.tree.HTMin = cms.double(50)
+process.tree.HTMin = cms.double(500)
 process.tree.NjMin = cms.int32(3)
 # process.myNtupler = cms.EDProducer('prepper', 
 #                                    src = cms.InputTag("selectedUpdatedPatJetsDeepCSV"),
@@ -181,7 +181,7 @@ process.tree.NjMin = cms.int32(3)
 
 #for the ntupler
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string('fullpathSLntuple_postGenSanityFix.root'),
+                                   fileName = cms.string('200kOutput.root'),
                                    closeFileFast = cms.untracked.bool(True) 
                                    )
 
