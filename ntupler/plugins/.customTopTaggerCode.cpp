@@ -3,6 +3,7 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TH1F.h"
 #include "TLorentzVector.h"
 
 //manditory includes to use top tagger
@@ -18,13 +19,19 @@
 
 int main()
 {
+  //bool for silencing original top quark properties (except event #)
+  bool silentRunning = false;
+  bool debug1 = false;
+  bool debug2 = false;
+  silentRunning = true;
   bool runStdExample = false;
-  TFile *tf, *tf2;
+  TFile *tf, *tf2, *of;
   TDirectory *td;
   TTree *tree;
+  TH1F *TypeTopDiscr = new TH1F ("h_fulltopdiscr", "Fully Reconstructible Top Quarks; Discriminant; Number of matches", 20, 0.0, 1.0); 
+  TH1F *TypeWDiscr = new TH1F ("h_fullWdiscr", "Fully Reconstructible W bosons; Discriminant; Number of matches", 20, 0.0, 1.0); ;
   std::cout << "Testing the file for Top Quarks" << std::endl;
   
-  //if(runStdExample == true){
   if(runStdExample == true){
     //Open input ntuple file 
     tf = TFile::Open("exampleInputs.root");
@@ -46,6 +53,7 @@ int main()
     tree = (TTree*)td->Get("nTuple");
   }
   std::cout << "Loaded the file" << std::endl;
+
 
     //Variables to hold inputs
     //AK4 jet variables
@@ -428,7 +436,40 @@ int main()
             const std::vector<TopObject*>& tops = ttr.getTops();
 
             //print the number of tops found in the event 
-            printf("\tN tops: %ld\n", tops.size());
+            if(!silentRunning) printf("\tN tops: %ld\n", tops.size());
+		
+	    //count reconstructible tops via the flags...
+	    uint nRecoTops = 0;
+	    uint nRecoWs = 0;
+	    bool Top1Reco = false;
+	    bool Top2Reco = false;
+	    bool Top3Reco = false;
+	    if(debug1) printf("Booleans for Top reconstruction (initialization) %2d %2d %2d", Top1Reco, Top2Reco, Top3Reco);
+	    uint flagcounter = 0;
+	    if(debug1) printf("\n\tDebugging reconstructible top counting and flags: ");
+	    for(const uint topflag: **FlagTop){
+	      if(debug1) printf("\n\ttopflag = %6d", topflag);
+	      if(topflag < 9999){
+		if(topflag > 1020){
+		nRecoTops += 1;
+		flagcounter ++;
+		switch (flagcounter) {
+		case 1: Top1Reco = true;
+		  break;
+		case 2: Top2Reco = true;
+		  break;
+		case 3: Top3Reco = true;
+		  break;
+		}
+		if(debug1) printf("Booleans for Top reconstruction: %2d %2d %2d %2d", flagcounter, Top1Reco, Top2Reco, Top3Reco);
+		if(debug1) printf("\n\t\tCnt: %2d \t Top1Reco: %2d \t Top2Reco: %2d \t Top3Reco: %2d", flagcounter, Top1Reco, Top2Reco, Top3Reco);
+		}
+		nRecoWs += (topflag == 876 || topflag == 1004 || topflag == 1020); //b not reconstructible, but q1 and q2 are
+	      }
+	    }
+	    printf("\n\t\t\t# Fully Reconstuctible Tops: %2d \t Reconstructible W: %2d\n", nRecoTops, nRecoWs);
+
+	    
 
             //print top properties
             for(const TopObject* top : tops)
@@ -438,7 +479,7 @@ int main()
                 //3 for resolved tops 
                 //2 for W+jet tops
                 //1 for fully merged AK8 tops
-	      printf("\tTop properties: Type: %3d,   Pt: %6.1lf,   Eta: %7.3lf,   Phi: %7.3lf,   M: %7.3lf,   Disc: %7.3f\n", static_cast<int>(top->getType()), top->p().Pt(), top->p().Eta(), top->p().Phi(), top->p().M(), top->getDiscriminator());
+	      if(!silentRunning) printf("\tTop properties: Type: %3d,   Pt: %6.1lf,   Eta: %7.3lf,   Phi: %7.3lf,   M: %7.3lf,   Disc: %7.3f\n", static_cast<int>(top->getType()), top->p().Pt(), top->p().Eta(), top->p().Phi(), top->p().M(), top->getDiscriminator());
 
                 //get vector of top constituents 
                 const std::vector<Constituent const *>& constituents = top->getConstituents();
@@ -452,17 +493,19 @@ int main()
                 //Print properties of individual top constituent jets 
                 for(const Constituent* constituent : constituents)
                 {
-                    printf("\t\tConstituent properties: Constituent type: %3d,   Pt: %6.1lf,   Eta: %7.3lf,   Phi: %7.3lf\n", constituent->getType(), constituent->p().Pt(), constituent->p().Eta(), constituent->p().Phi());
+                    if(!silentRunning) printf("\t\tConstituent properties: Constituent type: %3d,   Pt: %6.1lf,   Eta: %7.3lf,   Phi: %7.3lf\n", constituent->getType(), constituent->p().Pt(), constituent->p().Eta(), constituent->p().Phi());
 
 		    //Here, we are become gods, matching TLorentzVectors 
 		    uint yui = 0;
 		    uint yu2 = 0;
 		    uint yu3 = 0;
 		    uint yu4 = 0;
-		    for(const TLorentzVector inJet : **AK4JetLV){
-		      //printf("\t\t\tJet %3d, Pt: %6.1lf, Match: %3d\n", yui++, inJet.Pt(), (inJet  == constituent->p()) );
-		      mat1 += (inJet == constituent->p());
-		    }
+		    //testing that ->p() gives TLV that can exactly match original jet collection
+		    // for(const TLorentzVector inJet : **AK4JetLV){
+		    //   printf("\t\t\tJet %3d, Pt: %6.1lf, Match: %3d\n", yui++, inJet.Pt(), (inJet  == constituent->p()) );
+		    //   mat1 += (inJet == constituent->p());
+		    // }
+
 		    //printf("\n");
 		    for(const TLorentzVector inJet : **hadTop1Constit){
 		      //printf("\t\t\thT1 %3d, Pt: %6.1lf, Match: %3d\n", yu2++, inJet.Pt(), (inJet  == constituent->p()) );
@@ -479,7 +522,7 @@ int main()
 		      mat4 += (inJet == constituent->p());
 		    }
                 }    
-		printf("\n\t\t\tmatch jet collection: %2d || top1: %2d || top2: %2d|| top3: %2d\n", mat1, mat2, mat3, mat4);
+		printf("\t\t\ttop1: %2d || top2: %2d|| top3: %2d || Discriminant: %6.4lf\n", mat2, mat3, mat4, top->getDiscriminator());
             }
 
             //Print properties of the remaining system
@@ -499,6 +542,13 @@ int main()
 
         exit(1);
     }
+
+    //Open output file for histograms and tuples
+    of = new TFile("results.root", "RECREATE");
+    TypeTopDiscr->Write();
+    TypeWDiscr->Write();
+    of->Write();
+    of->Close();
     
     //clean up pointers 
     delete AK4JetLV;
@@ -532,6 +582,6 @@ int main()
     // delete AK8JetDeepAK8Top;
     // delete AK8JetSoftdropMass;
 
-    delete tf, tf2, td, tree;
+    delete tf, tf2, td, tree, of, TypeTopDiscr, TypeWDiscr;
     exit(0);
 }
