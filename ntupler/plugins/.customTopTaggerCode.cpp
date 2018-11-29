@@ -35,7 +35,8 @@ int main()
   else if(runStdExample == false){
     //Open input ntuple file
 
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntuple.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntuple.root");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntupleMasked.root");
 
     //Get TDirectory next
@@ -442,6 +443,12 @@ int main()
                 //get vector of top constituents 
                 const std::vector<Constituent const *>& constituents = top->getConstituents();
 
+		//counter for jet matching
+		uint mat1 = 0;
+		uint mat2 = 0;
+		uint mat3 = 0;
+		uint mat4 = 0;
+
                 //Print properties of individual top constituent jets 
                 for(const Constituent* constituent : constituents)
                 {
@@ -453,21 +460,26 @@ int main()
 		    uint yu3 = 0;
 		    uint yu4 = 0;
 		    for(const TLorentzVector inJet : **AK4JetLV){
-		      printf("\t\t\tJet %3d, Pt: %6.1lf, Match: %3d\n", yui++, inJet.Pt(), (inJet  == constituent->p()) );
+		      //printf("\t\t\tJet %3d, Pt: %6.1lf, Match: %3d\n", yui++, inJet.Pt(), (inJet  == constituent->p()) );
+		      mat1 += (inJet == constituent->p());
 		    }
-		    printf("\n");
+		    //printf("\n");
 		    for(const TLorentzVector inJet : **hadTop1Constit){
-		      printf("\t\t\thT1 %3d, Pt: %6.1lf, Match: %3d\n", yu2++, inJet.Pt(), (inJet  == constituent->p()) );
+		      //printf("\t\t\thT1 %3d, Pt: %6.1lf, Match: %3d\n", yu2++, inJet.Pt(), (inJet  == constituent->p()) );
+		      mat2 += (inJet == constituent->p());
 		    }
-		    printf("\n");
+		    //printf("\n");
 		    for(const TLorentzVector inJet : **hadTop2Constit){
-		      printf("\t\t\thT2 %3d, Pt: %6.1lf, Match: %3d\n", yu3++, inJet.Pt(), (inJet  == constituent->p()) );
+		      //printf("\t\t\thT2 %3d, Pt: %6.1lf, Match: %3d\n", yu3++, inJet.Pt(), (inJet  == constituent->p()) );
+		      mat3 += (inJet == constituent->p());
 		    }
-		    printf("\n");
+		    //printf("\n");
 		    for(const TLorentzVector inJet : **hadTop3Constit){
-		      printf("\t\t\thT3 %3d, Pt: %6.1lf, Match: %3d\n", yu4++, inJet.Pt(), (inJet  == constituent->p()) );
+		      //printf("\t\t\thT3 %3d, Pt: %6.1lf, Match: %3d\n", yu4++, inJet.Pt(), (inJet  == constituent->p()) );
+		      mat4 += (inJet == constituent->p());
 		    }
-                }                
+                }    
+		printf("\n\t\t\tmatch jet collection: %2d || top1: %2d || top2: %2d|| top3: %2d\n", mat1, mat2, mat3, mat4);
             }
 
             //Print properties of the remaining system
