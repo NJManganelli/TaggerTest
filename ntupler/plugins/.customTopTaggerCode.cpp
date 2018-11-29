@@ -29,7 +29,9 @@ int main()
   TDirectory *td;
   TTree *tree;
   TH1F *TypeTopDiscr = new TH1F ("h_fulltopdiscr", "Fully Reconstructible Top Quarks; Discriminant; Number of matches", 20, 0.0, 1.0); 
-  TH1F *TypeWDiscr = new TH1F ("h_fullWdiscr", "Fully Reconstructible W bosons; Discriminant; Number of matches", 20, 0.0, 1.0); ;
+  TH1F *TypeWDiscr = new TH1F ("h_fullWdiscr", "Fully Reconstructible W bosons; Discriminant; Number of matches", 20, 0.0, 1.0);
+  TH1F *TypeFail = new TH1F ("h_faildiscr", "Failures (less than 2 quarks matched from any gen-matched set);Discriminant; Number of Failures", 20, 0.0, 1.0);
+  TH1I *RecoTypes = new TH1I ("h_recoTypes", "Reconstructible W bosons and Top Quarks; none:0 W:1 top:2;Number Gen Particles", 3, 0, 3);
   std::cout << "Testing the file for Top Quarks" << std::endl;
   
   if(runStdExample == true){
@@ -43,8 +45,9 @@ int main()
     //Open input ntuple file
 
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntuple.root");
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntupleMasked.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kTwoTop.root");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -451,20 +454,26 @@ int main()
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
 	      if(topflag < 9999){
 		if(topflag > 1020){
-		nRecoTops += 1;
-		flagcounter ++;
-		switch (flagcounter) {
-		case 1: Top1Reco = true;
-		  break;
-		case 2: Top2Reco = true;
-		  break;
-		case 3: Top3Reco = true;
-		  break;
-		}
+		  RecoTypes->Fill(2);
+		  nRecoTops += 1;
+		  flagcounter ++;
+		  switch (flagcounter) {
+		  case 1: Top1Reco = true;
+		    break;
+		  case 2: Top2Reco = true;
+		    break;
+		  case 3: Top3Reco = true;
+		    break;
+		  }
 		if(debug1) printf("Booleans for Top reconstruction: %2d %2d %2d %2d", flagcounter, Top1Reco, Top2Reco, Top3Reco);
 		if(debug1) printf("\n\t\tCnt: %2d \t Top1Reco: %2d \t Top2Reco: %2d \t Top3Reco: %2d", flagcounter, Top1Reco, Top2Reco, Top3Reco);
 		}
-		nRecoWs += (topflag == 876 || topflag == 1004 || topflag == 1020); //b not reconstructible, but q1 and q2 are
+		else if(topflag == 876 || topflag == 1004 || topflag == 1020){
+		  RecoTypes->Fill(1);
+		  nRecoWs += 1; //b not reconstructible, but q1 and q2 are
+		}
+		else
+		  RecoTypes->Fill(0);
 	      }
 	    }
 	    printf("\n\t\t\t# Fully Reconstuctible Tops: %2d \t Reconstructible W: %2d\n", nRecoTops, nRecoWs);
@@ -523,6 +532,9 @@ int main()
 		    }
                 }    
 		printf("\t\t\ttop1: %2d || top2: %2d|| top3: %2d || Discriminant: %6.4lf\n", mat2, mat3, mat4, top->getDiscriminator());
+		if(mat2 == 3 || mat3 == 3 || mat4 == 3) TypeTopDiscr->Fill(top->getDiscriminator());
+		if(mat2 == 2 || mat3 == 2 || mat4 == 2) TypeWDiscr->Fill(top->getDiscriminator());
+		if(mat2 < 2 && mat3 < 2 && mat4 < 2) TypeFail->Fill(top->getDiscriminator());
             }
 
             //Print properties of the remaining system
@@ -547,6 +559,8 @@ int main()
     of = new TFile("results.root", "RECREATE");
     TypeTopDiscr->Write();
     TypeWDiscr->Write();
+    TypeFail->Write();
+    RecoTypes->Write();
     of->Write();
     of->Close();
     
@@ -582,6 +596,6 @@ int main()
     // delete AK8JetDeepAK8Top;
     // delete AK8JetSoftdropMass;
 
-    delete tf, tf2, td, tree, of, TypeTopDiscr, TypeWDiscr;
+    delete tf, tf2, td, tree, of, TypeTopDiscr, TypeWDiscr, TypeFail, RecoTypes;
     exit(0);
 }
