@@ -28,10 +28,57 @@ int main()
   TFile *tf, *tf2, *of;
   TDirectory *td;
   TTree *tree;
-  TH1F *TypeTopDiscr = new TH1F ("h_fulltopdiscr", "Fully Reconstructible Top Quarks; Discriminant; Number of matches", 20, 0.0, 1.0); 
-  TH1F *TypeWDiscr = new TH1F ("h_fullWdiscr", "Fully Reconstructible W bosons; Discriminant; Number of matches", 20, 0.0, 1.0);
-  TH1F *TypeFail = new TH1F ("h_faildiscr", "Failures (less than 2 quarks matched from any gen-matched set);Discriminant; Number of Failures", 20, 0.0, 1.0);
-  TH1I *RecoTypes = new TH1I ("h_recoTypes", "Reconstructible W bosons and Top Quarks; none:0 W:1 top:2;Number Gen Particles", 3, 0, 3);
+  std::string postfix = "tttt";
+
+  //HOT discriminant histos
+  TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIIb_hot = new TH1F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIIw_hot = new TH1F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIIo_hot = new TH1F ("h_typeIIo_hot_", "Type II (other) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeI_hot = new TH1F ("h_typeI_hot_", "Type I (2+ top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_type0_hot = new TH1F ("h_type0_hot_", "Type 0 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
+
+  TH1F *h_eventN1_III_hot = new TH1F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_II_hot = new TH1F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_I_hot = new TH1F ("h_eventN1_tI_hot", "Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_0_hot = new TH1F ("h_eventN1_t0_hot", "Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+
+  TH1F *h_eventN2_III_hot = new TH1F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_II_hot = new TH1F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_I_hot = new TH1F ("h_eventN2_tI_hot", "2nd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_0_hot = new TH1F ("h_eventN2_t0_hot", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+
+  TH1F *h_eventN3_III_hot = new TH1F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_II_hot = new TH1F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_I_hot = new TH1F ("h_eventN3_tI_hot", "3rd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_0_hot = new TH1F ("h_eventN3_t0_hot", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+
+  //BDT Candidates
+  TH1F *h_typeIII_bdt = new TH1F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIIb_bdt = new TH1F ("h_typeIIb_bdt_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIIw_bdt = new TH1F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIIo_bdt = new TH1F ("h_typeIIo_bdt_", "Type II (other) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeI_bdt = new TH1F ("h_typeI_bdt_", "Type I (2+ top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_type0_bdt = new TH1F ("h_type0_bdt_", "Type 0 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
+
+  TH1F *h_eventN1_III_bdt = new TH1F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_II_bdt = new TH1F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_I_bdt = new TH1F ("h_eventN1_tI_bdt", "Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_0_bdt = new TH1F ("h_eventN1_t0_bdt", "Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+
+  TH1F *h_eventN2_III_bdt = new TH1F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_II_bdt = new TH1F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_I_bdt = new TH1F ("h_eventN2_tI_bdt", "2nd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_0_bdt = new TH1F ("h_eventN2_t0_bdt", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+
+  TH1F *h_eventN3_III_bdt = new TH1F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_II_bdt = new TH1F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_I_bdt = new TH1F ("h_eventN3_tI_bdt", "3rd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_0_bdt = new TH1F ("h_eventN3_t0_bdt", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);  
+
+  //TH1F *TypeWDiscr = new TH1F ("h_fullWdiscr", "Fully Reconstructible W bosons; Discriminant; Number of matches", 20, 0.0, 1.0);
+
+  TH1I *RecoTypes = new TH1I ("h_recoTypes", "Reconstructible Top Candidates; I: IIbq: IIqq: III:;Number Gen Particles", 3, 0, 3);
   std::cout << "Testing the file for Top Quarks" << std::endl;
   
   if(runStdExample == true){
@@ -532,9 +579,9 @@ int main()
 		    }
                 }    
 		printf("\t\t\ttop1: %2d || top2: %2d|| top3: %2d || Discriminant: %6.4lf\n", mat2, mat3, mat4, top->getDiscriminator());
-		if(mat2 == 3 || mat3 == 3 || mat4 == 3) TypeTopDiscr->Fill(top->getDiscriminator());
-		if(mat2 == 2 || mat3 == 2 || mat4 == 2) TypeWDiscr->Fill(top->getDiscriminator());
-		if(mat2 < 2 && mat3 < 2 && mat4 < 2) TypeFail->Fill(top->getDiscriminator());
+		//if(mat2 == 3 || mat3 == 3 || mat4 == 3) h_typeIII->Fill(top->getDiscriminator());
+		//if(mat2 == 2 || mat3 == 2 || mat4 == 2) TypeWDiscr->Fill(top->getDiscriminator());
+		//if(mat2 < 2 && mat3 < 2 && mat4 < 2) h_typeI->Fill(top->getDiscriminator());
             }
 
             //Print properties of the remaining system
@@ -557,9 +604,60 @@ int main()
 
     //Open output file for histograms and tuples
     of = new TFile("results.root", "RECREATE");
-    TypeTopDiscr->Write();
-    TypeWDiscr->Write();
-    TypeFail->Write();
+    //Write HOT histos
+    h_typeIII_hot->Write();
+    h_typeIIb_hot->Write();
+    h_typeIIw_hot->Write();
+    h_typeIIo_hot->Write();
+    h_typeI_hot->Write();
+    h_type0_hot->Write();
+
+    h_eventN1_III_hot->Write();
+    h_eventN1_II_hot->Write();
+    h_eventN1_I_hot->Write();
+    h_eventN1_0_hot->Write();
+
+    h_eventN2_III_hot->Write();
+    h_eventN2_II_hot->Write();
+    h_eventN2_I_hot->Write();
+    h_eventN2_0_hot->Write();
+
+    h_eventN3_III_hot->Write();
+    h_eventN3_II_hot->Write();
+    h_eventN3_I_hot->Write();
+    h_eventN3_0_hot->Write();
+
+    //Write BDT histos
+    h_typeIII_bdt->Write();
+    h_typeIIb_bdt->Write();
+    h_typeIIw_bdt->Write();
+    h_typeIIo_bdt->Write();
+    h_typeI_bdt->Write();
+    h_type0_bdt->Write();
+
+    h_eventN1_III_bdt->Write();
+    h_eventN1_II_bdt->Write();
+    h_eventN1_I_bdt->Write();
+    h_eventN1_0_bdt->Write();
+
+    h_eventN2_III_bdt->Write();
+    h_eventN2_II_bdt->Write();
+    h_eventN2_I_bdt->Write();
+    h_eventN2_0_bdt->Write();
+
+    h_eventN3_III_bdt->Write();
+    h_eventN3_II_bdt->Write();
+    h_eventN3_I_bdt->Write();
+    h_eventN3_0_bdt->Write();
+
+    //Write others, write file, close
+    // h_typeIII->Write();
+    // h_typeIIb->Write();
+    // h_typeIIw->Write();
+    // h_typeIIo->Write();
+    // TypeWDiscr->Write();
+    // h_typeI->Write();
+
     RecoTypes->Write();
     of->Write();
     of->Close();
@@ -596,6 +694,53 @@ int main()
     // delete AK8JetDeepAK8Top;
     // delete AK8JetSoftdropMass;
 
-    delete tf, tf2, td, tree, of, TypeTopDiscr, TypeWDiscr, TypeFail, RecoTypes;
+    //Delete histograms
+    delete h_typeIII_hot;
+    delete h_typeIIb_hot;
+    delete h_typeIIw_hot;
+    delete h_typeIIo_hot;
+    delete h_typeI_hot;
+    delete h_type0_hot;
+
+    delete h_eventN1_III_hot;
+    delete h_eventN1_II_hot;
+    delete h_eventN1_I_hot;
+    delete h_eventN1_0_hot;
+
+    delete h_eventN2_III_hot;
+    delete h_eventN2_II_hot;
+    delete h_eventN2_I_hot;
+    delete h_eventN2_0_hot;
+
+    delete h_eventN3_III_hot;
+    delete h_eventN3_II_hot;
+    delete h_eventN3_I_hot;
+    delete h_eventN3_0_hot;
+
+    //Write BDT histos
+    delete h_typeIII_bdt;
+    delete h_typeIIb_bdt;
+    delete h_typeIIw_bdt;
+    delete h_typeIIo_bdt;
+    delete h_typeI_bdt;
+    delete h_type0_bdt;
+
+    delete h_eventN1_III_bdt;
+    delete h_eventN1_II_bdt;
+    delete h_eventN1_I_bdt;
+    delete h_eventN1_0_bdt;
+
+    delete h_eventN2_III_bdt;
+    delete h_eventN2_II_bdt;
+    delete h_eventN2_I_bdt;
+    delete h_eventN2_0_bdt;
+
+    delete h_eventN3_III_bdt;
+    delete h_eventN3_II_bdt;
+    delete h_eventN3_I_bdt;
+    delete h_eventN3_0_bdt;
+
+    delete tf, tf2, td, tree, of;
+    //delete h_typeIII, h_typeIIb, h_typeIIw, h_typeIIo, h_typeI, RecoTypes;
     exit(0);
 }
