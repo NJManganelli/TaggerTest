@@ -30,7 +30,8 @@ class ResTTEvaluator{
   std::pair< std::vector <TLorentzVector>, double > getOrderedCand(int index);
   double getOrderedDiscr(int index);
 
-  //Gen getting and setting
+  //Gen getting and setting //CHANGE: Make Gen strictly gen particles, GenReco the Reco-matched gen particles
+  //for pure Gen, do deltaR matching and permit boosted quark pairs to be matched, regardless of AK4 or AK8
   void addGen(std::vector<TLorentzVector>* gen);
   void addGen(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
   std::pair< std::vector<TLorentzVector>, std::vector<int> > getGen(int index);
@@ -47,7 +48,8 @@ class ResTTEvaluator{
   
  private:
   const static uint _maxSize = 100;
-  uint _match[_maxSize][3]; //support max 100 candidates... shouldn't ever be a problem at 13TeV CoM Energy
+  uint _match[_maxSize][3]; //support max 100 candidates... shouldn't ever be a problem at 13TeV CoM Energy //FIXME: Need to do another array dimension, [candidateIndex]
+  //encode in this matrix the info for whether it was even POSSIBLE to match that jet... 
   std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
   bool _haveEvaluated;
   std::string _topTaggerName;
