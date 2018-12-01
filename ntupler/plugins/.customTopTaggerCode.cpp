@@ -17,18 +17,133 @@
 
 #include "rootdict.h"
 
+class ResTTEvaluator{
+ public:
+  ResTTEvaluator(std::string topTaggerName);
+  ~ResTTEvaluator();
+
+  //candidate setting and getting
+  void addCand(std::vector<TLorentzVector>* cand, double discriminant);
+  std::vector<  std::pair< std::vector <TLorentzVector>, double > > getAllCand();
+  std::pair< std::vector <TLorentzVector>, double > getCand(int index);
+  double getDiscr(int index);
+  std::pair< std::vector <TLorentzVector>, double > getOrderedCand(int index);
+  double getOrderedDiscr(int index);
+
+  //Gen getting and setting
+  void addGen(std::vector<TLorentzVector>* gen);
+  void addGen(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
+  std::pair< std::vector<TLorentzVector>, std::vector<int> > getGen(int index);
+  void addAllGen( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput);
+
+  //print information, primarily for debugging at time of writing this comment
+  void printCand(int index);
+  void printGen(int index);
+  void printMatrix(int index); //the matching matrix showing which resolved top's gen-matched reco jets are the exact/DeltaR match for the candidate's constituents
+
+  //Once all candidates have been added, this method evaluates everything
+  void evaluate();
+  
+  
+ private:
+  const static uint _maxSize = 100;
+  uint _match[_maxSize][3]; //support max 100 candidates... shouldn't ever be a problem at 13TeV CoM Energy
+  std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
+  bool _haveEvaluated;
+  std::string _topTaggerName;
+  uint _orderIndex[_maxSize];
+  std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
+  //std::vector<std::vector<uint>> _flags; //Have to decide how to order these things in general way...
+  bool _haveFlags;
+  std::vector<std::string> _matchClassification;
+};
+ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
+  _haveFlags = false;
+  _topTaggerName = topTaggerName;
+  std::cout << "ResTTEvaluator being created" << std::endl;
+}
+ResTTEvaluator::~ResTTEvaluator(){
+  std::cout << "ResTTEvaluator being destroyed" << std::endl;
+}
+void ResTTEvaluator::addCand(std::vector<TLorentzVector>* cand, double discriminant){
+  std::pair< std::vector<TLorentzVector>, double> temp;
+  temp.first = *cand;
+  temp.second = discriminant;
+  _cand.push_back(temp);
+}
+std::vector<std::pair<std::vector<TLorentzVector>, double>> ResTTEvaluator::getAllCand(){
+  return _cand;
+}
+std::pair< std::vector<TLorentzVector>, double > ResTTEvaluator::getCand(int index){
+  return _cand[index];
+}
+double ResTTEvaluator::getDiscr(int index){
+  return _cand[index].second;
+}
+std::pair< std::vector<TLorentzVector>, double > ResTTEvaluator::getOrderedCand(int index){
+  std::cout << "Method not implemented, just returning unordered candidate..." << std::endl;
+  return _cand[index];
+}
+double ResTTEvaluator::getOrderedDiscr(int index){
+  std::cout << "Method not implemented, just returning unordered candidate's discriminant..." << std::endl;
+  return _cand[index].second;
+}
+void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen){
+  if(_haveFlags){
+    _haveFlags = false;
+    std::cout << "Added gen without flags, but previous candidate had flags! Will not perform any calculations depending on presence of flags..." << std::endl;
+  }
+  std::vector<int> tempFlags;
+  tempFlags.push_back(-1);
+  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGen;
+  tempGen.first = *gen;
+  tempGen.second = tempFlags;
+  _gen.push_back(tempGen);
+}
+void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen, std::vector<int> flags){
+  if(_gen.size() > 0 && !_haveFlags){
+    _haveFlags = false; //explicit for readibility
+    std::cout << "Added gen with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
+  }
+  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGen;
+  tempGen.first = *gen;
+  tempGen.second = flags;
+  _gen.push_back(tempGen);
+}
+void ResTTEvaluator::addAllGen(std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput){
+  if(_gen.size() == 0)
+    _gen = *allGenInput;
+  else
+    std::cout << "Attempted to add all gens when some have already been added. I can't let you do that, Dave" << std::endl;
+}
+std::pair< std::vector<TLorentzVector>, std::vector<int> > ResTTEvaluator::getGen(int index){
+  return _gen[index];
+}
+void ResTTEvaluator::printCand(int index){
+  std::cout << "This isn't implemented yet... " << std::endl;
+}
+void ResTTEvaluator::printGen(int index){
+  std::cout << "This isn't implemented yet... " << std::endl;
+}
+void ResTTEvaluator::printMatrix(int index){
+  std::cout << "This isn't implemented yet... " << std::endl;
+}
+void ResTTEvaluator::evaluate(){
+  std::cout << "If I were a real little evaluator, I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
+}
+
 int main()
 {
   //bool for silencing original top quark properties (except event #)
-  bool silentRunning = false;
+  bool silentRunning = true;
   bool debug1 = false;
   bool debug2 = false;
-  silentRunning = true;
+  //silentRunning = true;
   bool runStdExample = false;
   TFile *tf, *tf2, *of;
   TDirectory *td;
   TTree *tree;
-  std::string postfix = "tttt";
+  //std::string postfix = "tttt";
 
   //HOT discriminant histos
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
@@ -148,6 +263,7 @@ int main()
     std::vector<TLorentzVector>** hadTop1Constit = new std::vector<TLorentzVector>*();
     std::vector<TLorentzVector>** hadTop2Constit = new std::vector<TLorentzVector>*();
     std::vector<TLorentzVector>** hadTop3Constit = new std::vector<TLorentzVector>*();
+    //std::vector<TLorentzVector>** lepTopConstit = new std::vector<TLorentzVector>*(); //for future improvement
     std::vector<uint>** FlagTop = new std::vector<uint>*();
     std::vector<uint>** FlagBottom = new std::vector<uint>*();
     std::vector<uint>** FlagQ1 = new std::vector<uint>*();
@@ -497,6 +613,11 @@ int main()
 	    if(debug1) printf("Booleans for Top reconstruction (initialization) %2d %2d %2d", Top1Reco, Top2Reco, Top3Reco);
 	    uint flagcounter = 0;
 	    if(debug1) printf("\n\tDebugging reconstructible top counting and flags: ");
+	    ResTTEvaluator HOTEval("HOT");
+	    HOTEval.printCand(1);
+	    HOTEval.printGen(2);
+	    HOTEval.printMatrix(5);
+	    HOTEval.evaluate();
 	    for(const uint topflag: **FlagTop){
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
 	      if(topflag < 9999){
@@ -545,6 +666,10 @@ int main()
 		uint mat2 = 0;
 		uint mat3 = 0;
 		uint mat4 = 0;
+
+		//Matrix for jet matching
+		uint tMatrixHOT[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
+		
 
                 //Print properties of individual top constituent jets 
                 for(const Constituent* constituent : constituents)
