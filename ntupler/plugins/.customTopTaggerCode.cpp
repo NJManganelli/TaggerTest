@@ -32,6 +32,11 @@ class ResTTEvaluator{
 
   //Gen getting and setting //CHANGE: Make Gen strictly gen particles, GenReco the Reco-matched gen particles
   //for pure Gen, do deltaR matching and permit boosted quark pairs to be matched, regardless of AK4 or AK8
+  void addGenReco(std::vector<TLorentzVector>* gen);
+  void addGenReco(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
+  std::pair< std::vector<TLorentzVector>, std::vector<int> > getGenReco(int index);
+  void addAllGenReco( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput);
+
   void addGen(std::vector<TLorentzVector>* gen);
   void addGen(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
   std::pair< std::vector<TLorentzVector>, std::vector<int> > getGen(int index);
@@ -48,12 +53,13 @@ class ResTTEvaluator{
   
  private:
   const static uint _maxSize = 100;
-  uint _match[_maxSize][3]; //support max 100 candidates... shouldn't ever be a problem at 13TeV CoM Energy //FIXME: Need to do another array dimension, [candidateIndex]
+  uint _match[_maxSize][_maxSize][3]; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
   //encode in this matrix the info for whether it was even POSSIBLE to match that jet... 
   std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
   bool _haveEvaluated;
   std::string _topTaggerName;
   uint _orderIndex[_maxSize];
+  std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _genReco; //include flags in here...
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
   //std::vector<std::vector<uint>> _flags; //Have to decide how to order these things in general way...
   bool _haveFlags;
@@ -89,6 +95,37 @@ std::pair< std::vector<TLorentzVector>, double > ResTTEvaluator::getOrderedCand(
 double ResTTEvaluator::getOrderedDiscr(int index){
   std::cout << "Method not implemented, just returning unordered candidate's discriminant..." << std::endl;
   return _cand[index].second;
+}
+void ResTTEvaluator::addGenReco(std::vector<TLorentzVector>* genReco){
+  if(_haveFlags){
+    _haveFlags = false;
+    std::cout << "Added genReco without flags, but previous candidate had flags! Will not perform any calculations depending on presence of flags..." << std::endl;
+  }
+  std::vector<int> tempFlags;
+  tempFlags.push_back(-1);
+  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGenReco;
+  tempGenReco.first = *genReco;
+  tempGenReco.second = tempFlags;
+  _genReco.push_back(tempGenReco);
+}
+void ResTTEvaluator::addGenReco(std::vector<TLorentzVector>* genReco, std::vector<int> flags){
+  if(_genReco.size() > 0 && !_haveFlags){
+    _haveFlags = false; //explicit for readibility
+    std::cout << "Added genReco with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
+  }
+  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGenReco;
+  tempGenReco.first = *genReco;
+  tempGenReco.second = flags;
+  _genReco.push_back(tempGenReco);
+}
+void ResTTEvaluator::addAllGenReco(std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenRecoInput){
+  if(_genReco.size() == 0)
+    _genReco = *allGenRecoInput;
+  else
+    std::cout << "Attempted to add all genRecos when some have already been added. I can't let you do that, Dave" << std::endl;
+}
+std::pair< std::vector<TLorentzVector>, std::vector<int> > ResTTEvaluator::getGenReco(int index){
+  return _genReco[index];
 }
 void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen){
   if(_haveFlags){
