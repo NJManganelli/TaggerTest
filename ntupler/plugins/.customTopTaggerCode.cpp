@@ -46,6 +46,7 @@ class ResTTEvaluator{
   void printCand(int index);
   void printGen(int index);
   void printMatrix(int index); //the matching matrix showing which resolved top's gen-matched reco jets are the exact/DeltaR match for the candidate's constituents
+  void printDimensions(); //method to check internal dimensions, such as nGenReco, nGen, nCand, maxSize, match, etc.
 
   //Once all candidates have been added, this method evaluates everything
   void evaluate();
@@ -53,6 +54,9 @@ class ResTTEvaluator{
   
  private:
   const static uint _maxSize = 100;
+  uint _nGenReco;
+  uint _nGen;
+  uint _nCand;
   uint _match[_maxSize][_maxSize][3]; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
   //encode in this matrix the info for whether it was even POSSIBLE to match that jet... 
   std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
@@ -66,6 +70,9 @@ class ResTTEvaluator{
   std::vector<std::string> _matchClassification;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
+  _nGenReco = 0;
+  _nGen = 0;
+  _nCand = 0;
   _haveFlags = false;
   _topTaggerName = topTaggerName;
   std::cout << "ResTTEvaluator being created" << std::endl;
@@ -78,6 +85,7 @@ void ResTTEvaluator::addCand(std::vector<TLorentzVector>* cand, double discrimin
   temp.first = *cand;
   temp.second = discriminant;
   _cand.push_back(temp);
+  _nCand++;
 }
 std::vector<std::pair<std::vector<TLorentzVector>, double>> ResTTEvaluator::getAllCand(){
   return _cand;
@@ -107,6 +115,7 @@ void ResTTEvaluator::addGenReco(std::vector<TLorentzVector>* genReco){
   tempGenReco.first = *genReco;
   tempGenReco.second = tempFlags;
   _genReco.push_back(tempGenReco);
+  _nGenReco++;
 }
 void ResTTEvaluator::addGenReco(std::vector<TLorentzVector>* genReco, std::vector<int> flags){
   if(_genReco.size() > 0 && !_haveFlags){
@@ -117,10 +126,13 @@ void ResTTEvaluator::addGenReco(std::vector<TLorentzVector>* genReco, std::vecto
   tempGenReco.first = *genReco;
   tempGenReco.second = flags;
   _genReco.push_back(tempGenReco);
+  _nGenReco++;
 }
 void ResTTEvaluator::addAllGenReco(std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenRecoInput){
-  if(_genReco.size() == 0)
+  if(_genReco.size() == 0){
     _genReco = *allGenRecoInput;
+    _nGenReco = _genReco.size();
+  }
   else
     std::cout << "Attempted to add all genRecos when some have already been added. I can't let you do that, Dave" << std::endl;
 }
@@ -138,6 +150,7 @@ void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen){
   tempGen.first = *gen;
   tempGen.second = tempFlags;
   _gen.push_back(tempGen);
+  _nGen++;
 }
 void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen, std::vector<int> flags){
   if(_gen.size() > 0 && !_haveFlags){
@@ -148,10 +161,13 @@ void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen, std::vector<int> f
   tempGen.first = *gen;
   tempGen.second = flags;
   _gen.push_back(tempGen);
+  _nGen++;
 }
 void ResTTEvaluator::addAllGen(std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput){
-  if(_gen.size() == 0)
+  if(_gen.size() == 0){
     _gen = *allGenInput;
+    _nGen = _gen.size();
+  }
   else
     std::cout << "Attempted to add all gens when some have already been added. I can't let you do that, Dave" << std::endl;
 }
@@ -166,6 +182,9 @@ void ResTTEvaluator::printGen(int index){
 }
 void ResTTEvaluator::printMatrix(int index){
   std::cout << "This isn't implemented yet... " << std::endl;
+}
+void ResTTEvaluator::printDimensions(){
+  std::cout << "nGen: " << _nGen << "\tnGenReco: " << _nGenReco << "\tnCand: " << _nCand << "\tmaxSize: " << _maxSize << std::endl;
 }
 void ResTTEvaluator::evaluate(){
   std::cout << "If I were a real little evaluator, I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
@@ -656,6 +675,7 @@ int main()
 	    HOTEval.printCand(1);
 	    HOTEval.printGen(2);
 	    HOTEval.printMatrix(5);
+	    HOTEval.printDimensions();
 	    HOTEval.evaluate();
 	    for(const uint topflag: **FlagTop){
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
