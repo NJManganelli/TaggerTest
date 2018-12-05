@@ -30,12 +30,12 @@ class ResTTEvaluator{
   std::pair< std::vector <TLorentzVector>, double > getOrderedCand(int index);
   double getOrderedDiscr(int index);
 
-  //Gen getting and setting //CHANGE: Make Gen strictly gen particles, GenReco the Reco-matched gen particles
+  //Gen getting and setting //CHANGE: Make Gen strictly gen particles, Reco the Reco-matched gen particles
   //for pure Gen, do deltaR matching and permit boosted quark pairs to be matched, regardless of AK4 or AK8
-  void addGenReco(std::vector<TLorentzVector>* gen);
-  void addGenReco(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
-  std::pair< std::vector<TLorentzVector>, std::vector<int> > getGenReco(int index);
-  void addAllGenReco( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput);
+  void addReco(std::vector<TLorentzVector>* gen);
+  void addReco(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
+  std::pair< std::vector<TLorentzVector>, std::vector<int> > getReco(int index);
+  void addAllReco( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput);
 
   void addGen(std::vector<TLorentzVector>* gen);
   void addGen(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
@@ -45,32 +45,36 @@ class ResTTEvaluator{
   //print information, primarily for debugging at time of writing this comment
   void printCand(int index);
   void printGen(int index);
-  void printMatrix(int index); //the matching matrix showing which resolved top's gen-matched reco jets are the exact/DeltaR match for the candidate's constituents
-  void printDimensions(); //method to check internal dimensions, such as nGenReco, nGen, nCand, maxSize, match, etc.
+  void printMatrixR(int index); //the matching matrix showing which resolved top's gen-matched reco jets are the exact match for the candidate's constituents
+  void printMatrixG(int index); //the matching matrix showing which resolved top's gen jets are the DeltaR match for the candidate's constituents
+  void printDimensions(); //method to check internal dimensions, such as nReco, nGen, nCand, maxSize, match, etc.
 
   //Once all candidates have been added, this method evaluates everything
-  void evaluate();
+  void evaluateR();
+  void evaluateG();
   
   
  private:
   const static uint _maxSize = 100;
-  uint _nGenReco;
+  uint _nReco;
   uint _nGen;
   uint _nCand;
-  uint _match[_maxSize][_maxSize][3]; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
+  uint _matchR[_maxSize][_maxSize][3]; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
+  uint _matchG[_maxSize][_maxSize][3]; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
   //encode in this matrix the info for whether it was even POSSIBLE to match that jet... 
-  std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
-  bool _haveEvaluated;
+  bool _haveEvaluatedR;
+  bool _haveEvaluatedG;
   std::string _topTaggerName;
   uint _orderIndex[_maxSize];
-  std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _genReco; //include flags in here...
+  std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
+  std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _reco; //include flags in here...
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
   //std::vector<std::vector<uint>> _flags; //Have to decide how to order these things in general way...
   bool _haveFlags;
   std::vector<std::string> _matchClassification;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
-  _nGenReco = 0;
+  _nReco = 0;
   _nGen = 0;
   _nCand = 0;
   _haveFlags = false;
@@ -104,46 +108,52 @@ double ResTTEvaluator::getOrderedDiscr(int index){
   std::cout << "Method not implemented, just returning unordered candidate's discriminant..." << std::endl;
   return _cand[index].second;
 }
-void ResTTEvaluator::addGenReco(std::vector<TLorentzVector>* genReco){
+void ResTTEvaluator::addReco(std::vector<TLorentzVector>* genReco){
   if(_haveFlags){
     _haveFlags = false;
     std::cout << "Added genReco without flags, but previous candidate had flags! Will not perform any calculations depending on presence of flags..." << std::endl;
   }
   std::vector<int> tempFlags;
   tempFlags.push_back(-1);
-  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGenReco;
-  tempGenReco.first = *genReco;
-  tempGenReco.second = tempFlags;
-  _genReco.push_back(tempGenReco);
-  _nGenReco++;
+  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempReco;
+  tempReco.first = *genReco;
+  tempReco.second = tempFlags;
+  _reco.push_back(tempReco);
+  _nReco++;
 }
-void ResTTEvaluator::addGenReco(std::vector<TLorentzVector>* genReco, std::vector<int> flags){
-  if(_genReco.size() > 0 && !_haveFlags){
+void ResTTEvaluator::addReco(std::vector<TLorentzVector>* genReco, std::vector<int> flags){
+  if(_reco.size() > 0 && !_haveFlags){
     _haveFlags = false; //explicit for readibility
     std::cout << "Added genReco with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
   }
-  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGenReco;
-  tempGenReco.first = *genReco;
-  tempGenReco.second = flags;
-  _genReco.push_back(tempGenReco);
-  _nGenReco++;
-}
-void ResTTEvaluator::addAllGenReco(std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenRecoInput){
-  if(_genReco.size() == 0){
-    _genReco = *allGenRecoInput;
-    _nGenReco = _genReco.size();
-  }
   else
-    std::cout << "Attempted to add all genRecos when some have already been added. I can't let you do that, Dave" << std::endl;
+    _haveFlags = true;
+  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempReco;
+  tempReco.first = *genReco;
+  tempReco.second = flags;
+  _reco.push_back(tempReco);
+  _nReco++;
 }
-std::pair< std::vector<TLorentzVector>, std::vector<int> > ResTTEvaluator::getGenReco(int index){
-  return _genReco[index];
+void ResTTEvaluator::addAllReco(std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allRecoInput){
+  if(_reco.size() == 0){
+    _reco = *allRecoInput;
+    _nReco = _reco.size();
+  }
+  else{
+    std::cout << "Attempted to add all genRecos when some have already been added. I can't let you do that, Dave" << std::endl;
+    _haveFlags = true;
+  }
+}
+std::pair< std::vector<TLorentzVector>, std::vector<int> > ResTTEvaluator::getReco(int index){
+  return _reco[index];
 }
 void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen){
   if(_haveFlags){
     _haveFlags = false;
     std::cout << "Added gen without flags, but previous candidate had flags! Will not perform any calculations depending on presence of flags..." << std::endl;
   }
+  else
+    _haveFlags = true;
   std::vector<int> tempFlags;
   tempFlags.push_back(-1);
   std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGen;
@@ -157,6 +167,8 @@ void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen, std::vector<int> f
     _haveFlags = false; //explicit for readibility
     std::cout << "Added gen with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
   }
+  else
+    _haveFlags = true;
   std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGen;
   tempGen.first = *gen;
   tempGen.second = flags;
@@ -168,8 +180,10 @@ void ResTTEvaluator::addAllGen(std::vector< std::pair< std::vector<TLorentzVecto
     _gen = *allGenInput;
     _nGen = _gen.size();
   }
-  else
+  else{
     std::cout << "Attempted to add all gens when some have already been added. I can't let you do that, Dave" << std::endl;
+    _haveFlags = true;
+  }
 }
 std::pair< std::vector<TLorentzVector>, std::vector<int> > ResTTEvaluator::getGen(int index){
   return _gen[index];
@@ -180,14 +194,43 @@ void ResTTEvaluator::printCand(int index){
 void ResTTEvaluator::printGen(int index){
   std::cout << "This isn't implemented yet... " << std::endl;
 }
-void ResTTEvaluator::printMatrix(int index){
-  std::cout << "This isn't implemented yet... " << std::endl;
+void ResTTEvaluator::printMatrixR(int index){
+  if(_nReco > 0){
+    std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
+    for(int i = 0; i < _nReco; i++)
+      std::cout << "\n\t Gen Reco " << i+1 << "\t" << _matchR[index][i][0] << "\t" << _matchR[index][i][1] << "\t" << _matchR[index][i][2];
+    std::cout << std::endl;
+  }
+}
+void ResTTEvaluator::printMatrixG(int index){
+  if(_nGen > 0){
+    std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
+    for(int i = 0; i < _nGen; i++)
+      std::cout << "\n\t Gen Part " << i+1 << "\t" << _matchG[index][i][0] << "\t" << _matchG[index][i][1] << "\t" << _matchG[index][i][2];
+    std::cout << std::endl;
+  }
 }
 void ResTTEvaluator::printDimensions(){
-  std::cout << "nGen: " << _nGen << "\tnGenReco: " << _nGenReco << "\tnCand: " << _nCand << "\tmaxSize: " << _maxSize << std::endl;
+  std::cout << "nGen: " << _nGen << "\tnReco: " << _nReco << "\tnCand: " << _nCand << "\tmaxSize: " << _maxSize << std::endl;
 }
-void ResTTEvaluator::evaluate(){
-  std::cout << "If I were a real little evaluator, I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
+void ResTTEvaluator::evaluateR(){
+  for(int m = 0; m < _nCand; m++) //evaluate for each candidate
+    for(int n = 0; n < _cand[m].first.size(); n++) //each candidate's constituent
+      //for(int ii = 0; ii < 3; ii++) //each candidate's constituent
+      for(int o = 0; o < _nReco; o++) //for each candidate, check each Reconstructed top quark's constituents
+	for(int p = 0; p < _reco[o].first.size(); p++) //check all the jets in the collection... should be 3 at all times... need to protect...
+	//for(int jj = 0; jj < 3; jj++) //check all the jets in the collection... should be 3 at all times... need to protect...
+	  {
+	    std::cout << "\n\ti|ii|j|jj: " << m << n << o << p << "\t" << _cand[m].first[n].Pt() << "\t" << _reco[o].first[p].Pt();
+	    _matchR[m][o][p] = (_reco[o].first[p] == _cand[m].first[n]); //for each candidate, store match truth in the matrix
+	    std::cout << "\t" << _matchR[m][o][p];
+
+	  }
+  _haveEvaluatedR = true;
+  std::cout << std::endl;
+}
+void ResTTEvaluator::evaluateG(){
+  std::cout << "If I were a real little evaluator (Reco), I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
 }
 
 int main()
@@ -674,9 +717,33 @@ int main()
 	    ResTTEvaluator HOTEval("HOT");
 	    HOTEval.printCand(1);
 	    HOTEval.printGen(2);
-	    HOTEval.printMatrix(5);
+	    std::vector<int> Top1flags;
+	    Top1flags.push_back(1);
+	    Top1flags.push_back(2);
+	    HOTEval.addReco(*hadTop2Constit, Top1flags);
+	    HOTEval.addReco(*hadTop1Constit, Top1flags);
+	    HOTEval.addReco(*hadTop2Constit, Top1flags);
+	    HOTEval.addReco(*hadTop3Constit, Top1flags);
+	    HOTEval.addCand(*hadTop1Constit, 0.873);
+	    HOTEval.addCand(*hadTop2Constit, 0.997);
+	    HOTEval.addCand(*hadTop3Constit, 0.469);
+	    HOTEval.addCand(*hadTop2Constit, 0.371);
+	    HOTEval.addCand(*hadTop1Constit, 0.214);
+	    std::cout << "\n=======================================" << std::endl;
+	    if((*hadTop1Constit)->size() > 0)
+	      std::cout << (*hadTop1Constit)->at(0).Pt() << "\t" << (*hadTop1Constit)->at(1).Pt() << "\t" << (*hadTop1Constit)->at(2).Pt() << std::endl;
+	    if((*hadTop2Constit)->size() > 0)
+	    std::cout << (*hadTop2Constit)->at(0).Pt() << "\t" << (*hadTop2Constit)->at(1).Pt() << "\t" << (*hadTop2Constit)->at(2).Pt() << std::endl;
+	    if((*hadTop3Constit)->size() > 0)
+	    std::cout << (*hadTop3Constit)->at(0).Pt() << "\t" << (*hadTop3Constit)->at(1).Pt() << "\t" << (*hadTop3Constit)->at(2).Pt() << std::endl;
+	    HOTEval.printMatrixR(1);
+	    HOTEval.printMatrixR(2);
+	    HOTEval.printMatrixR(3);
 	    HOTEval.printDimensions();
-	    HOTEval.evaluate();
+	    HOTEval.evaluateR();
+	    HOTEval.printMatrixR(1);
+	    HOTEval.printMatrixR(2);
+	    HOTEval.printMatrixR(3);
 	    for(const uint topflag: **FlagTop){
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
 	      if(topflag < 9999){
