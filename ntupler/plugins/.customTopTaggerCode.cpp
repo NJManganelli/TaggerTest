@@ -53,7 +53,10 @@ class ResTTEvaluator{
   void evaluateR();
   void evaluateG();
   
-  
+  //These methods do the classifying. They could be called by evaluate, or the main program...
+  void classifyR();
+  void classifyG();
+
  private:
   const static uint _maxSize = 100;
   uint _nReco;
@@ -221,7 +224,8 @@ void ResTTEvaluator::printGen(int index){
   std::cout << "This isn't implemented yet... " << std::endl;
 }
 void ResTTEvaluator::printMatrixR(int index){
-  if(-1 < index < _nReco){ //could also do negative indices for searching from the end... hmmm
+  //std::cout << "index: " << index << " nReco: " << _nReco << " (-1 < index && index < nReco): " << (-1 < index && index < _nReco) << std::endl;
+  if(-1 < index && index < _nReco){ //could also do negative indices for searching from the end... hmmm
     if(!_haveEvaluatedR)
       std::cout << "\nPre-evaluation matrix" << std::endl;
     std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
@@ -233,7 +237,7 @@ void ResTTEvaluator::printMatrixR(int index){
     std::cout << "\n\tThis index is not in range!" << std::endl;
 }
 void ResTTEvaluator::printMatrixG(int index){
-  if(-1 < index < _nGen){
+  if(-1 < index && index < _nGen){
     if(!_haveEvaluatedG)
       std::cout << "\nPre-evaluation matrix" << std::endl;
     std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
@@ -262,11 +266,27 @@ void ResTTEvaluator::evaluateR(){
 	    //this->printMatrixR(m); //debugging the matrix some
 
 	  }
+  this->classifyR();
   _haveEvaluatedR = true;
   std::cout << std::endl;
 }
 void ResTTEvaluator::evaluateG(){
-  std::cout << "If I were a real little evaluator (Reco), I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
+  std::cout << "If I were a real little evaluator (Gen), I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
+}
+void ResTTEvaluator::classifyR(){
+  int bestNMatch[_nCand] = {0};
+  for(int m = 0; m < _nCand; m++)
+    for(int o = 0; o < _nReco; o++){
+      int thisNMatch = 0;
+      for(int p = 0; p < 3; p++)
+	thisNMatch += _matchR[m][o][p];
+      std::cout << "\n\t\t\t\tmo: " << m << o << " best: " << bestNMatch[m] << " this: " << thisNMatch;
+      bestNMatch[m] = (thisNMatch > bestNMatch[m] ? thisNMatch : bestNMatch[m]);
+      std::cout << " best: " << bestNMatch[m] << std::endl;
+    }
+}
+void ResTTEvaluator::classifyG(){
+  std::cout << "If I were a real little classifer (Gen), I would have done some classification (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
 }
 
 int main()
@@ -281,11 +301,12 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 4;
+  uint maxEventsToProcess = 16;
 
   //HOT discriminant histos
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIIb_hot = new TH1F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIImib_hot = new TH1F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIIw_hot = new TH1F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIIo_hot = new TH1F ("h_typeIIo_hot_", "Type II (other) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeI_hot = new TH1F ("h_typeI_hot_", "Type I (2+ top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
@@ -756,28 +777,35 @@ int main()
 	    ResTTEvaluator HOTEval("HOT");
 	    HOTEval.printMatrixR(0);
 	    HOTEval.printMatrixR(1);
+	    HOTEval.printMatrixR(2);
 	    std::vector<int> Top1flags;
 	    Top1flags.push_back(1);
 	    Top1flags.push_back(2);
 	    auto the1Top = **hadTop1Constit;
 	    if(the1Top.size() > 0)
 	      HOTEval.addReco(*hadTop1Constit, Top1flags);
+	    HOTEval.printDimensions();
 	    auto the2Top = **hadTop2Constit;
 	    if(the2Top.size() > 0)
 	      HOTEval.addReco(*hadTop2Constit, Top1flags);
+	    HOTEval.printDimensions();
 	    auto the3Top = **hadTop3Constit;
 	    if(the3Top.size() > 0)
 	      HOTEval.addReco(*hadTop3Constit, Top1flags);
-	    if(the2Top.size() > 0)
-	      HOTEval.addReco(*hadTop2Constit, Top1flags);
-	    if(the1Top.size() > 0)
-	      HOTEval.addReco(*hadTop1Constit, Top1flags);
+	    HOTEval.printDimensions();
+	    // if(the2Top.size() > 0)
+	    //   HOTEval.addReco(*hadTop2Constit, Top1flags);
+	    // if(the1Top.size() > 0)
+	    //   HOTEval.addReco(*hadTop1Constit, Top1flags);
 	    if(the1Top.size() > 0)
 	      HOTEval.addCand(*hadTop1Constit, 0.873);
-	    //HOTEval.addCand(*hadTop2Constit, 0.997);
-	    //HOTEval.addCand(*hadTop3Constit, 0.469);
-	    //HOTEval.addCand(*hadTop2Constit, 0.371);
-	    //HOTEval.addCand(*hadTop1Constit, 0.214);
+	    HOTEval.printDimensions();
+	    if(the2Top.size() > 0)
+	      HOTEval.addCand(*hadTop2Constit, 0.233);
+	    HOTEval.printDimensions();
+	    if(the3Top.size() > 0)
+	      HOTEval.addCand(*hadTop3Constit, 0.463);
+	    HOTEval.printDimensions();
 	    HOTEval.printMatrixR(0);
 	    HOTEval.printMatrixR(1);
 	    HOTEval.printMatrixR(2);
@@ -789,7 +817,7 @@ int main()
 	    // if((*hadTop3Constit)->size() > 0)
 	    // std::cout << (*hadTop3Constit)->at(0).Pt() << "\t" << (*hadTop3Constit)->at(1).Pt() << "\t" << (*hadTop3Constit)->at(2).Pt() << std::endl;
 	    HOTEval.printDimensions();
-	    	    HOTEval.evaluateR();
+	    HOTEval.evaluateR();
 	    HOTEval.printMatrixR(0);
 	    HOTEval.printMatrixR(1);
 	    HOTEval.printMatrixR(2);
