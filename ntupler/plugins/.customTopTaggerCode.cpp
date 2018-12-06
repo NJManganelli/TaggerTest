@@ -32,13 +32,13 @@ class ResTTEvaluator{
 
   //Gen getting and setting //CHANGE: Make Gen strictly gen particles, Reco the Reco-matched gen particles
   //for pure Gen, do deltaR matching and permit boosted quark pairs to be matched, regardless of AK4 or AK8
-  void addReco(std::vector<TLorentzVector>* gen);
-  void addReco(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
+  void addReco(std::vector<TLorentzVector>* reco, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
+  void addReco(std::vector<TLorentzVector>* reco);
   std::pair< std::vector<TLorentzVector>, std::vector<int> > getReco(int index);
   void addAllReco( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput);
 
-  void addGen(std::vector<TLorentzVector>* gen);
   void addGen(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
+  void addGen(std::vector<TLorentzVector>* gen);
   std::pair< std::vector<TLorentzVector>, std::vector<int> > getGen(int index);
   void addAllGen( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput);
 
@@ -59,8 +59,8 @@ class ResTTEvaluator{
   uint _nReco;
   uint _nGen;
   uint _nCand;
-  uint _matchR[_maxSize][_maxSize][3]; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
-  uint _matchG[_maxSize][_maxSize][3]; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
+  uint _matchR[_maxSize][_maxSize][3] = {0}; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
+  uint _matchG[_maxSize][_maxSize][3] = {0}; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
   //encode in this matrix the info for whether it was even POSSIBLE to match that jet... 
   bool _haveEvaluatedR;
   bool _haveEvaluatedG;
@@ -77,6 +77,8 @@ ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
   _nReco = 0;
   _nGen = 0;
   _nCand = 0;
+  _haveEvaluatedR = false;
+  _haveEvaluatedG = false;
   _haveFlags = false;
   _topTaggerName = topTaggerName;
   std::cout << "ResTTEvaluator being created" << std::endl;
@@ -85,30 +87,58 @@ ResTTEvaluator::~ResTTEvaluator(){
   std::cout << "ResTTEvaluator being destroyed" << std::endl;
 }
 void ResTTEvaluator::addCand(std::vector<TLorentzVector>* cand, double discriminant){
-  std::pair< std::vector<TLorentzVector>, double> temp;
-  temp.first = *cand;
-  temp.second = discriminant;
-  _cand.push_back(temp);
+  std::pair< std::vector<TLorentzVector>, double> tempCand;
+  tempCand.first = *cand;
+  tempCand.second = discriminant;
+  std::cout << "\nAdding Cand: " << std::endl;
+  for(int q = 0; q < 3; q++)
+    std::cout << "\t" << (tempCand.first[q]).Pt() << "\t" << (tempCand.first[q]).Eta() << "\t" << (tempCand.first[q]).Phi() << "\t" << (tempCand.first[q]).E() << std::endl;
+  _cand.push_back(tempCand);
   _nCand++;
 }
 std::vector<std::pair<std::vector<TLorentzVector>, double>> ResTTEvaluator::getAllCand(){
   return _cand;
 }
 std::pair< std::vector<TLorentzVector>, double > ResTTEvaluator::getCand(int index){
-  return _cand[index];
+  if(index < _nCand)
+    return _cand[index];
+  else
+    std::cout << "This index is not in range" << std::endl;
 }
 double ResTTEvaluator::getDiscr(int index){
-  return _cand[index].second;
+  return (_cand[index]).second;
 }
 std::pair< std::vector<TLorentzVector>, double > ResTTEvaluator::getOrderedCand(int index){
   std::cout << "Method not implemented, just returning unordered candidate..." << std::endl;
-  return _cand[index];
+  if(index < _nCand)
+    return _cand[index];
+  else
+    std::cout << "This index is not in range" << std::endl;
 }
 double ResTTEvaluator::getOrderedDiscr(int index){
   std::cout << "Method not implemented, just returning unordered candidate's discriminant..." << std::endl;
-  return _cand[index].second;
+  if(index < _nCand)
+    return (_cand[index]).second;
+  else
+    std::cout << "This index is not in range" << std::endl;
 }
-void ResTTEvaluator::addReco(std::vector<TLorentzVector>* genReco){
+void ResTTEvaluator::addReco(std::vector<TLorentzVector>* reco, std::vector<int> flags){
+  if(_reco.size() > 0 && !_haveFlags){
+    _haveFlags = false; //explicit for readibility
+    std::cout << "Added genReco with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
+  }
+  else
+    _haveFlags = true;
+  std::pair< std::vector<TLorentzVector>, std::vector<int> > tempReco;
+  tempReco.first = *reco;
+  tempReco.second = flags;
+  std::cout << "\nAdding Reco: " << std::endl;
+  for(int q = 0; q < 3; q++)
+    std::cout << "\t" << (tempReco.first[q]).Pt() << "\t" << (tempReco.first[q]).Eta() << "\t" << (tempReco.first[q]).Phi() << "\t" << (tempReco.first[q]).E() << std::endl;
+  _reco.push_back(tempReco);
+  _nReco++;
+}
+void ResTTEvaluator::addReco(std::vector<TLorentzVector>* reco){
   if(_haveFlags){
     _haveFlags = false;
     std::cout << "Added genReco without flags, but previous candidate had flags! Will not perform any calculations depending on presence of flags..." << std::endl;
@@ -116,21 +146,8 @@ void ResTTEvaluator::addReco(std::vector<TLorentzVector>* genReco){
   std::vector<int> tempFlags;
   tempFlags.push_back(-1);
   std::pair<std::vector<TLorentzVector>, std::vector<int> > tempReco;
-  tempReco.first = *genReco;
+  tempReco.first = *reco;
   tempReco.second = tempFlags;
-  _reco.push_back(tempReco);
-  _nReco++;
-}
-void ResTTEvaluator::addReco(std::vector<TLorentzVector>* genReco, std::vector<int> flags){
-  if(_reco.size() > 0 && !_haveFlags){
-    _haveFlags = false; //explicit for readibility
-    std::cout << "Added genReco with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
-  }
-  else
-    _haveFlags = true;
-  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempReco;
-  tempReco.first = *genReco;
-  tempReco.second = flags;
   _reco.push_back(tempReco);
   _nReco++;
 }
@@ -145,7 +162,26 @@ void ResTTEvaluator::addAllReco(std::vector< std::pair< std::vector<TLorentzVect
   }
 }
 std::pair< std::vector<TLorentzVector>, std::vector<int> > ResTTEvaluator::getReco(int index){
-  return _reco[index];
+  if(index < _nReco)
+    return _reco[index];
+  else
+    std::cout << "\n\tThis index is not in range!" << std::endl;
+}
+void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen, std::vector<int> flags){
+  if(_gen.size() > 0 && !_haveFlags){
+    _haveFlags = false; //explicit for readibility
+    std::cout << "Added gen with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
+  }
+  else
+    _haveFlags = true;
+  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGen;
+  tempGen.first = *gen;
+  tempGen.second = flags;
+  std::cout << "\nAdding Gen: " << std::endl;
+  for(int q = 0; q < 3; q++)
+    std::cout << "\t" << (tempGen.first[q]).Pt() << "\t" << (tempGen.first[q]).Eta() << "\t" << (tempGen.first[q]).Phi() << "\t" << (tempGen.first[q]).E() << std::endl;
+  _gen.push_back(tempGen);
+  _nGen++;
 }
 void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen){
   if(_haveFlags){
@@ -162,19 +198,6 @@ void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen){
   _gen.push_back(tempGen);
   _nGen++;
 }
-void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen, std::vector<int> flags){
-  if(_gen.size() > 0 && !_haveFlags){
-    _haveFlags = false; //explicit for readibility
-    std::cout << "Added gen with flags, but previous candidate didn't have flags! Will not perform any calculations depending on presence of flags..." << std::endl;
-  }
-  else
-    _haveFlags = true;
-  std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGen;
-  tempGen.first = *gen;
-  tempGen.second = flags;
-  _gen.push_back(tempGen);
-  _nGen++;
-}
 void ResTTEvaluator::addAllGen(std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput){
   if(_gen.size() == 0){
     _gen = *allGenInput;
@@ -186,7 +209,10 @@ void ResTTEvaluator::addAllGen(std::vector< std::pair< std::vector<TLorentzVecto
   }
 }
 std::pair< std::vector<TLorentzVector>, std::vector<int> > ResTTEvaluator::getGen(int index){
-  return _gen[index];
+  if(index < _nGen)
+    return _gen[index];
+  else
+    std::cout << "\n\tThis index is not in range!" << std::endl;
 }
 void ResTTEvaluator::printCand(int index){
   std::cout << "This isn't implemented yet... " << std::endl;
@@ -195,20 +221,28 @@ void ResTTEvaluator::printGen(int index){
   std::cout << "This isn't implemented yet... " << std::endl;
 }
 void ResTTEvaluator::printMatrixR(int index){
-  if(_nReco > 0){
+  if(-1 < index < _nReco){ //could also do negative indices for searching from the end... hmmm
+    if(!_haveEvaluatedR)
+      std::cout << "\nPre-evaluation matrix" << std::endl;
     std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
     for(int i = 0; i < _nReco; i++)
-      std::cout << "\n\t Gen Reco " << i+1 << "\t" << _matchR[index][i][0] << "\t" << _matchR[index][i][1] << "\t" << _matchR[index][i][2];
+      std::cout << "\n\t Gen Reco " << i << "\t" << _matchR[index][i][0] << "\t" << _matchR[index][i][1] << "\t" << _matchR[index][i][2];
     std::cout << std::endl;
   }
+  else
+    std::cout << "\n\tThis index is not in range!" << std::endl;
 }
 void ResTTEvaluator::printMatrixG(int index){
-  if(_nGen > 0){
+  if(-1 < index < _nGen){
+    if(!_haveEvaluatedG)
+      std::cout << "\nPre-evaluation matrix" << std::endl;
     std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
     for(int i = 0; i < _nGen; i++)
       std::cout << "\n\t Gen Part " << i+1 << "\t" << _matchG[index][i][0] << "\t" << _matchG[index][i][1] << "\t" << _matchG[index][i][2];
     std::cout << std::endl;
   }
+  else
+    std::cout << "\n\tThis index is not in range!" << std::endl;
 }
 void ResTTEvaluator::printDimensions(){
   std::cout << "nGen: " << _nGen << "\tnReco: " << _nReco << "\tnCand: " << _nCand << "\tmaxSize: " << _maxSize << std::endl;
@@ -221,9 +255,11 @@ void ResTTEvaluator::evaluateR(){
 	for(int p = 0; p < _reco[o].first.size(); p++) //check all the jets in the collection... should be 3 at all times... need to protect...
 	//for(int jj = 0; jj < 3; jj++) //check all the jets in the collection... should be 3 at all times... need to protect...
 	  {
-	    std::cout << "\n\ti|ii|j|jj: " << m << n << o << p << "\t" << _cand[m].first[n].Pt() << "\t" << _reco[o].first[p].Pt();
-	    _matchR[m][o][p] = (_reco[o].first[p] == _cand[m].first[n]); //for each candidate, store match truth in the matrix
-	    std::cout << "\t" << _matchR[m][o][p];
+	    std::cout << "\n\ti|ii|j|jj: " << m << n << o << p << "\t" << _cand[m].first[n].Pt() << "\t" << _reco[o].first[p].Pt() << "\t" << m << o << p;
+	    int test = static_cast<int>(_reco[o].first[p] == _cand[m].first[n]);
+	    _matchR[m][o][p] = (test > _matchR[m][o][p] ? test : _matchR[m][o][p]); //for each candidate, store match truth in the matrix
+	    std::cout << "\t" << test << "\t" << _matchR[m][o][p];
+	    //this->printMatrixR(m); //debugging the matrix some
 
 	  }
   _haveEvaluatedR = true;
@@ -245,6 +281,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
+  uint maxEventsToProcess = 4;
 
   //HOT discriminant histos
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
@@ -309,8 +346,8 @@ int main()
 
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntuple.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntupleMasked.root");
-    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kTwoTop.root");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kTwoTop.root");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -647,9 +684,11 @@ int main()
         {
             //increment event number
             ++Nevt;
+	    if(Nevt > maxEventsToProcess)
+	      break;
 
             //Print event number 
-            printf("Event #: %i\n", Nevt);
+            printf("\n======================\nEvent #: %i\n", Nevt);
 
             //Use helper function to create input list 
             //Create AK4 inputs object
@@ -715,35 +754,45 @@ int main()
 	    uint flagcounter = 0;
 	    if(debug1) printf("\n\tDebugging reconstructible top counting and flags: ");
 	    ResTTEvaluator HOTEval("HOT");
-	    HOTEval.printCand(1);
-	    HOTEval.printGen(2);
+	    HOTEval.printMatrixR(0);
+	    HOTEval.printMatrixR(1);
 	    std::vector<int> Top1flags;
 	    Top1flags.push_back(1);
 	    Top1flags.push_back(2);
-	    HOTEval.addReco(*hadTop2Constit, Top1flags);
-	    HOTEval.addReco(*hadTop1Constit, Top1flags);
-	    HOTEval.addReco(*hadTop2Constit, Top1flags);
-	    HOTEval.addReco(*hadTop3Constit, Top1flags);
-	    HOTEval.addCand(*hadTop1Constit, 0.873);
-	    HOTEval.addCand(*hadTop2Constit, 0.997);
-	    HOTEval.addCand(*hadTop3Constit, 0.469);
-	    HOTEval.addCand(*hadTop2Constit, 0.371);
-	    HOTEval.addCand(*hadTop1Constit, 0.214);
+	    auto the1Top = **hadTop1Constit;
+	    if(the1Top.size() > 0)
+	      HOTEval.addReco(*hadTop1Constit, Top1flags);
+	    auto the2Top = **hadTop2Constit;
+	    if(the2Top.size() > 0)
+	      HOTEval.addReco(*hadTop2Constit, Top1flags);
+	    auto the3Top = **hadTop3Constit;
+	    if(the3Top.size() > 0)
+	      HOTEval.addReco(*hadTop3Constit, Top1flags);
+	    if(the2Top.size() > 0)
+	      HOTEval.addReco(*hadTop2Constit, Top1flags);
+	    if(the1Top.size() > 0)
+	      HOTEval.addReco(*hadTop1Constit, Top1flags);
+	    if(the1Top.size() > 0)
+	      HOTEval.addCand(*hadTop1Constit, 0.873);
+	    //HOTEval.addCand(*hadTop2Constit, 0.997);
+	    //HOTEval.addCand(*hadTop3Constit, 0.469);
+	    //HOTEval.addCand(*hadTop2Constit, 0.371);
+	    //HOTEval.addCand(*hadTop1Constit, 0.214);
+	    HOTEval.printMatrixR(0);
+	    HOTEval.printMatrixR(1);
+	    HOTEval.printMatrixR(2);
 	    std::cout << "\n=======================================" << std::endl;
-	    if((*hadTop1Constit)->size() > 0)
-	      std::cout << (*hadTop1Constit)->at(0).Pt() << "\t" << (*hadTop1Constit)->at(1).Pt() << "\t" << (*hadTop1Constit)->at(2).Pt() << std::endl;
-	    if((*hadTop2Constit)->size() > 0)
-	    std::cout << (*hadTop2Constit)->at(0).Pt() << "\t" << (*hadTop2Constit)->at(1).Pt() << "\t" << (*hadTop2Constit)->at(2).Pt() << std::endl;
-	    if((*hadTop3Constit)->size() > 0)
-	    std::cout << (*hadTop3Constit)->at(0).Pt() << "\t" << (*hadTop3Constit)->at(1).Pt() << "\t" << (*hadTop3Constit)->at(2).Pt() << std::endl;
-	    HOTEval.printMatrixR(1);
-	    HOTEval.printMatrixR(2);
-	    HOTEval.printMatrixR(3);
+	    // if((*hadTop1Constit)->size() > 0)
+	    //   std::cout << (*hadTop1Constit)->at(0).Pt() << "\t" << (*hadTop1Constit)->at(1).Pt() << "\t" << (*hadTop1Constit)->at(2).Pt() << std::endl;
+	    // if((*hadTop2Constit)->size() > 0)
+	    // std::cout << (*hadTop2Constit)->at(0).Pt() << "\t" << (*hadTop2Constit)->at(1).Pt() << "\t" << (*hadTop2Constit)->at(2).Pt() << std::endl;
+	    // if((*hadTop3Constit)->size() > 0)
+	    // std::cout << (*hadTop3Constit)->at(0).Pt() << "\t" << (*hadTop3Constit)->at(1).Pt() << "\t" << (*hadTop3Constit)->at(2).Pt() << std::endl;
 	    HOTEval.printDimensions();
-	    HOTEval.evaluateR();
+	    	    HOTEval.evaluateR();
+	    HOTEval.printMatrixR(0);
 	    HOTEval.printMatrixR(1);
 	    HOTEval.printMatrixR(2);
-	    HOTEval.printMatrixR(3);
 	    for(const uint topflag: **FlagTop){
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
 	      if(topflag < 9999){
