@@ -20,6 +20,7 @@
 class ResTTEvaluator{
  public:
   ResTTEvaluator(std::string topTaggerName);
+  ResTTEvaluator(std::string topTaggerName, bool verbose, bool debug);
   ~ResTTEvaluator();
 
   //candidate setting and getting
@@ -58,6 +59,8 @@ class ResTTEvaluator{
   void classifyG();
 
  private:
+  bool _debug = false;
+  bool _verbose = false;
   const static uint _maxSize = 100;
   uint _nReco;
   uint _nGen;
@@ -78,14 +81,28 @@ class ResTTEvaluator{
   std::string _topTaggerName;
   uint _orderIndex[_maxSize];
   std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
-  //std::vector< std::pair< std::vector<TLorentzVector>, double >* > _ordCand; //use pointers?
+  std::vector< std::pair< std::vector<TLorentzVector>, double >* > _ordCand; //use pointers?
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _reco; //include flags in here...
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
   std::vector< std::pair< uint, std::string > > _class; //classification, using number and string
-  //std::vector< std::pair< uint, std::string >* > _ordClass; //shoulda made a struct...
+  std::vector< std::pair< uint, std::string >* > _ordClass; //shoulda made a struct...
   bool _haveFlags;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
+  _nReco = 0;
+  _nGen = 0;
+  _nCand = 0;
+  _haveEvaluatedR = false;
+  _haveClassifiedR = false;
+  _haveEvaluatedG = false;
+  _haveClassifiedG = false;
+  _haveFlags = false;
+  _topTaggerName = topTaggerName;
+  std::cout << "ResTTEvaluator being created" << std::endl;
+}
+ResTTEvaluator::ResTTEvaluator(std::string topTaggerName, bool verbose, bool debug){
+  _verbose = verbose;
+  _debug = debug;
   _nReco = 0;
   _nGen = 0;
   _nCand = 0;
@@ -104,9 +121,12 @@ void ResTTEvaluator::addCand(std::vector<TLorentzVector>* cand, double discrimin
   std::pair< std::vector<TLorentzVector>, double> tempCand;
   tempCand.first = *cand;
   tempCand.second = discriminant;
-  std::cout << "\nAdding Cand: " << std::endl;
-  for(int q = 0; q < 3; q++)
-    std::cout << "\t" << (tempCand.first[q]).Pt() << "\t" << (tempCand.first[q]).Eta() << "\t" << (tempCand.first[q]).Phi() << "\t" << (tempCand.first[q]).E() << std::endl;
+  if(_verbose){
+    std::cout << "\nAdding Cand: " << std::endl;
+    for(int q = 0; q < 3; q++)
+      std::cout << "\t" << (tempCand.first[q]).Pt() << "\t" << (tempCand.first[q]).Eta() 
+	      << "\t" << (tempCand.first[q]).Phi() << "\t" << (tempCand.first[q]).E() << std::endl;
+  }
   _cand.push_back(tempCand);
   _nCand++;
 }
@@ -146,9 +166,12 @@ void ResTTEvaluator::addReco(std::vector<TLorentzVector>* reco, std::vector<int>
   std::pair< std::vector<TLorentzVector>, std::vector<int> > tempReco;
   tempReco.first = *reco;
   tempReco.second = flags;
-  std::cout << "\nAdding Reco: " << std::endl;
-  for(int q = 0; q < 3; q++)
-    std::cout << "\t" << (tempReco.first[q]).Pt() << "\t" << (tempReco.first[q]).Eta() << "\t" << (tempReco.first[q]).Phi() << "\t" << (tempReco.first[q]).E() << std::endl;
+  if(_verbose){
+    std::cout << "\nAdding Reco: " << std::endl;
+    for(int q = 0; q < 3; q++)
+      std::cout << "\t" << (tempReco.first[q]).Pt() << "\t" << (tempReco.first[q]).Eta() 
+		<< "\t" << (tempReco.first[q]).Phi() << "\t" << (tempReco.first[q]).E() << std::endl;
+  }
   _reco.push_back(tempReco);
   _nReco++;
 }
@@ -191,9 +214,12 @@ void ResTTEvaluator::addGen(std::vector<TLorentzVector>* gen, std::vector<int> f
   std::pair<std::vector<TLorentzVector>, std::vector<int> > tempGen;
   tempGen.first = *gen;
   tempGen.second = flags;
-  std::cout << "\nAdding Gen: " << std::endl;
+  if(_verbose){
+    std::cout << "\nAdding Gen: " << std::endl;
   for(int q = 0; q < 3; q++)
-    std::cout << "\t" << (tempGen.first[q]).Pt() << "\t" << (tempGen.first[q]).Eta() << "\t" << (tempGen.first[q]).Phi() << "\t" << (tempGen.first[q]).E() << std::endl;
+    std::cout << "\t" << (tempGen.first[q]).Pt() << "\t" << (tempGen.first[q]).Eta() 
+		<< "\t" << (tempGen.first[q]).Phi() << "\t" << (tempGen.first[q]).E() << std::endl;
+  }
   _gen.push_back(tempGen);
   _nGen++;
 }
@@ -241,7 +267,8 @@ void ResTTEvaluator::printMatrixR(int index){
       std::cout << "\nPre-evaluation matrix" << std::endl;
     std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
     for(int i = 0; i < _nReco; i++)
-      std::cout << "\n\t Gen Reco " << i << "\t" << _matchR[index][i][0] << "\t" << _matchR[index][i][1] << "\t" << _matchR[index][i][2];
+      std::cout << "\n\t Gen Reco " << i << "\t" << _matchR[index][i][0] << "\t" 
+		<< _matchR[index][i][1] << "\t" << _matchR[index][i][2];
     std::cout << std::endl;
   }
   else
@@ -253,7 +280,8 @@ void ResTTEvaluator::printMatrixG(int index){
       std::cout << "\nPre-evaluation matrix" << std::endl;
     std::cout << "\n\t Match Matrix for Top Candidate " << index << "\n\t\t\tb jet\tq1 jet\tq2 jet";
     for(int i = 0; i < _nGen; i++)
-      std::cout << "\n\t Gen Part " << i+1 << "\t" << _matchG[index][i][0] << "\t" << _matchG[index][i][1] << "\t" << _matchG[index][i][2];
+      std::cout << "\n\t Gen Part " << i+1 << "\t" << _matchG[index][i][0] << "\t" 
+		<< _matchG[index][i][1] << "\t" << _matchG[index][i][2];
     std::cout << std::endl;
   }
   else
@@ -270,11 +298,14 @@ void ResTTEvaluator::evaluateR(){
 	for(int p = 0; p < _reco[o].first.size(); p++) //check all the jets in the collection... should be 3 at all times... need to protect...
 	//for(int jj = 0; jj < 3; jj++) //check all the jets in the collection... should be 3 at all times... need to protect...
 	  {
-	    std::cout << "\n\ti|ii|j|jj: " << m << n << o << p << "\t" << _cand[m].first[n].Pt() << "\t" << _reco[o].first[p].Pt() << "\t" << m << o << p;
+	    if(_debug)
+	      std::cout << "\n\ti|ii|j|jj: " << m << n << o << p << "\t" << _cand[m].first[n].Pt() << "\t" << _reco[o].first[p].Pt() << "\t" << m << o << p;
 	    int test = static_cast<int>(_reco[o].first[p] == _cand[m].first[n]);
 	    _matchR[m][o][p] = (test > _matchR[m][o][p] ? test : _matchR[m][o][p]); //for each candidate, store match truth in the matrix
-	    std::cout << "\t" << test << "\t" << _matchR[m][o][p];
+	    if(_debug)
+	      std::cout << "\t" << test << "\t" << _matchR[m][o][p];
 	    //this->printMatrixR(m); //debugging the matrix some
+	    
 
 	  }
   this->classifyR();
@@ -321,16 +352,125 @@ void ResTTEvaluator::classifyR(){
       totNumBR[m] += _matchR[m][o][0];
       totNumQR[m] += _matchR[m][o][1];
       totNumQR[m] += _matchR[m][o][2];
-      // VMatch_b[m] += _matchR[m][o][0];
-      // VMatch_q1[m] += _matchR[m][o][1];
-      // VMatch_q2[m] += _matchR[m][o][2];
     }
-    //std::cout << "\n\t\t\t\tVMatch's: " << VMatch_b[m] << "\t" << VMatch_q1[m] << "\t" << VMatch_q2[m] << std::endl;
     std::cout << "\n\t\t\t" << m << "\tBestB: " << bestNumBR[m] << "\tBestQ: " << bestNumQR[m] 
 	      << "\tTotB: " << totNumBR[m] << "\tTotQ: " << totNumQR[m] << std::endl;
+
+    //UNHOLY WORK
     //final classification
-    //if(bestHMatch[m] == 3)
-      
+    //Test for constraint failure:
+    if(bestNumBR[m] + bestNumQR[m] > 3 || totNumBR[m] + totNumQR[m] > 3)
+      std::cout << "WARNING: Constraint failure, best or total number of jet matches exceeds 3" << std::endl;
+    std::string tempClass = "";
+    //best case had 2 q jets matched
+    if(bestNumQR[m] == 2){
+      //best case had 1 b jet matched
+      if(bestNumBR[m] == 1){
+	//perfect match
+	tempClass = "typeIII";
+      }
+      //best case had 0 b jet matched
+      else if(bestNumBR[m] == 0){
+	//there was 1 b jet matched
+	if(totNumBR[m] == 1){
+	  //swapped a b with another Reco
+	  tempClass = "typeIIb";
+	}
+	//there were 0 b jets matched
+	else if(totNumBR[m] == 0){
+	  //there were 3 q jets matched
+	  if(totNumQR[m] == 3){
+	    //misidentified a q jet AS the 'b' in candidate
+	    tempClass = "typeIImib";
+	  }
+	  //there were 2 q jets matched
+	  else if(totNumQR[m] == 2){
+	    //misidentified some non-reco/non-quark jet as the 'b' in candidate
+	    tempClass = "typeIImib";
+	  }
+	  else
+	    std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+	}
+	else
+	  std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+      }
+      else
+	std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+    }
+    //best case had 1 q jet matched
+    else if(bestNumQR[m] == 1){
+      //best case had 1 b jet matched
+      if(bestNumBR[m] == 1){
+	//there was 1 b jet matched
+	if(totNumBR[m] == 1){
+	  //there were 2 q jets matched
+	  if(totNumQR[m] == 2){
+	    //swapped q  with another Reco
+	    tempClass = "typeIIw";
+	  }
+	  //there was 1 q jet matched
+	  else if(totNumQR[m] == 1){
+	    //misidentified some other jet AS the 'q' in candidate
+	    tempClass = "typeIImiq";
+	  }
+	  else
+	    //best # 1 = 1 and tot # q = 0 or more
+	    std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+	}
+	//there were 2 b jets matched
+	else if(totNumBR[m] == 2){
+	  //there was 1 q jet matched
+	  if(totNumQR[m] == 1){
+	    //misidentify a b jet AS the 'q' in candidate
+	    tempClass = "typeIImiq";
+	  }
+	  else
+	    std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+	}
+	else
+	  //best # b = 1 and tot # b = 0...
+	  std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+
+      }
+      else if(bestNumBR[m] == 0){
+	//identified only 1 q in the best Reco, no b in that Reco... could be unreconstructable jets?
+	tempClass = "typeI";
+      }
+      else
+	std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+
+    }
+    //identified no q jets... amazingly!
+    else if(bestNumQR[m] == 0){
+      //found the b at least...
+      if(bestNumBR[m] == 1){
+	//found more than one b...
+	if(totNumBR[m] > 1){
+	  std::cout << "We may have found the triple 'b'entente!" << std::endl;
+	  tempClass = "typeI";
+	}
+	else if(totNumBR[m] == 1){
+	  tempClass = "typeI";
+	}
+	else
+	  std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+      }
+      //no b jets, no q jets...
+      else if(bestNumBR[m] == 0){
+	std::cout << "We apparently found a perfectly UNMATCHED case... Type0. Complete Failure. Amazing!" << std::endl;
+	tempClass = "type0";
+      }
+      else
+	std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+    }
+    else
+      std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
+    
+    //store class
+    std::pair< uint, std::string> tempClassPair;
+    tempClassPair.first = bestHMatchR[m];
+    tempClassPair.second = tempClass;
+    _class.push_back(tempClassPair);
   }
 }
 void ResTTEvaluator::classifyG(){
@@ -758,7 +898,7 @@ int main()
 	      break;
 
             //Print event number 
-            printf("\n======================\nEvent #: %i\n", Nevt);
+            printf("\n===================================================>\nEvent #: %i\n", Nevt);
 
             //Use helper function to create input list 
             //Create AK4 inputs object
@@ -824,47 +964,32 @@ int main()
 	    uint flagcounter = 0;
 	    if(debug1) printf("\n\tDebugging reconstructible top counting and flags: ");
 	    ResTTEvaluator HOTEval("HOT");
-	    HOTEval.printMatrixR(0);
-	    HOTEval.printMatrixR(1);
-	    HOTEval.printMatrixR(2);
+	    // HOTEval.printMatrixR(0);
+	    // HOTEval.printMatrixR(1);
+	    // HOTEval.printMatrixR(2);
 	    std::vector<int> Top1flags;
 	    Top1flags.push_back(1);
 	    Top1flags.push_back(2);
 	    auto the1Top = **hadTop1Constit;
 	    if(the1Top.size() > 0)
 	      HOTEval.addReco(*hadTop1Constit, Top1flags);
-	    HOTEval.printDimensions();
 	    auto the2Top = **hadTop2Constit;
 	    if(the2Top.size() > 0)
 	      HOTEval.addReco(*hadTop2Constit, Top1flags);
-	    HOTEval.printDimensions();
 	    auto the3Top = **hadTop3Constit;
 	    if(the3Top.size() > 0)
 	      HOTEval.addReco(*hadTop3Constit, Top1flags);
-	    HOTEval.printDimensions();
-	    // if(the2Top.size() > 0)
-	    //   HOTEval.addReco(*hadTop2Constit, Top1flags);
-	    // if(the1Top.size() > 0)
-	    //   HOTEval.addReco(*hadTop1Constit, Top1flags);
+
 	    if(the1Top.size() > 0)
 	      HOTEval.addCand(*hadTop1Constit, 0.873);
-	    HOTEval.printDimensions();
 	    if(the2Top.size() > 0)
 	      HOTEval.addCand(*hadTop2Constit, 0.233);
-	    HOTEval.printDimensions();
 	    if(the3Top.size() > 0)
 	      HOTEval.addCand(*hadTop3Constit, 0.463);
-	    HOTEval.printDimensions();
-	    HOTEval.printMatrixR(0);
-	    HOTEval.printMatrixR(1);
-	    HOTEval.printMatrixR(2);
-	    std::cout << "\n=======================================" << std::endl;
+
+	    std::cout << "\n============================" << std::endl;
 	    // if((*hadTop1Constit)->size() > 0)
 	    //   std::cout << (*hadTop1Constit)->at(0).Pt() << "\t" << (*hadTop1Constit)->at(1).Pt() << "\t" << (*hadTop1Constit)->at(2).Pt() << std::endl;
-	    // if((*hadTop2Constit)->size() > 0)
-	    // std::cout << (*hadTop2Constit)->at(0).Pt() << "\t" << (*hadTop2Constit)->at(1).Pt() << "\t" << (*hadTop2Constit)->at(2).Pt() << std::endl;
-	    // if((*hadTop3Constit)->size() > 0)
-	    // std::cout << (*hadTop3Constit)->at(0).Pt() << "\t" << (*hadTop3Constit)->at(1).Pt() << "\t" << (*hadTop3Constit)->at(2).Pt() << std::endl;
 	    HOTEval.printDimensions();
 	    HOTEval.evaluateR();
 	    HOTEval.printMatrixR(0);
