@@ -98,7 +98,7 @@ ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
   _haveClassifiedG = false;
   _haveFlags = false;
   _topTaggerName = topTaggerName;
-  std::cout << "ResTTEvaluator being created" << std::endl;
+  //std::cout << "ResTTEvaluator \"" << _topTaggerName << "\" being created" << std::endl;
 }
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName, bool verbose, bool debug){
   _verbose = verbose;
@@ -112,10 +112,12 @@ ResTTEvaluator::ResTTEvaluator(std::string topTaggerName, bool verbose, bool deb
   _haveClassifiedG = false;
   _haveFlags = false;
   _topTaggerName = topTaggerName;
-  std::cout << "ResTTEvaluator being created" << std::endl;
+  if(_verbose)
+    std::cout << "ResTTEvaluator \"" << _topTaggerName << "\" being created" << std::endl;
 }
 ResTTEvaluator::~ResTTEvaluator(){
-  std::cout << "ResTTEvaluator being destroyed" << std::endl;
+  if(_verbose)
+    std::cout << "ResTTEvaluator \"" << _topTaggerName << "\" being destroyed" << std::endl;
 }
 void ResTTEvaluator::addCand(std::vector<TLorentzVector>* cand, double discriminant){
   std::pair< std::vector<TLorentzVector>, double> tempCand;
@@ -333,9 +335,12 @@ void ResTTEvaluator::classifyR(){
       int thisHMatch = 0;
       for(int p = 0; p < 3; p++)
 	thisHMatch += _matchR[m][o][p];
-      std::cout << "\n\t\t\t\tmo: " << m << o << " best: " << bestHMatchR[m] << " this: " << thisHMatch;
+      if(_debug)
+	std::cout << "\n\t\t\t\tmo: " << m << o << " best: " << bestHMatchR[m] << " this: " << thisHMatch;
       bool bettermatch = (thisHMatch > bestHMatchR[m]);
       bestHMatchR[m] = (bettermatch ? thisHMatch : bestHMatchR[m]);
+      if(_debug)
+	std::cout << " best: " << bestHMatchR[m];
       bestNumBR[m] = (bettermatch ? _matchR[m][o][0] : bestNumBR[m]);
       bestNumQR[m] = (bettermatch ? (_matchR[m][o][1] + _matchR[m][o][2]) : bestNumQR[m]);
       // bestHMatchR[m] = (thisHMatch > bestHMatchR[m] ? thisHMatch : bestHMatchR[m]);
@@ -353,8 +358,9 @@ void ResTTEvaluator::classifyR(){
       totNumQR[m] += _matchR[m][o][1];
       totNumQR[m] += _matchR[m][o][2];
     }
-    std::cout << "\n\t\t\t" << m << "\tBestB: " << bestNumBR[m] << "\tBestQ: " << bestNumQR[m] 
-	      << "\tTotB: " << totNumBR[m] << "\tTotQ: " << totNumQR[m] << std::endl;
+    if(_verbose)
+      std::cout << "\n\t\t\t" << m << "\tBestB: " << bestNumBR[m] << "\tBestQ: " << bestNumQR[m] 
+		<< "\tTotB: " << totNumBR[m] << "\tTotQ: " << totNumQR[m] << std::endl;
 
     //UNHOLY WORK
     //final classification
@@ -489,7 +495,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 16;
+  uint maxEventsToProcess = 2;
 
   //HOT discriminant histos
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
@@ -500,20 +506,20 @@ int main()
   TH1F *h_typeI_hot = new TH1F ("h_typeI_hot_", "Type I (2+ top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
   TH1F *h_type0_hot = new TH1F ("h_type0_hot_", "Type 0 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
 
-  TH1F *h_eventN1_III_hot = new TH1F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN1_II_hot = new TH1F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN1_I_hot = new TH1F ("h_eventN1_tI_hot", "Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN1_0_hot = new TH1F ("h_eventN1_t0_hot", "Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_III_hot = new TH1F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_II_hot = new TH1F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_I_hot = new TH1F ("h_eventN1_tI_hot", "Highest Disc Cand (Type I) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_0_hot = new TH1F ("h_eventN1_t0_hot", "Highest Disc Cand (Type 0) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
 
-  TH1F *h_eventN2_III_hot = new TH1F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN2_II_hot = new TH1F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN2_I_hot = new TH1F ("h_eventN2_tI_hot", "2nd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN2_0_hot = new TH1F ("h_eventN2_t0_hot", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_III_hot = new TH1F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_II_hot = new TH1F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_I_hot = new TH1F ("h_eventN2_tI_hot", "2nd Highest Disc Cand (Type I) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_0_hot = new TH1F ("h_eventN2_t0_hot", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
 
-  TH1F *h_eventN3_III_hot = new TH1F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN3_II_hot = new TH1F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN3_I_hot = new TH1F ("h_eventN3_tI_hot", "3rd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN3_0_hot = new TH1F ("h_eventN3_t0_hot", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_III_hot = new TH1F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_II_hot = new TH1F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_I_hot = new TH1F ("h_eventN3_tI_hot", "3rd Highest Disc Cand (Type I) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_0_hot = new TH1F ("h_eventN3_t0_hot", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
 
   //BDT Candidates
   TH1F *h_typeIII_bdt = new TH1F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
@@ -524,20 +530,20 @@ int main()
   TH1F *h_typeI_bdt = new TH1F ("h_typeI_bdt_", "Type I (2+ top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
   TH1F *h_type0_bdt = new TH1F ("h_type0_bdt_", "Type 0 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
 
-  TH1F *h_eventN1_III_bdt = new TH1F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN1_II_bdt = new TH1F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN1_I_bdt = new TH1F ("h_eventN1_tI_bdt", "Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN1_0_bdt = new TH1F ("h_eventN1_t0_bdt", "Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_III_bdt = new TH1F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_II_bdt = new TH1F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_I_bdt = new TH1F ("h_eventN1_tI_bdt", "Highest Disc Cand (Type I) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN1_0_bdt = new TH1F ("h_eventN1_t0_bdt", "Highest Disc Cand (Type 0) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
 
-  TH1F *h_eventN2_III_bdt = new TH1F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN2_II_bdt = new TH1F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN2_I_bdt = new TH1F ("h_eventN2_tI_bdt", "2nd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN2_0_bdt = new TH1F ("h_eventN2_t0_bdt", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_III_bdt = new TH1F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_II_bdt = new TH1F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_I_bdt = new TH1F ("h_eventN2_tI_bdt", "2nd Highest Disc Cand (Type I) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN2_0_bdt = new TH1F ("h_eventN2_t0_bdt", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
 
-  TH1F *h_eventN3_III_bdt = new TH1F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN3_II_bdt = new TH1F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN3_I_bdt = new TH1F ("h_eventN3_tI_bdt", "3rd Highest Disc Cand (Type I) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_eventN3_0_bdt = new TH1F ("h_eventN3_t0_bdt", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Number of Tagger Candidates", 20, 0.0, 1.0);  
+  TH1F *h_eventN3_III_bdt = new TH1F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_II_bdt = new TH1F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_I_bdt = new TH1F ("h_eventN3_tI_bdt", "3rd Highest Disc Cand (Type I) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_eventN3_0_bdt = new TH1F ("h_eventN3_t0_bdt", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);  
 
   //TH1F *TypeWDiscr = new TH1F ("h_fullWdiscr", "Fully Reconstructible W bosons; Discriminant; Number of matches", 20, 0.0, 1.0);
 
@@ -888,6 +894,86 @@ int main()
         //Set top tagger cfg file
         tt.setCfgFile("TopTagger.cfg");
 
+
+	//Testing the matching types
+	TLorentzVector b1, b2, b3, q11, q12, q13, q21, q22, q23, oth;
+	b1.SetPtEtaPhiE(45, 1.234, -2.14, 48);
+	b2.SetPtEtaPhiE(56, 2.341, 2.44, 58.5);
+	b3.SetPtEtaPhiE(32, -1.154, -0.19, 37);
+	q11.SetPtEtaPhiE(33, 0.154, 0.719, 35);
+	q12.SetPtEtaPhiE(90, 0.548, -0.103, 99);
+	q13.SetPtEtaPhiE(63, -2.17, 0.356, 70);
+	q21.SetPtEtaPhiE(23, -0.06, 0.056, 25);
+	q22.SetPtEtaPhiE(80, 0.958, 0.561, 80.99);
+	q23.SetPtEtaPhiE(105, -0.481, -1.832, 110);
+	oth.SetPtEtaPhiE(120, 0.0, 1.23, 121);
+	std::vector<TLorentzVector> *Reco1, *Reco2, *Reco3;
+	std::vector<TLorentzVector> *tIII, *tIIb, *tIIw;
+	std::vector<TLorentzVector> *tIImib, *tIImiq, *tI, *t0;
+	std::vector<int> bling;
+	bling.push_back(2);
+	Reco1 = new std::vector<TLorentzVector>();
+	Reco2 = new std::vector<TLorentzVector>();
+	Reco3 = new std::vector<TLorentzVector>();
+	tIII = new std::vector<TLorentzVector>();
+	tIIb = new std::vector<TLorentzVector>();
+	tIIw = new std::vector<TLorentzVector>();
+	tIImib = new std::vector<TLorentzVector>();
+	tIImiq = new std::vector<TLorentzVector>();
+	tI = new std::vector<TLorentzVector>();
+	t0 = new std::vector<TLorentzVector>();
+	Reco1->push_back(b1);
+	Reco1->push_back(q11);
+	Reco1->push_back(q21);
+
+	Reco2->push_back(b2);
+	Reco2->push_back(q12);
+	Reco2->push_back(q22);
+
+	Reco3->push_back(b3);
+	Reco3->push_back(q13);
+	Reco3->push_back(q23);
+
+	tIII->push_back(b1);
+	tIII->push_back(q11);
+	tIII->push_back(q21);
+
+	tIIb->push_back(b3);
+	tIIb->push_back(q12);
+	tIIb->push_back(q22);
+	
+	tIImib->push_back(oth);
+	tIImib->push_back(q13);
+	tIImib->push_back(q23);	
+
+	tIIw->push_back(b2);
+	tIIw->push_back(q11);
+	tIIw->push_back(q22);
+	
+	tIImiq->push_back(b3);
+	tIImiq->push_back(q23);
+	tIImiq->push_back(oth);	
+
+	tI->push_back(b1);
+	tI->push_back(q12);
+	tI->push_back(q23);
+	
+	t0->push_back(oth);
+	t0->push_back(oth);
+	t0->push_back(oth);	
+
+	ResTTEvaluator Testing("Testing", true, false);
+	Testing.addReco(Reco1, bling);
+	Testing.addReco(Reco2, bling);
+	Testing.addReco(Reco3, bling);
+	Testing.addCand(tIII, 0.95);
+	Testing.addCand(tIIb, 0.90);
+	Testing.addCand(tIIw, 0.85);
+	Testing.addCand(tIImib, 0.80);
+	Testing.addCand(tIImiq, 0.75);
+	Testing.addCand(tI, 0.70);
+	Testing.addCand(t0, 0.65);
+
         //Loop over events
         int Nevt = 0;
         while(tree->GetEntry(Nevt))
@@ -963,38 +1049,40 @@ int main()
 	    if(debug1) printf("Booleans for Top reconstruction (initialization) %2d %2d %2d", Top1Reco, Top2Reco, Top3Reco);
 	    uint flagcounter = 0;
 	    if(debug1) printf("\n\tDebugging reconstructible top counting and flags: ");
-	    ResTTEvaluator HOTEval("HOT");
+
+	    //Commented out temporarily	    
+	    //ResTTEvaluator HOTEval("HOT");
+	    //ResTTEvaluator HOTEval("HOT", true, false);
 	    // HOTEval.printMatrixR(0);
 	    // HOTEval.printMatrixR(1);
 	    // HOTEval.printMatrixR(2);
-	    std::vector<int> Top1flags;
-	    Top1flags.push_back(1);
-	    Top1flags.push_back(2);
-	    auto the1Top = **hadTop1Constit;
-	    if(the1Top.size() > 0)
-	      HOTEval.addReco(*hadTop1Constit, Top1flags);
-	    auto the2Top = **hadTop2Constit;
-	    if(the2Top.size() > 0)
-	      HOTEval.addReco(*hadTop2Constit, Top1flags);
-	    auto the3Top = **hadTop3Constit;
-	    if(the3Top.size() > 0)
-	      HOTEval.addReco(*hadTop3Constit, Top1flags);
 
-	    if(the1Top.size() > 0)
-	      HOTEval.addCand(*hadTop1Constit, 0.873);
-	    if(the2Top.size() > 0)
-	      HOTEval.addCand(*hadTop2Constit, 0.233);
-	    if(the3Top.size() > 0)
-	      HOTEval.addCand(*hadTop3Constit, 0.463);
+	    // std::vector<int> Top1flags;
+	    // Top1flags.push_back(1);
+	    // Top1flags.push_back(2);
+	    // auto the1Top = **hadTop1Constit;
+	    // if(the1Top.size() > 0)
+	    //   HOTEval.addReco(*hadTop1Constit, Top1flags);
+	    // auto the2Top = **hadTop2Constit;
+	    // if(the2Top.size() > 0)
+	    //   HOTEval.addReco(*hadTop2Constit, Top1flags);
+	    // auto the3Top = **hadTop3Constit;
+	    // if(the3Top.size() > 0)
+	    //   HOTEval.addReco(*hadTop3Constit, Top1flags);
+
+	    // if(the1Top.size() > 0)
+	    //   HOTEval.addCand(*hadTop1Constit, 0.873);
+	    // if(the2Top.size() > 0)
+	    //   HOTEval.addCand(*hadTop2Constit, 0.233);
+	    // if(the3Top.size() > 0)
+	    //   HOTEval.addCand(*hadTop3Constit, 0.463);
 
 	    std::cout << "\n============================" << std::endl;
-	    // if((*hadTop1Constit)->size() > 0)
-	    //   std::cout << (*hadTop1Constit)->at(0).Pt() << "\t" << (*hadTop1Constit)->at(1).Pt() << "\t" << (*hadTop1Constit)->at(2).Pt() << std::endl;
-	    HOTEval.printDimensions();
-	    HOTEval.evaluateR();
-	    HOTEval.printMatrixR(0);
-	    HOTEval.printMatrixR(1);
-	    HOTEval.printMatrixR(2);
+	    //HOTEval.printDimensions();
+	    //HOTEval.evaluateR();
+	    //HOTEval.printMatrixR(0);
+	    //HOTEval.printMatrixR(1);
+	    //HOTEval.printMatrixR(2);
 	    for(const uint topflag: **FlagTop){
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
 	      if(topflag < 9999){
@@ -1021,7 +1109,7 @@ int main()
 		  RecoTypes->Fill(0);
 	      }
 	    }
-	    printf("\n\t\t\t# Fully Reconstuctible Tops: %2d \t Reconstructible W: %2d\n", nRecoTops, nRecoWs);
+	    //printf("\n\t\t\t# Fully Reconstuctible Tops: %2d \t Reconstructible W: %2d\n", nRecoTops, nRecoWs);
 
 	    
 
@@ -1045,7 +1133,7 @@ int main()
 		uint mat4 = 0;
 
 		//Matrix for jet matching
-		uint tMatrixHOT[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
+		//uint tMatrixHOT[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
 		
 
                 //Print properties of individual top constituent jets 
@@ -1080,7 +1168,7 @@ int main()
 		      mat4 += (inJet == constituent->p());
 		    }
                 }    
-		printf("\t\t\ttop1: %2d || top2: %2d|| top3: %2d || Discriminant: %6.4lf\n", mat2, mat3, mat4, top->getDiscriminator());
+		//printf("\t\t\ttop1: %2d || top2: %2d|| top3: %2d || Discriminant: %6.4lf\n", mat2, mat3, mat4, top->getDiscriminator());
 		//if(mat2 == 3 || mat3 == 3 || mat4 == 3) h_typeIII->Fill(top->getDiscriminator());
 		//if(mat2 == 2 || mat3 == 2 || mat4 == 2) TypeWDiscr->Fill(top->getDiscriminator());
 		//if(mat2 < 2 && mat3 < 2 && mat4 < 2) h_typeI->Fill(top->getDiscriminator());
