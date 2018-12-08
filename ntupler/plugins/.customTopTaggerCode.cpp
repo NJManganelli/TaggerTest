@@ -64,24 +64,35 @@ class ResTTEvaluator{
   uint _nCand;
   uint _matchR[_maxSize][_maxSize][3] = {0}; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
   uint _matchG[_maxSize][_maxSize][3] = {0}; //support max 100 candidates and gen tops... shouldn't ever be a problem at 13TeV CoM Energy 
+  int bestHMatchR[_maxSize];
+  int bestNumBR[_maxSize];
+  int bestNumQR[_maxSize];
+  int totNumBR[_maxSize];
+  int totNumQR[_maxSize];
+
   //encode in this matrix the info for whether it was even POSSIBLE to match that jet... 
   bool _haveEvaluatedR;
+  bool _haveClassifiedR;
   bool _haveEvaluatedG;
+  bool _haveClassifiedG;
   std::string _topTaggerName;
   uint _orderIndex[_maxSize];
   std::vector< std::pair< std::vector<TLorentzVector>, double > > _cand;
+  //std::vector< std::pair< std::vector<TLorentzVector>, double >* > _ordCand; //use pointers?
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _reco; //include flags in here...
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
-  //std::vector<std::vector<uint>> _flags; //Have to decide how to order these things in general way...
+  std::vector< std::pair< uint, std::string > > _class; //classification, using number and string
+  //std::vector< std::pair< uint, std::string >* > _ordClass; //shoulda made a struct...
   bool _haveFlags;
-  std::vector<std::string> _matchClassification;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
   _nReco = 0;
   _nGen = 0;
   _nCand = 0;
   _haveEvaluatedR = false;
+  _haveClassifiedR = false;
   _haveEvaluatedG = false;
+  _haveClassifiedG = false;
   _haveFlags = false;
   _topTaggerName = topTaggerName;
   std::cout << "ResTTEvaluator being created" << std::endl;
@@ -274,49 +285,52 @@ void ResTTEvaluator::evaluateG(){
   std::cout << "If I were a real little evaluator (Gen), I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
 }
 void ResTTEvaluator::classifyR(){
-  int bestHMatch[_nCand] = {0};
+
   int HMatch[_nCand][_nReco] = {0};
   int sumHMatch[_nCand] = {0};
-  int VMatch_b[_nCand] = {0};
-  int VMatch_q1[_nCand] = {0};
-  int VMatch_q2[_nCand] = {0};
+  // int VMatch_b[_nCand] = {0};
+  // int VMatch_q1[_nCand] = {0};
+  // int VMatch_q2[_nCand] = {0};
   for(int m = 0; m < _nCand; m++){
+    bestHMatchR[m] = 0;
+    bestNumBR[m] = 0;
+    bestNumQR[m] = 0;
+    totNumBR[m] = 0;
+    totNumQR[m] = 0;
     //Horizontal matches
     for(int o = 0; o < _nReco; o++){
       int thisHMatch = 0;
       for(int p = 0; p < 3; p++)
 	thisHMatch += _matchR[m][o][p];
-      std::cout << "\n\t\t\t\tmo: " << m << o << " best: " << bestHMatch[m] << " this: " << thisHMatch;
-      bestHMatch[m] = (thisHMatch > bestHMatch[m] ? thisHMatch : bestHMatch[m]);
-      std::cout << " best: " << bestHMatch[m] << std::endl;
+      std::cout << "\n\t\t\t\tmo: " << m << o << " best: " << bestHMatchR[m] << " this: " << thisHMatch;
+      bool bettermatch = (thisHMatch > bestHMatchR[m]);
+      bestHMatchR[m] = (bettermatch ? thisHMatch : bestHMatchR[m]);
+      bestNumBR[m] = (bettermatch ? _matchR[m][o][0] : bestNumBR[m]);
+      bestNumQR[m] = (bettermatch ? (_matchR[m][o][1] + _matchR[m][o][2]) : bestNumQR[m]);
+      // bestHMatchR[m] = (thisHMatch > bestHMatchR[m] ? thisHMatch : bestHMatchR[m]);
+      // bestNumBR[m] = (thisHMatch > bestHMatchR[m] ? _matchR[m][o][0] : bestNumBR[m]);
+      // bestNumQR[m] = (thisHMatch > bestHMatchR[m] ? (_matchR[m][o][1] + _matchR[m][o][2]) : bestNumQR[m]);
       sumHMatch[m] += thisHMatch;
     }
     //Vertical Match
     //for(int p = 0; p < 3; p++){
-    int thisVMatch_b = 0;
-    int thisVMatch_q1 = 0;
-    int thisVMatch_q2 = 0;
+    // int thisVMatch_b = 0;
+    // int thisVMatch_q1 = 0;
+    // int thisVMatch_q2 = 0;
     for(int o = 0; o < _nReco; o++){
-      VMatch_b[m] += _matchR[m][o][0];
-      VMatch_q1[m] += _matchR[m][o][1];
-      VMatch_q2[m] += _matchR[m][o][2];
-      //thisVMatch_b += _matchR[m][o][0];
-      //thisVMatch_q1 += _matchR[m][o][1];
-      //thisVMatch_q2 += _matchR[m][o][2];
+      totNumBR[m] += _matchR[m][o][0];
+      totNumQR[m] += _matchR[m][o][1];
+      totNumQR[m] += _matchR[m][o][2];
+      // VMatch_b[m] += _matchR[m][o][0];
+      // VMatch_q1[m] += _matchR[m][o][1];
+      // VMatch_q2[m] += _matchR[m][o][2];
     }
-    std::cout << "\n\t\t\t\tVMatch's: " << VMatch_b[m] << "\t" << VMatch_q1[m] << "\t" << VMatch_q2[m] << std::endl;
-    //b matching
-    // std::cout << "\n\t\t\t\tmo: " << m << o << " best b: " << VMatch_b[m] << " this b: " << thisVMatch_b;
-    // VMatch_b[m] = (thisVMatch_b > VMatch_b[m] ? thisVMatch_b : VMatch_b[m]);
-    // std::cout << " best b: " << VMatch_b[m] << std::endl;
-    // //q1 matching
-    // std::cout << "\n\t\t\t\tmo: " << m << o << " best q1: " << VMatch_q1[m] << " this q1: " << thisVMatch_q1;
-    // VMatch_q1[m] = (thisVMatch_q1 > VMatch_q1[m] ? thisVMatch_q1 : VMatch_q1[m]);
-    // std::cout << " best b: " << VMatch_q1[m] << std::endl;
-    // //q2 matching
-    // std::cout << "\n\t\t\t\tmo: " << m << o << " best b: " << VMatch_q2[m] << " this b: " << thisVMatch_q2;
-    // VMatch_q2[m] = (thisVMatch_q2 > VMatch_q2[m] ? thisVMatch_q2 : VMatch_q2[m]);
-    // std::cout << " best b: " << VMatch_q2[m] << std::endl;
+    //std::cout << "\n\t\t\t\tVMatch's: " << VMatch_b[m] << "\t" << VMatch_q1[m] << "\t" << VMatch_q2[m] << std::endl;
+    std::cout << "\n\t\t\t" << m << "\tBestB: " << bestNumBR[m] << "\tBestQ: " << bestNumQR[m] 
+	      << "\tTotB: " << totNumBR[m] << "\tTotQ: " << totNumQR[m] << std::endl;
+    //final classification
+    //if(bestHMatch[m] == 3)
+      
   }
 }
 void ResTTEvaluator::classifyG(){
@@ -342,7 +356,7 @@ int main()
   TH1F *h_typeIIb_hot = new TH1F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIImib_hot = new TH1F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIIw_hot = new TH1F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
-  TH1F *h_typeIIo_hot = new TH1F ("h_typeIIo_hot_", "Type II (other) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIImiq_hot = new TH1F ("h_typeIImiq_hot_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeI_hot = new TH1F ("h_typeI_hot_", "Type I (2+ top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
   TH1F *h_type0_hot = new TH1F ("h_type0_hot_", "Type 0 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
 
@@ -365,7 +379,8 @@ int main()
   TH1F *h_typeIII_bdt = new TH1F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIIb_bdt = new TH1F ("h_typeIIb_bdt_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIIw_bdt = new TH1F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
-  TH1F *h_typeIIo_bdt = new TH1F ("h_typeIIo_bdt_", "Type II (other) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIImib_bdt = new TH1F ("h_typeIImib_bdt_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
+  TH1F *h_typeIImiq_bdt = new TH1F ("h_typeIImiq_bdt_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeI_bdt = new TH1F ("h_typeI_bdt_", "Type I (2+ top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
   TH1F *h_type0_bdt = new TH1F ("h_type0_bdt_", "Type 0 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
 
@@ -970,7 +985,8 @@ int main()
     h_typeIII_hot->Write();
     h_typeIIb_hot->Write();
     h_typeIIw_hot->Write();
-    h_typeIIo_hot->Write();
+    h_typeIImib_hot->Write();
+    h_typeIImiq_hot->Write();
     h_typeI_hot->Write();
     h_type0_hot->Write();
 
@@ -993,7 +1009,8 @@ int main()
     h_typeIII_bdt->Write();
     h_typeIIb_bdt->Write();
     h_typeIIw_bdt->Write();
-    h_typeIIo_bdt->Write();
+    h_typeIImib_bdt->Write();
+    h_typeIImiq_bdt->Write();
     h_typeI_bdt->Write();
     h_type0_bdt->Write();
 
@@ -1060,7 +1077,8 @@ int main()
     delete h_typeIII_hot;
     delete h_typeIIb_hot;
     delete h_typeIIw_hot;
-    delete h_typeIIo_hot;
+    delete h_typeIImib_hot;
+    delete h_typeIImiq_hot;
     delete h_typeI_hot;
     delete h_type0_hot;
 
@@ -1083,7 +1101,8 @@ int main()
     delete h_typeIII_bdt;
     delete h_typeIIb_bdt;
     delete h_typeIIw_bdt;
-    delete h_typeIIo_bdt;
+    delete h_typeIImib_bdt;
+    delete h_typeIImiq_bdt;
     delete h_typeI_bdt;
     delete h_type0_bdt;
 
