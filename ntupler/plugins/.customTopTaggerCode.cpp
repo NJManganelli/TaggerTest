@@ -274,16 +274,50 @@ void ResTTEvaluator::evaluateG(){
   std::cout << "If I were a real little evaluator (Gen), I would have done some evaluation (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
 }
 void ResTTEvaluator::classifyR(){
-  int bestNMatch[_nCand] = {0};
-  for(int m = 0; m < _nCand; m++)
+  int bestHMatch[_nCand] = {0};
+  int HMatch[_nCand][_nReco] = {0};
+  int sumHMatch[_nCand] = {0};
+  int VMatch_b[_nCand] = {0};
+  int VMatch_q1[_nCand] = {0};
+  int VMatch_q2[_nCand] = {0};
+  for(int m = 0; m < _nCand; m++){
+    //Horizontal matches
     for(int o = 0; o < _nReco; o++){
-      int thisNMatch = 0;
+      int thisHMatch = 0;
       for(int p = 0; p < 3; p++)
-	thisNMatch += _matchR[m][o][p];
-      std::cout << "\n\t\t\t\tmo: " << m << o << " best: " << bestNMatch[m] << " this: " << thisNMatch;
-      bestNMatch[m] = (thisNMatch > bestNMatch[m] ? thisNMatch : bestNMatch[m]);
-      std::cout << " best: " << bestNMatch[m] << std::endl;
+	thisHMatch += _matchR[m][o][p];
+      std::cout << "\n\t\t\t\tmo: " << m << o << " best: " << bestHMatch[m] << " this: " << thisHMatch;
+      bestHMatch[m] = (thisHMatch > bestHMatch[m] ? thisHMatch : bestHMatch[m]);
+      std::cout << " best: " << bestHMatch[m] << std::endl;
+      sumHMatch[m] += thisHMatch;
     }
+    //Vertical Match
+    //for(int p = 0; p < 3; p++){
+    int thisVMatch_b = 0;
+    int thisVMatch_q1 = 0;
+    int thisVMatch_q2 = 0;
+    for(int o = 0; o < _nReco; o++){
+      VMatch_b[m] += _matchR[m][o][0];
+      VMatch_q1[m] += _matchR[m][o][1];
+      VMatch_q2[m] += _matchR[m][o][2];
+      //thisVMatch_b += _matchR[m][o][0];
+      //thisVMatch_q1 += _matchR[m][o][1];
+      //thisVMatch_q2 += _matchR[m][o][2];
+    }
+    std::cout << "\n\t\t\t\tVMatch's: " << VMatch_b[m] << "\t" << VMatch_q1[m] << "\t" << VMatch_q2[m] << std::endl;
+    //b matching
+    // std::cout << "\n\t\t\t\tmo: " << m << o << " best b: " << VMatch_b[m] << " this b: " << thisVMatch_b;
+    // VMatch_b[m] = (thisVMatch_b > VMatch_b[m] ? thisVMatch_b : VMatch_b[m]);
+    // std::cout << " best b: " << VMatch_b[m] << std::endl;
+    // //q1 matching
+    // std::cout << "\n\t\t\t\tmo: " << m << o << " best q1: " << VMatch_q1[m] << " this q1: " << thisVMatch_q1;
+    // VMatch_q1[m] = (thisVMatch_q1 > VMatch_q1[m] ? thisVMatch_q1 : VMatch_q1[m]);
+    // std::cout << " best b: " << VMatch_q1[m] << std::endl;
+    // //q2 matching
+    // std::cout << "\n\t\t\t\tmo: " << m << o << " best b: " << VMatch_q2[m] << " this b: " << thisVMatch_q2;
+    // VMatch_q2[m] = (thisVMatch_q2 > VMatch_q2[m] ? thisVMatch_q2 : VMatch_q2[m]);
+    // std::cout << " best b: " << VMatch_q2[m] << std::endl;
+  }
 }
 void ResTTEvaluator::classifyG(){
   std::cout << "If I were a real little classifer (Gen), I would have done some classification (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
