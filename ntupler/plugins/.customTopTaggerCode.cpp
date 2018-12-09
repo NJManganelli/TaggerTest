@@ -306,9 +306,6 @@ void ResTTEvaluator::evaluateR(){
 	    _matchR[m][o][p] = (test > _matchR[m][o][p] ? test : _matchR[m][o][p]); //for each candidate, store match truth in the matrix
 	    if(_debug)
 	      std::cout << "\t" << test << "\t" << _matchR[m][o][p];
-	    //this->printMatrixR(m); //debugging the matrix some
-	    
-
 	  }
   this->classifyR();
   _haveEvaluatedR = true;
@@ -477,7 +474,11 @@ void ResTTEvaluator::classifyR(){
     tempClassPair.first = bestHMatchR[m];
     tempClassPair.second = tempClass;
     _class.push_back(tempClassPair);
+    if(_verbose)
+      std::cout << "\t\t\t\tClassification: "  << _class[m].first << "\t\t" << _class[m].second << std::endl;
   }
+  //for(int mm = 0; mm < _nCand; mm++)
+    //std::cout << "\t\t\t\tClassification: "  << _class[mm].first << "\t\t" << _class[mm].second << std::endl;
 }
 void ResTTEvaluator::classifyG(){
   std::cout << "If I were a real little classifer (Gen), I would have done some classification (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
@@ -495,7 +496,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 2;
+  uint maxEventsToProcess = 50;
 
   //HOT discriminant histos
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
@@ -895,85 +896,6 @@ int main()
         tt.setCfgFile("TopTagger.cfg");
 
 
-	//Testing the matching types
-	TLorentzVector b1, b2, b3, q11, q12, q13, q21, q22, q23, oth;
-	b1.SetPtEtaPhiE(45, 1.234, -2.14, 48);
-	b2.SetPtEtaPhiE(56, 2.341, 2.44, 58.5);
-	b3.SetPtEtaPhiE(32, -1.154, -0.19, 37);
-	q11.SetPtEtaPhiE(33, 0.154, 0.719, 35);
-	q12.SetPtEtaPhiE(90, 0.548, -0.103, 99);
-	q13.SetPtEtaPhiE(63, -2.17, 0.356, 70);
-	q21.SetPtEtaPhiE(23, -0.06, 0.056, 25);
-	q22.SetPtEtaPhiE(80, 0.958, 0.561, 80.99);
-	q23.SetPtEtaPhiE(105, -0.481, -1.832, 110);
-	oth.SetPtEtaPhiE(120, 0.0, 1.23, 121);
-	std::vector<TLorentzVector> *Reco1, *Reco2, *Reco3;
-	std::vector<TLorentzVector> *tIII, *tIIb, *tIIw;
-	std::vector<TLorentzVector> *tIImib, *tIImiq, *tI, *t0;
-	std::vector<int> bling;
-	bling.push_back(2);
-	Reco1 = new std::vector<TLorentzVector>();
-	Reco2 = new std::vector<TLorentzVector>();
-	Reco3 = new std::vector<TLorentzVector>();
-	tIII = new std::vector<TLorentzVector>();
-	tIIb = new std::vector<TLorentzVector>();
-	tIIw = new std::vector<TLorentzVector>();
-	tIImib = new std::vector<TLorentzVector>();
-	tIImiq = new std::vector<TLorentzVector>();
-	tI = new std::vector<TLorentzVector>();
-	t0 = new std::vector<TLorentzVector>();
-	Reco1->push_back(b1);
-	Reco1->push_back(q11);
-	Reco1->push_back(q21);
-
-	Reco2->push_back(b2);
-	Reco2->push_back(q12);
-	Reco2->push_back(q22);
-
-	Reco3->push_back(b3);
-	Reco3->push_back(q13);
-	Reco3->push_back(q23);
-
-	tIII->push_back(b1);
-	tIII->push_back(q11);
-	tIII->push_back(q21);
-
-	tIIb->push_back(b3);
-	tIIb->push_back(q12);
-	tIIb->push_back(q22);
-	
-	tIImib->push_back(oth);
-	tIImib->push_back(q13);
-	tIImib->push_back(q23);	
-
-	tIIw->push_back(b2);
-	tIIw->push_back(q11);
-	tIIw->push_back(q22);
-	
-	tIImiq->push_back(b3);
-	tIImiq->push_back(q23);
-	tIImiq->push_back(oth);	
-
-	tI->push_back(b1);
-	tI->push_back(q12);
-	tI->push_back(q23);
-	
-	t0->push_back(oth);
-	t0->push_back(oth);
-	t0->push_back(oth);	
-
-	ResTTEvaluator Testing("Testing", true, false);
-	Testing.addReco(Reco1, bling);
-	Testing.addReco(Reco2, bling);
-	Testing.addReco(Reco3, bling);
-	Testing.addCand(tIII, 0.95);
-	Testing.addCand(tIIb, 0.90);
-	Testing.addCand(tIIw, 0.85);
-	Testing.addCand(tIImib, 0.80);
-	Testing.addCand(tIImiq, 0.75);
-	Testing.addCand(tI, 0.70);
-	Testing.addCand(t0, 0.65);
-
         //Loop over events
         int Nevt = 0;
         while(tree->GetEntry(Nevt))
@@ -1050,25 +972,111 @@ int main()
 	    uint flagcounter = 0;
 	    if(debug1) printf("\n\tDebugging reconstructible top counting and flags: ");
 
-	    //Commented out temporarily	    
-	    //ResTTEvaluator HOTEval("HOT");
-	    //ResTTEvaluator HOTEval("HOT", true, false);
-	    // HOTEval.printMatrixR(0);
-	    // HOTEval.printMatrixR(1);
-	    // HOTEval.printMatrixR(2);
 
-	    // std::vector<int> Top1flags;
-	    // Top1flags.push_back(1);
-	    // Top1flags.push_back(2);
-	    // auto the1Top = **hadTop1Constit;
-	    // if(the1Top.size() > 0)
-	    //   HOTEval.addReco(*hadTop1Constit, Top1flags);
-	    // auto the2Top = **hadTop2Constit;
-	    // if(the2Top.size() > 0)
-	    //   HOTEval.addReco(*hadTop2Constit, Top1flags);
-	    // auto the3Top = **hadTop3Constit;
-	    // if(the3Top.size() > 0)
-	    //   HOTEval.addReco(*hadTop3Constit, Top1flags);
+	    // //Testing the matching types
+	    // TLorentzVector b1, b2, b3, q11, q12, q13, q21, q22, q23, oth;
+	    // b1.SetPtEtaPhiE(45, 1.234, -2.14, 48);
+	    // b2.SetPtEtaPhiE(56, 2.341, 2.44, 58.5);
+	    // b3.SetPtEtaPhiE(32, -1.154, -0.19, 37);
+	    // q11.SetPtEtaPhiE(33, 0.154, 0.719, 35);
+	    // q12.SetPtEtaPhiE(90, 0.548, -0.103, 99);
+	    // q13.SetPtEtaPhiE(63, -2.17, 0.356, 70);
+	    // q21.SetPtEtaPhiE(23, -0.06, 0.056, 25);
+	    // q22.SetPtEtaPhiE(80, 0.958, 0.561, 80.99);
+	    // q23.SetPtEtaPhiE(105, -0.481, -1.832, 110);
+	    // oth.SetPtEtaPhiE(120, 0.0, 1.23, 121);
+	    // std::vector<TLorentzVector> *Reco1, *Reco2, *Reco3;
+	    // std::vector<TLorentzVector> *tIII, *tIIb, *tIIw;
+	    // std::vector<TLorentzVector> *tIImib, *tIImiq, *tI, *t0;
+	    // std::vector<int> bling;
+	    // bling.push_back(2);
+	    // Reco1 = new std::vector<TLorentzVector>();
+	    // Reco2 = new std::vector<TLorentzVector>();
+	    // Reco3 = new std::vector<TLorentzVector>();
+	    // tIII = new std::vector<TLorentzVector>();
+	    // tIIb = new std::vector<TLorentzVector>();
+	    // tIIw = new std::vector<TLorentzVector>();
+	    // tIImib = new std::vector<TLorentzVector>();
+	    // tIImiq = new std::vector<TLorentzVector>();
+	    // tI = new std::vector<TLorentzVector>();
+	    // t0 = new std::vector<TLorentzVector>();
+	    // Reco1->push_back(b1);
+	    // Reco1->push_back(q11);
+	    // Reco1->push_back(q21);
+
+	    // Reco2->push_back(b2);
+	    // Reco2->push_back(q12);
+	    // Reco2->push_back(q22);
+
+	    // Reco3->push_back(b3);
+	    // Reco3->push_back(q13);
+	    // Reco3->push_back(q23);
+
+	    // tIII->push_back(b1);
+	    // tIII->push_back(q11);
+	    // tIII->push_back(q21);
+
+	    // tIIb->push_back(b3);
+	    // tIIb->push_back(q12);
+	    // tIIb->push_back(q22);
+	
+	    // tIImib->push_back(oth);
+	    // tIImib->push_back(q13);
+	    // tIImib->push_back(q23);	
+
+	    // tIIw->push_back(b2);
+	    // tIIw->push_back(q11);
+	    // tIIw->push_back(q22);
+	
+	    // tIImiq->push_back(b3);
+	    // tIImiq->push_back(q23);
+	    // tIImiq->push_back(oth);	
+
+	    // tI->push_back(b1);
+	    // tI->push_back(q12);
+	    // tI->push_back(q23);
+	
+	    // t0->push_back(oth);
+	    // t0->push_back(oth);
+	    // t0->push_back(oth);	
+
+	    // ResTTEvaluator Testing("Testing", true, false);
+	    // Testing.addReco(Reco1, bling);
+	    // Testing.addReco(Reco2, bling);
+	    // Testing.addReco(Reco3, bling);
+	    // Testing.addCand(tIII, 0.95);
+	    // Testing.addCand(tIIb, 0.90);
+	    // Testing.addCand(tIIw, 0.85);
+	    // Testing.addCand(tIImib, 0.80);
+	    // Testing.addCand(tIImiq, 0.75);
+	    // Testing.addCand(tI, 0.70);
+	    // Testing.addCand(t0, 0.65);
+
+	    // Testing.evaluateR();
+
+
+	    //ResTTEvaluator HOTEval("HOT");
+	    ResTTEvaluator HOTEval("HOT", true, false);
+
+	    std::vector<int> Top1flags;
+	    Top1flags.push_back(0);
+	    int nAnyHadTops = 0;
+	    auto the1Top = **hadTop1Constit;
+	    if(the1Top.size() > 0){
+	      HOTEval.addReco(*hadTop1Constit, Top1flags);
+	      nAnyHadTops++;
+	    }
+	    auto the2Top = **hadTop2Constit;
+	    if(the2Top.size() > 0){
+	      HOTEval.addReco(*hadTop2Constit, Top1flags);
+	      nAnyHadTops++;
+	    }
+	    auto the3Top = **hadTop3Constit;
+	    if(the3Top.size() > 0){
+	      HOTEval.addReco(*hadTop3Constit, Top1flags);
+	      nAnyHadTops++;
+	    }
+	    std::cout << "\n\t\t\t\tNumber of Hadronic Tops passed from event: " << nAnyHadTops << std::endl;
 
 	    // if(the1Top.size() > 0)
 	    //   HOTEval.addCand(*hadTop1Constit, 0.873);
@@ -1078,11 +1086,6 @@ int main()
 	    //   HOTEval.addCand(*hadTop3Constit, 0.463);
 
 	    std::cout << "\n============================" << std::endl;
-	    //HOTEval.printDimensions();
-	    //HOTEval.evaluateR();
-	    //HOTEval.printMatrixR(0);
-	    //HOTEval.printMatrixR(1);
-	    //HOTEval.printMatrixR(2);
 	    for(const uint topflag: **FlagTop){
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
 	      if(topflag < 9999){
