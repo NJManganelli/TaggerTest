@@ -498,6 +498,32 @@ int main()
   //std::string postfix = "tttt";
   uint maxEventsToProcess = 50;
 
+  //Event Info Histograms
+  TH1I *h_nTrueRecoTops_full = new TH1I ("h_nTrueRecoTops_full", "Number of true hadronic tops that are fully in event selection and acceptance; Tops per event; Events",
+					 6, 0, 6);
+  TH1I *h_nTrueRecoTops = new TH1I ("h_nTrueRecoTops", "Number of true hadronic tops in events surviving event selection; Tops per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_hot = new TH1I ("h_nCandTops_hot", "Number of tagger candidate (HOT) tops in events surviving event selection; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_bdt = new TH1I ("h_nCandTops_bdt", "Number of tagger candidate (BDT) tops in events surviving event selection; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_hot1 = new TH1I ("h_nCandTops_hot1", "Number of tagger candidate (HOT) tops in events with 1 real Reco top; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_bdt1 = new TH1I ("h_nCandTops_bdt1", "Number of tagger candidate (BDT) tops in events with 1 real Reco top; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_hot2 = new TH1I ("h_nCandTops_hot2", "Number of tagger candidate (HOT) tops in events with 2 real Reco tops; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_bdt2 = new TH1I ("h_nCandTops_bdt2", "Number of tagger candidate (BDT) tops in events with 2 real Reco tops; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_hot3 = new TH1I ("h_nCandTops_hot3", "Number of tagger candidate (HOT) tops in events with 3 real Reco tops; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_bdt3 = new TH1I ("h_nCandTops_bdt3", "Number of tagger candidate (BDT) tops in events with 3 real Reco tops; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_hot4 = new TH1I ("h_nCandTops_hot4", "Number of tagger candidate (HOT) tops in events with 4 real Reco tops; Top candidates per event; Events",
+					 6, 0, 6);
+  TH1I *h_nCandTops_bdt4 = new TH1I ("h_nCandTops_bdt4", "Number of tagger candidate (BDT) tops in events with 4 real Reco tops; Top candidates per event; Events",
+					 6, 0, 6);
+
   //HOT discriminant histos
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIIb_hot = new TH1F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
@@ -962,9 +988,15 @@ int main()
             //print the number of tops found in the event 
             if(!silentRunning) printf("\tN tops: %ld\n", tops.size());
 		
-	    //count reconstructible tops via the flags...
-	    uint nRecoTops = 0;
-	    uint nRecoWs = 0;
+	    //count reconstructible tops via the flags and other means...
+	    int nAnyHadTops = 0;
+	    int nRecoTops = 0;
+	    int nHOTTops = 0;
+	    int nBDTTops = 0;
+
+
+	    //no longer really used...
+	    int nRecoWs = 0;
 	    bool Top1Reco = false;
 	    bool Top2Reco = false;
 	    bool Top3Reco = false;
@@ -1060,7 +1092,6 @@ int main()
 
 	    std::vector<int> Top1flags;
 	    Top1flags.push_back(0);
-	    int nAnyHadTops = 0;
 	    auto the1Top = **hadTop1Constit;
 	    if(the1Top.size() > 0){
 	      HOTEval.addReco(*hadTop1Constit, Top1flags);
@@ -1119,6 +1150,7 @@ int main()
             //print top properties
             for(const TopObject* top : tops)
             {
+	        nHOTTops++;
                 //print basic top properties (top->p() gives a TLorentzVector)
                 //N constituents refers to the number of jets included in the top
                 //3 for resolved tops 
@@ -1135,13 +1167,17 @@ int main()
 		uint mat3 = 0;
 		uint mat4 = 0;
 
-		//Matrix for jet matching
-		//uint tMatrixHOT[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
-		
+		//prepare container for candidate:
+		std::cout << "=========> Top candidate" << std::endl;
+		std::vector<TLorentzVector>* theCand;
+		theCand = new std::vector<TLorentzVector>;
 
                 //Print properties of individual top constituent jets 
                 for(const Constituent* constituent : constituents)
                 {
+		  //package jets in the candidate
+		  theCand->push_back(constituent->p());
+		  
                     if(!silentRunning) printf("\t\tConstituent properties: Constituent type: %3d,   Pt: %6.1lf,   Eta: %7.3lf,   Phi: %7.3lf\n", constituent->getType(), constituent->p().Pt(), constituent->p().Eta(), constituent->p().Phi());
 
 		    //Here, we are become gods, matching TLorentzVectors 
@@ -1157,31 +1193,57 @@ int main()
 
 		    //printf("\n");
 		    for(const TLorentzVector inJet : **hadTop1Constit){
-		      //printf("\t\t\thT1 %3d, Pt: %6.1lf, Match: %3d\n", yu2++, inJet.Pt(), (inJet  == constituent->p()) );
 		      mat2 += (inJet == constituent->p());
 		    }
 		    //printf("\n");
 		    for(const TLorentzVector inJet : **hadTop2Constit){
-		      //printf("\t\t\thT2 %3d, Pt: %6.1lf, Match: %3d\n", yu3++, inJet.Pt(), (inJet  == constituent->p()) );
 		      mat3 += (inJet == constituent->p());
 		    }
 		    //printf("\n");
 		    for(const TLorentzVector inJet : **hadTop3Constit){
-		      //printf("\t\t\thT3 %3d, Pt: %6.1lf, Match: %3d\n", yu4++, inJet.Pt(), (inJet  == constituent->p()) );
 		      mat4 += (inJet == constituent->p());
 		    }
-                }    
+                }
+
+		//add candidate to ResTTEvaluator
+		HOTEval.addCand(theCand, top->getDiscriminator());
 		//printf("\t\t\ttop1: %2d || top2: %2d|| top3: %2d || Discriminant: %6.4lf\n", mat2, mat3, mat4, top->getDiscriminator());
 		//if(mat2 == 3 || mat3 == 3 || mat4 == 3) h_typeIII->Fill(top->getDiscriminator());
 		//if(mat2 == 2 || mat3 == 2 || mat4 == 2) TypeWDiscr->Fill(top->getDiscriminator());
 		//if(mat2 < 2 && mat3 < 2 && mat4 < 2) h_typeI->Fill(top->getDiscriminator());
+		delete theCand;
             }
-
+	    std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
+	    HOTEval.printDimensions();
             //Print properties of the remaining system
             //the remaining system is used as the second portion of the visible system to calculate MT2 in the NT = 1 bin
             //const TopObject& rsys = ttr.getRsys();
             //printf("\tRsys properties: N constituents: %3d,   Pt: %6.1lf,   Eta: %7.3lf,   Phi: %7.3lf\n", rsys.getNConstituents(), rsys.p().Pt(), rsys.p().Eta(), rsys.p().Phi());
         
+	    //Fill Event Histos here
+	    h_nTrueRecoTops_full->Fill(nRecoTops);
+	    h_nTrueRecoTops->Fill(nAnyHadTops);
+	    h_nCandTops_hot->Fill(nHOTTops);
+	    h_nCandTops_bdt->Fill(nBDTTops);
+	    //switch (nAnyHadTops) {
+	    switch (nRecoTops) {
+	    case 1: 
+	      h_nCandTops_hot1->Fill(nHOTTops);
+	      h_nCandTops_bdt1->Fill(nBDTTops);
+	      break;
+	    case 2: 
+	      h_nCandTops_hot2->Fill(nHOTTops);
+	      h_nCandTops_bdt2->Fill(nBDTTops);
+	      break;
+	    case 3: 
+	      h_nCandTops_hot3->Fill(nHOTTops);
+	      h_nCandTops_bdt3->Fill(nBDTTops);
+	      break;
+	    case 4: 
+	      h_nCandTops_hot4->Fill(nHOTTops);
+	      h_nCandTops_bdt4->Fill(nBDTTops);
+	      break;
+	    }
             printf("\n");
         }
     }
@@ -1197,6 +1259,20 @@ int main()
 
     //Open output file for histograms and tuples
     of = new TFile("results.root", "RECREATE");
+    //Write Event Histos
+    h_nTrueRecoTops_full->Write();
+    h_nTrueRecoTops->Write();
+    h_nCandTops_hot->Write();
+    h_nCandTops_bdt->Write();
+    h_nCandTops_hot1->Write();
+    h_nCandTops_bdt1->Write();
+    h_nCandTops_hot2->Write();
+    h_nCandTops_bdt2->Write();
+    h_nCandTops_hot3->Write();
+    h_nCandTops_bdt3->Write();
+    h_nCandTops_hot4->Write();
+    h_nCandTops_bdt4->Write();
+
     //Write HOT histos
     h_typeIII_hot->Write();
     h_typeIIb_hot->Write();
@@ -1290,6 +1366,14 @@ int main()
     // delete AK8JetSoftdropMass;
 
     //Delete histograms
+
+    // Event histos
+    delete h_nTrueRecoTops_full;
+    delete h_nTrueRecoTops;
+    delete h_nCandTops_hot;	       
+    delete h_nCandTops_bdt;
+
+    // HOT histos
     delete h_typeIII_hot;
     delete h_typeIIb_hot;
     delete h_typeIIw_hot;
@@ -1313,7 +1397,7 @@ int main()
     delete h_eventN3_I_hot;
     delete h_eventN3_0_hot;
 
-    //Write BDT histos
+    // BDT histos
     delete h_typeIII_bdt;
     delete h_typeIIb_bdt;
     delete h_typeIIw_bdt;
