@@ -11,7 +11,7 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(2000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1500) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
@@ -38,7 +38,7 @@ process.tree.HTMin = cms.double(500)
 process.tree.NjMin = cms.int32(3)
 
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string('SLntuple.root'),
+                                   fileName = cms.string('SLNewtuple.root'),
                                    closeFileFast = cms.untracked.bool(True) 
                                    )
 process.p = cms.Path(process.tree)

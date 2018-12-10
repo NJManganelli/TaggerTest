@@ -48,6 +48,7 @@
 #include "TTree.h"
 #include "TBranch.h"
 #include "TLorentzVector.h"
+//#include "topContainer.h"
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
@@ -155,6 +156,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
 
   //TTree
   TTree *tree;
+  //gInterpreter->GenerateDictionary("vector<pair<vector<TLorentzVector>,vector<int>>>","TLorentzVector.h;vector;utility");
 
   //Data and collections
   uint nEvts, nRun, nLumiBlock, nEvent;
@@ -164,6 +166,10 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
   double HT, HTX, HT2M; //FIXME Calculate and add these...
+  //std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allRecoTops;
+  //std::vector<topContainer> *allRecoTops;
+  std::vector<TLorentzVector> *recoTop1, *recoTop2, *recoTop3, *recoTop4; //new style top containers and flags
+  std::vector<int> *recoTop1flags, *recoTop2flags, *recoTop3flags, *recoTop4flags;
   std::vector<TLorentzVector> *JetLVec, *selectedLepLVec, *VertexVec, *METLVec; //Change to pointer vector of pointers for sorting efficiency! FIXME!
   std::vector<TLorentzVector> *hadTop1Constit, *hadTop2Constit, *hadTop3Constit;
   std::vector<double> *qgPtDVec, *qgAxis1Vec, *qgAxis2Vec, *qgMultVec;
@@ -460,6 +466,15 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
    //Clear pointers
+   //allRecoTops->clear();
+   recoTop1->clear();
+   recoTop2->clear();
+   recoTop3->clear();
+   recoTop4->clear();
+   recoTop1flags->clear();
+   recoTop2flags->clear();
+   recoTop3flags->clear();
+   recoTop4flags->clear();
    FlagTop->clear();
    FlagBottom->clear();
    FlagQ1->clear();
@@ -985,7 +1000,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 const reco::GenParticle* Wdau1 = &(**(W->daughterRefVector().begin()));
 	 if(verBose)
 	   std:: cout << "Wdau1 pdgId reads: " << Wdau1->pdgId() << std::endl;
-	 int rcount = 0;
+	 //int rcount = 0;
 	 // while(Wdau1->numberOfDaughters() == 1 && rcount < 100){
 	 //   rcount++;
 	 //   //std::cout << "^" << Wdau1->pt() << "^";
@@ -1006,7 +1021,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 const reco::GenParticle* Wdau2 = &(**(++(W->daughterRefVector().begin())));
 	 if(verBose)
 	   std:: cout << "Wdau2 pdgId reads: " << Wdau2->pdgId() << std::endl;
-	 int lcount = 0;
+	 //int lcount = 0;
 	 // while(Wdau2->numberOfDaughters() == 1 && lcount < 100){
 	 //   lcount++;
 	 //   //Wdau2 = *(Wdau2->daughterRefVector()[0]);
@@ -1257,11 +1272,112 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        //fill empty vectors to organize sets
        if(!madeB)
-	 theBJet.SetPtEtaPhiE(0, 6.0, 0, 0);
+	 theBJet.SetPtEtaPhiE(0.3, 60.0, 0, 0.4);
        if(!madeQ1)
-	 theQ1Jet.SetPtEtaPhiE(0, 7.0, 0, 0);
+	 theQ1Jet.SetPtEtaPhiE(0.5, -70.0, 0, 0.6);
        if(!madeQ2)
-	 theQ2Jet.SetPtEtaPhiE(0, 8.0, 0, 0);
+	 theQ2Jet.SetPtEtaPhiE(0.8, 80.0, 0, 0.9);
+
+       //NEW STYLE TOP CANDIDATE: Package vectors and flags for all tops, regardless if hadronic or not. First four flags are ints storing: hadronic, b reco, q1 reco, q2 reco
+       //for latter, 1 is jet reconstructed, 2 is within eta acceptance, 3 is within pt acceptance (for b, 4 is with CSVv2 tag)
+       //std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *
+       std::pair< std::vector<TLorentzVector>, std::vector<int> > tempCandidate;
+       //topContainer tempCandidate;
+       tempCandidate.first.push_back(theBJet);
+       tempCandidate.first.push_back(theQ1Jet);
+       tempCandidate.first.push_back(theQ2Jet);
+       //Top flag
+       if(FlagTop->at(yy) < 10000) //hadronic
+	 tempCandidate.second.push_back(0);
+       else if(FlagTop->at(yy) > 9999) //leptonic
+	 tempCandidate.second.push_back(-floor((FlagTop->at(yy) + 1000) / 10000));
+       else //logic error
+	 tempCandidate.second.push_back(-1);
+       //Bottom flag
+       switch (FlagBottom->at(yy) ) 
+	 {
+	 case 128 : tempCandidate.second.push_back(1); //reconstructable
+	   break;
+	 case 144 : tempCandidate.second.push_back(2); //eta acceptance
+	   break;
+	 case 145 : tempCandidate.second.push_back(3); //general pt acceptance
+	   break;
+	 case 146 : tempCandidate.second.push_back(4); //lower pt acceptance with CSVv2 working point
+	   break;
+	 default : tempCandidate.second.push_back(0); //not present
+	 }
+       switch (FlagQ1->at(yy) ) 
+	 {
+	 case 512 : tempCandidate.second.push_back(1);
+	   break;
+	 case 576 : tempCandidate.second.push_back(2);
+	   break;
+	 case 584 : tempCandidate.second.push_back(3);
+	   break;
+	 default : tempCandidate.second.push_back(0);
+	 }
+       switch (FlagQ2->at(yy) ) 
+	 {
+	 case 256 : tempCandidate.second.push_back(1);
+	   break;
+	 case 288 : tempCandidate.second.push_back(2);
+	   break;
+	 case 292 : tempCandidate.second.push_back(3);
+	   break;
+	 default : tempCandidate.second.push_back(0);
+	 }
+       int tempModifier = 0;
+       for(int tinc = 1; tinc < 4; tinc++) // check the flags for B, Q1, Q2
+	 if(tempCandidate.second[tinc] > 2)
+	   tempModifier++; //increment a counter for each jet that was fully accepted
+       if(tempCandidate.second[0] == 0)
+	 tempCandidate.second[0] = tempModifier; //increment with total reconstucted jets
+       else if(tempCandidate.second[0] == -1)
+	 tempCandidate.second[0] -= tempModifier; //decrement if leptonic decay
+       else
+	 tempCandidate.second[0] = -9876; //Panic!
+       //allRecoTops->push_back(tempCandidate);
+       //can't fucking link the classes... now have to undo this and pack stupidly. Thanks CMSSW/Poor Twiki's       
+       if(recoTop1->size() == 0){
+	 recoTop1->push_back(tempCandidate.first[0]);
+	 recoTop1->push_back(tempCandidate.first[1]);
+	 recoTop1->push_back(tempCandidate.first[2]);
+	 recoTop1flags->push_back(tempCandidate.second[0]);
+	 recoTop1flags->push_back(tempCandidate.second[1]);
+	 recoTop1flags->push_back(tempCandidate.second[2]);
+	 recoTop1flags->push_back(tempCandidate.second[3]);
+       }
+       else if(recoTop2->size() == 0){
+	 recoTop2->push_back(tempCandidate.first[0]);
+	 recoTop2->push_back(tempCandidate.first[1]);
+	 recoTop2->push_back(tempCandidate.first[2]);
+	 recoTop2flags->push_back(tempCandidate.second[0]);
+	 recoTop2flags->push_back(tempCandidate.second[1]);
+	 recoTop2flags->push_back(tempCandidate.second[2]);
+	 recoTop2flags->push_back(tempCandidate.second[3]);
+       }
+       else if(recoTop3->size() == 0){
+	 recoTop3->push_back(tempCandidate.first[0]);
+	 recoTop3->push_back(tempCandidate.first[1]);
+	 recoTop3->push_back(tempCandidate.first[2]);
+	 recoTop3flags->push_back(tempCandidate.second[0]);
+	 recoTop3flags->push_back(tempCandidate.second[1]);
+	 recoTop3flags->push_back(tempCandidate.second[2]);
+	 recoTop3flags->push_back(tempCandidate.second[3]);
+       }
+       else if(recoTop4->size() == 0){
+	 recoTop4->push_back(tempCandidate.first[0]);
+	 recoTop4->push_back(tempCandidate.first[1]);
+	 recoTop4->push_back(tempCandidate.first[2]);
+	 recoTop4flags->push_back(tempCandidate.second[0]);
+	 recoTop4flags->push_back(tempCandidate.second[1]);
+	 recoTop4flags->push_back(tempCandidate.second[2]);
+	 recoTop4flags->push_back(tempCandidate.second[3]);
+       }
+       else
+	 std::cout << "A 5th top candidate was found, not storing" << std::endl;
+
+
 
        //fill candidate sets
        //if(candTopVec[yy].first.size()
@@ -1335,6 +1451,16 @@ SLntupler::beginJob()
    nMuonicTops = 0;
    nTauonicTops = 0;
    //FIXME: Add missing variables for leptons, isolation, jetID, HT, etc.
+   //allRecoTops = new std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > >;
+   //allRecoTops = new std::vector<topContainer>;
+   recoTop1 = new std::vector<TLorentzVector>;
+   recoTop2 = new std::vector<TLorentzVector>;
+   recoTop3 = new std::vector<TLorentzVector>;
+   recoTop4 = new std::vector<TLorentzVector>;
+   recoTop1flags = new std::vector<int>;
+   recoTop2flags = new std::vector<int>;
+   recoTop3flags = new std::vector<int>;
+   recoTop4flags = new std::vector<int>;
    FlagTop = new std::vector<int>;
    FlagBottom = new std::vector<int>;
    FlagQ1 = new std::vector<int>;
@@ -1392,6 +1518,16 @@ SLntupler::beginJob()
    tree->Branch("HLT_Mu_Bits", &HLT_Mu_Bits);
    tree->Branch("HLT_El_Bits", &HLT_El_Bits);
    tree->Branch("MET_Flt_Bits", &MET_Flt_Bits);
+   //tree->Branch("allRecoTops", "vector<pair<vector<TLorentzVector>,vector<int>>>", &allRecoTops, 32000, -1);
+   //tree->Branch("allRecoTops", "vector<topContainer>", &allRecoTops, 32000, -1);
+   tree->Branch("recoTop1", "vector<TLorentzVector>", &recoTop1, 32000,-1);
+   tree->Branch("recoTop2", "vector<TLorentzVector>", &recoTop2, 32000,-1);
+   tree->Branch("recoTop3", "vector<TLorentzVector>", &recoTop3, 32000,-1);
+   tree->Branch("recoTop4", "vector<TLorentzVector>", &recoTop4, 32000,-1);
+   tree->Branch("recoTop1flags", "vector<int>", &recoTop1flags, 32000,-1);
+   tree->Branch("recoTop2flags", "vector<int>", &recoTop2flags, 32000,-1);
+   tree->Branch("recoTop3flags", "vector<int>", &recoTop3flags, 32000,-1);
+   tree->Branch("recoTop4flags", "vector<int>", &recoTop4flags, 32000,-1);
    tree->Branch("JetLVec", "vector<TLorentzVector>", &JetLVec, 32000,-1);
    tree->Branch("hadTop1Constit", "vector<TLorentzVector>", &hadTop1Constit, 32000,-1);
    tree->Branch("hadTop2Constit", "vector<TLorentzVector>", &hadTop2Constit, 32000,-1);
@@ -1436,6 +1572,15 @@ SLntupler::endJob()
    // tree->Write("", TObject::kOverwrite);
 
    //Clear pointers
+   //allRecoTops->clear();
+   recoTop1->clear();
+   recoTop2->clear();
+   recoTop3->clear();
+   recoTop4->clear();
+   recoTop1flags->clear();
+   recoTop2flags->clear();
+   recoTop3flags->clear();
+   recoTop4flags->clear();
    FlagTop->clear();
    FlagBottom->clear();
    FlagQ1->clear();
@@ -1472,6 +1617,15 @@ SLntupler::endJob()
    electronMultiplicityVec->clear();
    muonMultiplicityVec->clear();
 
+   //delete allRecoTops;
+   delete recoTop1;
+   delete recoTop2;
+   delete recoTop3;
+   delete recoTop4;
+   delete recoTop1flags;
+   delete recoTop2flags;
+   delete recoTop3flags;
+   delete recoTop4flags;
    delete FlagTop;
    delete FlagBottom;
    delete FlagQ1;

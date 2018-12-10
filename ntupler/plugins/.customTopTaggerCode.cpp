@@ -36,7 +36,7 @@ class ResTTEvaluator{
   void addReco(std::vector<TLorentzVector>* reco, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
   void addReco(std::vector<TLorentzVector>* reco);
   std::pair< std::vector<TLorentzVector>, std::vector<int> > getReco(int index);
-  void addAllReco( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allGenInput);
+  void addAllReco( std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allRecoInput);
 
   void addGen(std::vector<TLorentzVector>* gen, std::vector<int> flagVector); //using boost::(type)_bitset would be more space efficient ... up to factor of 8
   void addGen(std::vector<TLorentzVector>* gen);
@@ -169,7 +169,10 @@ void ResTTEvaluator::addReco(std::vector<TLorentzVector>* reco, std::vector<int>
   tempReco.first = *reco;
   tempReco.second = flags;
   if(_verbose){
-    std::cout << "\nAdding Reco: " << std::endl;
+    std::cout << "\nAdding Reco: ";
+    for(int qq = 0; qq < flags.size(); qq++)
+      std::cout << "\t\tfl" << qq << ": " << flags[qq];
+    std::cout << std::endl;
     for(int q = 0; q < 3; q++)
       std::cout << "\t" << (tempReco.first[q]).Pt() << "\t" << (tempReco.first[q]).Eta() 
 		<< "\t" << (tempReco.first[q]).Phi() << "\t" << (tempReco.first[q]).E() << std::endl;
@@ -490,6 +493,7 @@ int main()
   bool silentRunning = true;
   bool debug1 = false;
   bool debug2 = false;
+  bool isNewStyle = true;
   //silentRunning = true;
   bool runStdExample = false;
   TFile *tf, *tf2, *of;
@@ -589,8 +593,10 @@ int main()
 
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntuple.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLntupleMasked.root");
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kTwoTop.root");
+
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLNewtuple.root");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -650,6 +656,17 @@ int main()
     std::vector<uint>** FlagQ1 = new std::vector<uint>*();
     std::vector<uint>** FlagQ2 = new std::vector<uint>*();
 
+    //Custom variables for reading newer style gen-matched jets and status flags
+    std::vector<TLorentzVector>** recoTop1 = new std::vector<TLorentzVector>*();
+    std::vector<TLorentzVector>** recoTop2 = new std::vector<TLorentzVector>*();
+    std::vector<TLorentzVector>** recoTop3 = new std::vector<TLorentzVector>*();
+    std::vector<TLorentzVector>** recoTop4 = new std::vector<TLorentzVector>*();
+    std::vector<int>** recoTop1flags = new std::vector<int>*();
+    std::vector<int>** recoTop2flags = new std::vector<int>*();
+    std::vector<int>** recoTop3flags = new std::vector<int>*();
+    std::vector<int>** recoTop4flags = new std::vector<int>*();
+
+
     //Deactivate all branches, then activate the branches of interest
     tree->SetBranchStatus("*", 0);
     std::cout << "Deactivated all branches" << std::endl;
@@ -661,7 +678,7 @@ int main()
       tree->SetBranchStatus( "ak4jetsLVec", 1);
       tree->SetBranchAddress("ak4jetsLVec", AK4JetLV);
     
-      //AK4 jet b-tag values (0 not a b, 1 is a b)
+      //AK4 jet b-tag values
       tree->SetBranchStatus( "ak4recoJetsBtag", 1);
       tree->SetBranchAddress("ak4recoJetsBtag", AK4JetBtag);
 
@@ -909,6 +926,35 @@ int main()
       tree->SetBranchStatus( "FlagQ2", 1);
       tree->SetBranchAddress("FlagQ2", FlagQ2);
 
+      if(isNewStyle){
+	//New style tops' TLV's
+	//top 1
+	tree->SetBranchStatus( "recoTop1", 1);
+	tree->SetBranchAddress("recoTop1", recoTop1);
+	//top 2
+	tree->SetBranchStatus( "recoTop2", 1);
+	tree->SetBranchAddress("recoTop2", recoTop2);
+	//top 3
+	tree->SetBranchStatus( "recoTop3", 1);
+	tree->SetBranchAddress("recoTop3", recoTop3);
+	//top 4
+	tree->SetBranchStatus( "recoTop4", 1);
+	tree->SetBranchAddress("recoTop4", recoTop4);
+
+	//top 1
+	tree->SetBranchStatus( "recoTop1flags", 1);
+	tree->SetBranchAddress("recoTop1flags", recoTop1flags);
+	//top 2
+	tree->SetBranchStatus( "recoTop2flags", 1);
+	tree->SetBranchAddress("recoTop2flags", recoTop2flags);
+	//top 3
+	tree->SetBranchStatus( "recoTop3flags", 1);
+	tree->SetBranchAddress("recoTop3flags", recoTop3flags);
+	//top 4
+	tree->SetBranchStatus( "recoTop4flags", 1);
+	tree->SetBranchAddress("recoTop4flags", recoTop4flags);
+      }
+
       std::cout << "tree branches attached" << std::endl;
     }
 
@@ -1106,6 +1152,21 @@ int main()
 	    if(the3Top.size() > 0){
 	      HOTEval.addReco(*hadTop3Constit, Top1flags);
 	      nAnyHadTops++;
+	    }
+	    //new style
+	    if(isNewStyle){
+	      if((**recoTop1).size() > 0){
+		HOTEval.addReco(*recoTop1, **recoTop1flags);
+	      }
+	      if((**recoTop2).size() > 0){
+		HOTEval.addReco(*recoTop2, **recoTop2flags);
+	      }
+	      if((**recoTop3).size() > 0){
+		HOTEval.addReco(*recoTop3, **recoTop3flags);
+	      }
+	      if((**recoTop4).size() > 0){
+		HOTEval.addReco(*recoTop4, **recoTop4flags);
+	      }
 	    }
 	    std::cout << "\n\t\t\t\tNumber of Hadronic Tops passed from event: " << nAnyHadTops << std::endl;
 
