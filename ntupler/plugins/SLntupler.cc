@@ -1215,12 +1215,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
 
      //debug print id's of all quarks in vectors
-     std::cout << "\n================Gen-Reco Matched Top Candidates================";
+     if(verBose) std::cout << "\n================Gen-Reco Matched Top Candidates================";
      for(uint ww = 0; ww < TopVec.size(); ww++){
-       std::cout << "\nTop Object " << ww+1 << " Constituents: ";
+       if(verBose) std::cout << "\nTop Object " << ww+1 << " Constituents: ";
        //for(uint w = 0; w < TopVec[ww].first.size(); w++)
        for(uint w = 0; w < TopVec[ww].first.size(); w++)
-	 std::cout << "\n" << TopVec[ww].first[w]->pdgId() << " Pt: " <<TopVec[ww].first[w]->pt() << " Eta: " << TopVec[ww].first[w]->eta();
+	 if(verBose) std::cout << "\n" << TopVec[ww].first[w]->pdgId() << " Pt: " <<TopVec[ww].first[w]->pt() << " Eta: " << TopVec[ww].first[w]->eta();
      }
    
 
@@ -1228,7 +1228,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::cout << "\n================Final Top Flags================" << std::endl;
      for(uint y = 0; y < TopVec.size(); y++){
        FlagTop->at(y) = TopVec[y].second + FlagBottom->at(y) + FlagQ1->at(y) + FlagQ2->at(y);
-       std::cout << "FlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second << std::endl;
+       if(verBose) std::cout << "FlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second << std::endl;
      }
 
      //print development information
@@ -1238,15 +1238,15 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      bool filledTwo = false;
      bool filledThree = false;
      for(uint yy = 0; yy < candTopVec.size(); yy++){
-       std::cout << "\nTop Object " << yy+1 << std::endl;
-       std::cout << " (" << candTopVec[yy].first.size() << ") " << std::endl;
+       if(verBose) std::cout << "\nTop Object " << yy+1 << std::endl;
+       if(verBose) std::cout << " (" << candTopVec[yy].first.size() << ") " << std::endl;
        
        TLorentzVector theBJet, theQ1Jet, theQ2Jet;
        bool madeB = false;
        bool madeQ1 = false;
        bool madeQ2 = false;
        for(uint zz = 0; zz < candTopVec[yy].first.size(); zz++){
-	 std::cout << " position: " << yy+1
+	 if(verBose) std::cout << " position: " << yy+1
 		   << " pdgIds: " << candTopVec[yy].first[zz]->pdgId() << " " << candTopVec[yy].second[zz]->genParticle()->pdgId()
 		   << "\t gen matching true: " << ( candTopVec[yy].second[zz]->genParticle() == candTopVec[yy].first[zz])
 		   << "\t CSVv2: " << candTopVec[yy].second[zz]->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") 
@@ -1332,8 +1332,8 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   tempModifier++; //increment a counter for each jet that was fully accepted
        if(tempCandidate.second[0] == 0)
 	 tempCandidate.second[0] = tempModifier; //increment with total reconstucted jets
-       else if(tempCandidate.second[0] == -1)
-	 tempCandidate.second[0] -= tempModifier; //decrement if leptonic decay
+       else if(tempCandidate.second[0] == -1 || tempCandidate.second[0] == -2 || tempCandidate.second[0] == -3)
+	 tempCandidate.second[0] = 10*tempCandidate.second[0] - tempModifier; //decrement if leptonic decay
        else
 	 tempCandidate.second[0] = -9876; //Panic!
        //allRecoTops->push_back(tempCandidate);
@@ -1412,6 +1412,30 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 std::cout << "B Pt: " << (hadTop2Constit->at(0)).Pt() << " Q1 Pt: "  << (hadTop2Constit->at(1)).Pt() << " Q2 Pt: " << (hadTop2Constit->at(2)).Pt() << std::endl;
        if(filledThree)
 	 std::cout << "B Pt: " << (hadTop3Constit->at(0)).Pt() << " Q1 Pt: "  << (hadTop3Constit->at(1)).Pt() << " Q2 Pt: " << (hadTop3Constit->at(2)).Pt() << std::endl;
+     }
+     //debug to check that there's matching between old and new candidates
+     if(deBugMCTruth){
+       std::cout << std::endl;
+       if(recoTop1->size() > 0)
+	 std::cout << "B Pt: " << (recoTop1->at(0)).Pt() << " Q1 Pt: "  << (recoTop1->at(1)).Pt() << " Q2 Pt: " << (recoTop1->at(2)).Pt() << std::endl;
+       if(recoTop2->size() > 0)
+	 std::cout << "B Pt: " << (recoTop2->at(0)).Pt() << " Q1 Pt: "  << (recoTop2->at(1)).Pt() << " Q2 Pt: " << (recoTop2->at(2)).Pt() << std::endl;
+       if(recoTop3->size() > 0)
+	 std::cout << "B Pt: " << (recoTop3->at(0)).Pt() << " Q1 Pt: "  << (recoTop3->at(1)).Pt() << " Q2 Pt: " << (recoTop3->at(2)).Pt() << std::endl;
+       if(recoTop4->size() > 0)
+	 std::cout << "B Pt: " << (recoTop4->at(0)).Pt() << " Q1 Pt: "  << (recoTop4->at(1)).Pt() << " Q2 Pt: " << (recoTop4->at(2)).Pt() << std::endl;
+       if(recoTop1flags->size() > 0)
+	 std::cout << "T flag: " << recoTop1flags->at(0) << " B flag: " << recoTop1flags->at(1) << " Q1 flag: " 
+		   << recoTop1flags->at(2) << " Q2 flag: " << recoTop1flags->at(3) << std::endl;
+       if(recoTop2flags->size() > 0)
+	 std::cout << "T flag: " << recoTop2flags->at(0) << " B flag: " << recoTop2flags->at(1) << " Q1 flag: " 
+		   << recoTop2flags->at(2) << " Q2 flag: " << recoTop2flags->at(3) << std::endl;
+       if(recoTop3flags->size() > 0)
+	 std::cout << "T flag: " << recoTop3flags->at(0) << " B flag: " << recoTop3flags->at(1) << " Q1 flag: " 
+		   << recoTop3flags->at(2) << " Q2 flag: " << recoTop3flags->at(3) << std::endl;
+       if(recoTop4flags->size() > 0)
+	 std::cout << "T flag: " << recoTop4flags->at(0) << " B flag: " << recoTop4flags->at(1) << " Q1 flag: " 
+		   << recoTop4flags->at(2) << " Q2 flag: " << recoTop4flags->at(3) << std::endl;
      }
    
      std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
