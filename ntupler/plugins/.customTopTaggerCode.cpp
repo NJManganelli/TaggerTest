@@ -54,9 +54,13 @@ class ResTTEvaluator{
   void evaluateR();
   void evaluateG();
   
-  //These methods do the classifying. They could be called by evaluate, or the main program...
+  //These methods do the classifying. They are called by evaluate as a submethod...
   void classifyR();
   void classifyG();
+
+  //method for getting final pairs of 
+  std::pair<double, std::string> getClass(int index);
+  std::vector<std::pair<double, std::string>> getClasses();
 
  private:
   bool _debug = false;
@@ -84,8 +88,8 @@ class ResTTEvaluator{
   std::vector< std::pair< std::vector<TLorentzVector>, double >* > _ordCand; //use pointers?
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _reco; //include flags in here...
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
-  std::vector< std::pair< uint, std::string > > _class; //classification, using number and string
-  std::vector< std::pair< uint, std::string >* > _ordClass; //shoulda made a struct...
+  std::vector< std::pair< double, std::string > > _class; //classification, using number and string
+  std::vector< std::pair< double, std::string >* > _ordClass; //shoulda made a struct...
   bool _haveFlags;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
@@ -473,8 +477,8 @@ void ResTTEvaluator::classifyR(){
       std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
     
     //store class
-    std::pair< uint, std::string> tempClassPair;
-    tempClassPair.first = bestHMatchR[m];
+    std::pair< double, std::string> tempClassPair;
+    tempClassPair.first = _cand[m].second;
     tempClassPair.second = tempClass;
     _class.push_back(tempClassPair);
     if(_verbose)
@@ -485,6 +489,12 @@ void ResTTEvaluator::classifyR(){
 }
 void ResTTEvaluator::classifyG(){
   std::cout << "If I were a real little classifer (Gen), I would have done some classification (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
+}
+std::pair<double, std::string> ResTTEvaluator::getClass(int index){
+  return _class[index];
+}
+std::vector<std::pair<double, std::string>> ResTTEvaluator::getClasses(){
+  return _class;
 }
 
 int main()
@@ -500,7 +510,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 50;
+  uint maxEventsToProcess = 1000000;
 
   //Event Info Histograms
   TH1I *h_nTrueRecoTops_full = new TH1I ("h_nTrueRecoTops_full", "Number of true hadronic tops that are fully in event selection and acceptance; Tops per event; Events",
@@ -596,7 +606,11 @@ int main()
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kFourTop.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/200kTwoTop.root");
 
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/SLNewtuple.root");
+    //New style files
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT50HT3J.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT50HT.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT250HT.root");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT500HT.root");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -967,6 +981,8 @@ int main()
         //Set top tagger cfg file
         tt.setCfgFile("TopTagger.cfg");
 
+	//debug counter
+	int nERROR = 0;
 
         //Loop over events
         int Nevt = 0;
@@ -1136,24 +1152,28 @@ int main()
 	    //ResTTEvaluator HOTEval("HOT");
 	    ResTTEvaluator HOTEval("HOT", true, false);
 
-	    std::vector<int> Top1flags;
-	    Top1flags.push_back(0);
-	    auto the1Top = **hadTop1Constit;
-	    if(the1Top.size() > 0){
-	      HOTEval.addReco(*hadTop1Constit, Top1flags);
-	      nAnyHadTops++;
+	    //Old style tops
+	    if(!isNewStyle){
+	      std::vector<int> Top1flags;
+	      Top1flags.push_back(0);
+	      auto the1Top = **hadTop1Constit;
+	      if(the1Top.size() > 0){
+		HOTEval.addReco(*hadTop1Constit, Top1flags);
+		nAnyHadTops++;
+	      }
+	      auto the2Top = **hadTop2Constit;
+	      if(the2Top.size() > 0){
+		HOTEval.addReco(*hadTop2Constit, Top1flags);
+		nAnyHadTops++;
+	      }
+	      auto the3Top = **hadTop3Constit;
+	      if(the3Top.size() > 0){
+		HOTEval.addReco(*hadTop3Constit, Top1flags);
+		nAnyHadTops++;
+	      }
 	    }
-	    auto the2Top = **hadTop2Constit;
-	    if(the2Top.size() > 0){
-	      HOTEval.addReco(*hadTop2Constit, Top1flags);
-	      nAnyHadTops++;
-	    }
-	    auto the3Top = **hadTop3Constit;
-	    if(the3Top.size() > 0){
-	      HOTEval.addReco(*hadTop3Constit, Top1flags);
-	      nAnyHadTops++;
-	    }
-	    //new style
+
+	    //new style tops
 	    if(isNewStyle){
 	      if((**recoTop1).size() > 0){
 		HOTEval.addReco(*recoTop1, **recoTop1flags);
@@ -1207,7 +1227,7 @@ int main()
 	    //printf("\n\t\t\t# Fully Reconstuctible Tops: %2d \t Reconstructible W: %2d\n", nRecoTops, nRecoWs);
 
 	    
-
+	    nHOTTops = 0;
             //print top properties
             for(const TopObject* top : tops)
             {
@@ -1276,6 +1296,31 @@ int main()
             }
 	    std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
 	    HOTEval.printDimensions();
+	    HOTEval.evaluateR();
+	    std::vector<std::pair<double, std::string>> tCR = HOTEval.getClasses();
+
+	    if(tCR.size() != nHOTTops) nERROR++;
+	    for(int e = 0; e < tCR.size(); e++){
+	      if(tCR[e].second == "typeIII")
+		h_typeIII_hot->Fill(tCR[e].first);
+	      else if(tCR[e].second == "typeIIb")
+		h_typeIIb_hot->Fill(tCR[e].first);
+	      else if(tCR[e].second == "typeIImib")
+		h_typeIImib_hot->Fill(tCR[e].first);
+	      else if(tCR[e].second == "typeIIw")
+		h_typeIIw_hot->Fill(tCR[e].first);
+	      else if(tCR[e].second == "typeIImiq")
+		h_typeIImiq_hot->Fill(tCR[e].first);
+	      else if(tCR[e].second == "typeI")
+		h_typeI_hot->Fill(tCR[e].first);
+	      else if(tCR[e].second == "type0")
+		h_type0_hot->Fill(tCR[e].first);
+	      else{
+		std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
+		nERROR++;
+		  }
+
+	    }
             //Print properties of the remaining system
             //the remaining system is used as the second portion of the visible system to calculate MT2 in the NT = 1 bin
             //const TopObject& rsys = ttr.getRsys();
@@ -1307,6 +1352,10 @@ int main()
 	    }
             printf("\n");
         }
+
+    //debug counter:
+    std::cout << "\n\n\n\n=====================================\nnERROR: " << nERROR << "\n=====================================" << std::endl;
+
     }
     catch(const TTException& e)
     {
