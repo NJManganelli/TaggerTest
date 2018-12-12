@@ -304,7 +304,7 @@ void ResTTEvaluator::evaluateR(){
     for(int n = 0; n < _cand[m].first.size(); n++) //each candidate's constituent
       //for(int ii = 0; ii < 3; ii++) //each candidate's constituent
       for(int o = 0; o < _nReco; o++) //for each candidate, check each Reconstructed top quark's constituents
-	for(int p = 0; p < _reco[o].first.size(); p++) //check all the jets in the collection... should be 3 at all times... need to protect...
+	for(int p = 0; p < _reco[o].first.size(); p++) //more permissive...
 	//for(int jj = 0; jj < 3; jj++) //check all the jets in the collection... should be 3 at all times... need to protect...
 	  {
 	    if(_debug)
@@ -536,22 +536,49 @@ int main()
 				    "Number of tagger candidate (HOT) tops in events surviving event selection; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_bdt = new TH1I ("h_nCandTops_bdt", 
 				    "Number of tagger candidate (BDT) tops in events surviving event selection; Top candidates per event; Events", 6, 0, 6);
+  //All reco top counting
   TH1I *h_nCandTops_hot1 = new TH1I ("h_nCandTops_hot1", 
-				     "Number of tagger candidate (HOT) tops in events with 1 real Reco top; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (HOT) tops in events with 1 real hadronic top; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_bdt1 = new TH1I ("h_nCandTops_bdt1", 
-				     "Number of tagger candidate (BDT) tops in events with 1 real Reco top; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (BDT) tops in events with 1 real hadronic top; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_hot2 = new TH1I ("h_nCandTops_hot2", 
-				     "Number of tagger candidate (HOT) tops in events with 2 real Reco tops; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (HOT) tops in events with 2 real hadronic tops; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_bdt2 = new TH1I ("h_nCandTops_bdt2", 
-				     "Number of tagger candidate (BDT) tops in events with 2 real Reco tops; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (BDT) tops in events with 2 real hadronic tops; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_hot3 = new TH1I ("h_nCandTops_hot3", 
-				     "Number of tagger candidate (HOT) tops in events with 3 real Reco tops; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (HOT) tops in events with 3 real hadronic tops; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_bdt3 = new TH1I ("h_nCandTops_bdt3", 
-				     "Number of tagger candidate (BDT) tops in events with 3 real Reco tops; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (BDT) tops in events with 3 real hadronic tops; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_hot4 = new TH1I ("h_nCandTops_hot4", 
-				     "Number of tagger candidate (HOT) tops in events with 4 real Reco tops; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (HOT) tops in events with 4 real hadronic tops; Top candidates per event; Events", 6, 0, 6);
   TH1I *h_nCandTops_bdt4 = new TH1I ("h_nCandTops_bdt4", 
-				     "Number of tagger candidate (BDT) tops in events with 4 real Reco tops; Top candidates per event; Events", 6, 0, 6);
+				     "Number of tagger candidate (BDT) tops in events with 4 real hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandTops_hot_oth = new TH1I ("h_nCandTops_hot_oth", 
+				     "Number of tagger candidate (HOT) tops in events with other category; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandTops_bdt_oth = new TH1I ("h_nCandTops_bdt_oth", 
+				     "Number of tagger candidate (BDT) tops in events with other category; Top candidates per event; Events", 6, 0, 6);
+  //Full Reco top counting
+  TH1I *h_nCandFullTops_hot_0 = new TH1I ("h_nCandFullTops_hot_0", 
+				     "Number of tagger candidate (HOT) tops in events with 0 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_bdt_0 = new TH1I ("h_nCandFullTops_bdt_0", 
+				     "Number of tagger candidate (BDT) tops in events with 0 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_hot1 = new TH1I ("h_nCandFullTops_hot1", 
+				     "Number of tagger candidate (HOT) tops in events with 1 full-reco hadronic top; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_bdt1 = new TH1I ("h_nCandFullTops_bdt1", 
+				     "Number of tagger candidate (BDT) tops in events with 1 full-reco hadronic top; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_hot2 = new TH1I ("h_nCandFullTops_hot2", 
+				     "Number of tagger candidate (HOT) tops in events with 2 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_bdt2 = new TH1I ("h_nCandFullTops_bdt2", 
+				     "Number of tagger candidate (BDT) tops in events with 2 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_hot3 = new TH1I ("h_nCandFullTops_hot3", 
+				     "Number of tagger candidate (HOT) tops in events with 3 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_bdt3 = new TH1I ("h_nCandFullTops_bdt3", 
+				     "Number of tagger candidate (BDT) tops in events with 3 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_hot4 = new TH1I ("h_nCandFullTops_hot4", 
+				     "Number of tagger candidate (HOT) tops in events with 4 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+  TH1I *h_nCandFullTops_bdt4 = new TH1I ("h_nCandFullTops_bdt4", 
+				     "Number of tagger candidate (BDT) tops in events with 4 full-reco hadronic tops; Top candidates per event; Events", 6, 0, 6);
+
 
   //HOT discriminant histos
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
@@ -561,8 +588,7 @@ int main()
   TH1F *h_typeIImiq_hot = new TH1F ("h_typeIImiq_hot_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIt_hot = new TH1F ("h_typeIt_hot_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
   TH1F *h_typeIp_hot = new TH1F ("h_typeIp_hot_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
-  //TH1F *h_typeI_hot = new TH1F ("h_typeI_hot_", "Type I (1 top-daughter matched ~ Rando); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); //combined into 0x1
-  TH1F *h_type0xI_hot = new TH1F ("h_type0xI_hot_", "Type 0 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_type0xI_hot = new TH1F ("h_type0xI_hot_", "Type 0xI (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
 
   TH1F *h_eventN1_III_hot = new TH1F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
   TH1F *h_eventN1_II_hot = new TH1F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
@@ -585,8 +611,8 @@ int main()
   TH1F *h_typeIIw_bdt = new TH1F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIImib_bdt = new TH1F ("h_typeIImib_bdt_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
   TH1F *h_typeIImiq_bdt = new TH1F ("h_typeIImiq_bdt_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0); 
-  TH1F *h_typeIt_bdt = new TH1F ("h_typeI_bdt_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
-  TH1F *h_typeIp_bdt = new TH1F ("h_typeI_bdt_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_typeIt_bdt = new TH1F ("h_typeIt_bdt_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
+  TH1F *h_typeIp_bdt = new TH1F ("h_typeIp_bdt_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
   TH1F *h_type0xI_bdt = new TH1F ("h_type0xI_bdt_", "Type 0x1 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 20, 0.0, 1.0);
 
   TH1F *h_eventN1_III_bdt = new TH1F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 20, 0.0, 1.0);
@@ -1194,33 +1220,37 @@ int main()
 
 	    //new style tops
 	    if(isNewStyle){
-	      if((**recoTop1).size() > 0){
+	      if((**recoTop1).size() > 0 && (**recoTop1flags)[0] > -1){
+		//if((**recoTop1).size() > 0){ leptonic permitted
 		HOTEval.addReco(*recoTop1, **recoTop1flags);
-		if((**recoTop1flags)[0] > 0){
+		if((**recoTop1flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop1flags)[0] > 2)
 		    nRecoTops++;
 		}
 	      }
-	      if((**recoTop2).size() > 0){
+	      if((**recoTop2).size() > 0 && (**recoTop2flags)[0] > -1){
+		//if((**recoTop2).size() > 0){
 		HOTEval.addReco(*recoTop2, **recoTop2flags);
-		if((**recoTop2flags)[0] > 0){
+		if((**recoTop2flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop2flags)[0] > 2)
 		    nRecoTops++;
 		}
 	      }
-	      if((**recoTop3).size() > 0){
+	      if((**recoTop3).size() > 0 && (**recoTop3flags)[0] > -1){
+		//if((**recoTop3).size() > 0){
 		HOTEval.addReco(*recoTop3, **recoTop3flags);
-		if((**recoTop3flags)[0] > 0){
+		if((**recoTop3flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop3flags)[0] > 2)
 		    nRecoTops++;
 		}
 	      }
-	      if((**recoTop4).size() > 0){
+	      if((**recoTop4).size() > 0 && (**recoTop4flags)[0] > -1){
+		//if((**recoTop4).size() > 0){
 		HOTEval.addReco(*recoTop4, **recoTop4flags);
-		if((**recoTop4flags)[0] > 0){
+		if((**recoTop4flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop4flags)[0] > 2)
 		    nRecoTops++;
@@ -1373,8 +1403,7 @@ int main()
 	    h_nTrueRecoTops->Fill(nAnyHadTops);
 	    h_nCandTops_hot->Fill(nHOTTops);
 	    h_nCandTops_bdt->Fill(nBDTTops);
-	    //switch (nAnyHadTops) {
-	    switch (nRecoTops) {
+	    switch (nAnyHadTops) {
 	    case 1: 
 	      h_nCandTops_hot1->Fill(nHOTTops);
 	      h_nCandTops_bdt1->Fill(nBDTTops);
@@ -1390,6 +1419,32 @@ int main()
 	    case 4: 
 	      h_nCandTops_hot4->Fill(nHOTTops);
 	      h_nCandTops_bdt4->Fill(nBDTTops);
+	      break;
+	    default:
+	      h_nCandTops_hot_oth->Fill(nHOTTops);
+	      h_nCandTops_bdt_oth->Fill(nBDTTops);
+	      break;
+	    }
+	    switch (nRecoTops) { //only fully reconstructable tops... not good for ensuring everything adds up!
+	    case 0:
+	      h_nCandFullTops_hot_0->Fill(nHOTTops);
+	      h_nCandFullTops_bdt_0->Fill(nBDTTops);
+	      break;
+	    case 1: 
+	      h_nCandFullTops_hot1->Fill(nHOTTops);
+	      h_nCandFullTops_bdt1->Fill(nBDTTops);
+	      break;
+	    case 2: 
+	      h_nCandFullTops_hot2->Fill(nHOTTops);
+	      h_nCandFullTops_bdt2->Fill(nBDTTops);
+	      break;
+	    case 3: 
+	      h_nCandFullTops_hot3->Fill(nHOTTops);
+	      h_nCandFullTops_bdt3->Fill(nBDTTops);
+	      break;
+	    case 4: 
+	      h_nCandFullTops_hot4->Fill(nHOTTops);
+	      h_nCandFullTops_bdt4->Fill(nBDTTops);
 	      break;
 	    }
             printf("\n");
@@ -1424,6 +1479,19 @@ int main()
     h_nCandTops_bdt3->Write();
     h_nCandTops_hot4->Write();
     h_nCandTops_bdt4->Write();
+    h_nCandTops_hot_oth->Write();
+    h_nCandTops_bdt_oth->Write();
+
+    h_nCandFullTops_hot1->Write();
+    h_nCandFullTops_bdt1->Write();
+    h_nCandFullTops_hot2->Write();
+    h_nCandFullTops_bdt2->Write();
+    h_nCandFullTops_hot3->Write();
+    h_nCandFullTops_bdt3->Write();
+    h_nCandFullTops_hot4->Write();
+    h_nCandFullTops_bdt4->Write();
+    h_nCandFullTops_hot_0->Write();
+    h_nCandFullTops_bdt_0->Write();
 
     //Write HOT histos
     h_typeIII_hot->Write();
@@ -1526,6 +1594,27 @@ int main()
     delete h_nTrueRecoTops;
     delete h_nCandTops_hot;	       
     delete h_nCandTops_bdt;
+    delete h_nCandTops_hot1;
+    delete h_nCandTops_bdt1;
+    delete h_nCandTops_hot2;
+    delete h_nCandTops_bdt2;
+    delete h_nCandTops_hot3;
+    delete h_nCandTops_bdt3;
+    delete h_nCandTops_hot4;
+    delete h_nCandTops_bdt4;
+    delete h_nCandTops_hot_oth;
+    delete h_nCandTops_bdt_oth;
+
+    delete h_nCandFullTops_hot1;
+    delete h_nCandFullTops_bdt1;
+    delete h_nCandFullTops_hot2;
+    delete h_nCandFullTops_bdt2;
+    delete h_nCandFullTops_hot3;
+    delete h_nCandFullTops_bdt3;
+    delete h_nCandFullTops_hot4;
+    delete h_nCandFullTops_bdt4;
+    delete h_nCandFullTops_hot_0;
+    delete h_nCandFullTops_bdt_0;
 
     // HOT histos
     delete h_typeIII_hot;
