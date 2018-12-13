@@ -59,8 +59,9 @@ class ResTTEvaluator{
   void classifyG();
 
   //method for getting final pairs of 
-  std::pair<double, std::string> getClass(int index);
-  std::vector<std::pair<double, std::string>> getClasses();
+  std::pair<double, std::string> getClassR(int index);
+  std::vector<std::pair<double, std::string>> getClassesR();
+  std::vector<std::pair<double, std::string>> getOrderedClassesR();
 
  private:
   bool _debug = false;
@@ -88,8 +89,8 @@ class ResTTEvaluator{
   std::vector< std::pair< std::vector<TLorentzVector>, double >* > _ordCand; //use pointers?
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _reco; //include flags in here...
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
-  std::vector< std::pair< double, std::string > > _class; //classification, using number and string
-  std::vector< std::pair< double, std::string >* > _ordClass; //shoulda made a struct...
+  std::vector< std::pair< double, std::string > > _classR; //classification, using number and string
+  std::vector< std::pair< double, std::string >* > _ordClassR; //shoulda made a struct...
   bool _haveFlags;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
@@ -495,22 +496,38 @@ void ResTTEvaluator::classifyR(){
     std::pair< double, std::string> tempClassPair;
     tempClassPair.first = _cand[m].second;
     tempClassPair.second = tempClass;
-    _class.push_back(tempClassPair);
+    _classR.push_back(tempClassPair);
     if(_verbose)
-      std::cout << "\t\t\t\tClassification: "  << _class[m].first << "\t\t" << _class[m].second << std::endl;
+      std::cout << "\t\t\t\tClassification: "  << _classR[m].first << "\t\t" << _classR[m].second << std::endl;
   }
   //for(int mm = 0; mm < _nCand; mm++)
-    //std::cout << "\t\t\t\tClassification: "  << _class[mm].first << "\t\t" << _class[mm].second << std::endl;
+    //std::cout << "\t\t\t\tClassification: "  << _classR[mm].first << "\t\t" << _classR[mm].second << std::endl;
 }
 void ResTTEvaluator::classifyG(){
   std::cout << "If I were a real little classifer (Gen), I would have done some classification (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
 }
-std::pair<double, std::string> ResTTEvaluator::getClass(int index){
-  return _class[index];
+std::pair<double, std::string> ResTTEvaluator::getClassR(int index){
+  return _classR[index];
 }
-std::vector<std::pair<double, std::string>> ResTTEvaluator::getClasses(){
-  return _class;
+std::vector<std::pair<double, std::string>> ResTTEvaluator::getClassesR(){
+  return _classR;
 }
+std::vector<std::pair<double, std::string>> ResTTEvaluator::getOrderedClassesR(){
+  // std::sort(_ordClassR.begin(), _ordClassR.end(), [](const std::pair<;
+  // 	    std::sort(v.begin(), v.end(), [](const std::pair<int,int> &left, const std::pair<int,int> &right) {
+  // 		return left.second < right.second;
+  // 	      });
+  //could be moved to classify or evaluate method instead, so no double sorting
+  std::vector<std::pair<double, std::string>> _ordClassRout = _classR;
+  std::sort(_ordClassRout.begin(), _ordClassRout.end(), [](const std::pair<double, std::string> &left, const std::pair<double, std::string> &right) {
+      return left.first > right.first;
+    });
+  // for(int rr = 0; rr < _ordClassR.size(); rr++){
+  //   _ordClassRout.push_back(*(_ordClassR[rr]));
+  // }
+  return _ordClassRout;
+}
+
 
 int main()
 {
@@ -525,7 +542,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 1000000;
+  uint maxEventsToProcess = 1000;
 
   //Event Info Histograms
   TH1I *h_nTrueRecoTops_full = new TH1I ("h_nTrueRecoTops_full", 
@@ -655,7 +672,10 @@ int main()
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT50HT.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT250HT.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT500HT.root");
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTTTT500HT.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTTTT500HT.root");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTT50HT.root", "r");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTT500HT.root", "r");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTTT500HT.root", "r");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -1366,7 +1386,12 @@ int main()
 	    std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
 	    HOTEval.printDimensions();
 	    HOTEval.evaluateR();
-	    std::vector<std::pair<double, std::string>> tCR = HOTEval.getClasses();
+	    std::vector<std::pair<double, std::string>> tCR = HOTEval.getClassesR();
+	    std::vector<std::pair<double, std::string>> tCR_ord = HOTEval.getOrderedClassesR();
+	    std::cout << "\n\tOrdered candidates: ";
+	    for(int f = 0; f < tCR_ord.size(); f++){
+	      std::cout << tCR_ord[f].first << " (" << tCR_ord[f].second << ")\t";
+	    }
 	    if(tCR.size() != nHOTTops) nERROR++;
 
 	    for(int e = 0; e < tCR.size(); e++){
