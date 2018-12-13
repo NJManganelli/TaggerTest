@@ -90,7 +90,7 @@ class ResTTEvaluator{
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _reco; //include flags in here...
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
   std::vector< std::pair< double, std::string > > _classR; //classification, using number and string
-  std::vector< std::pair< double, std::string >* > _ordClassR; //shoulda made a struct...
+  std::vector< std::pair< double, std::string > > _ordClassR; //shoulda made a struct...
   bool _haveFlags;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
@@ -502,6 +502,13 @@ void ResTTEvaluator::classifyR(){
   }
   //for(int mm = 0; mm < _nCand; mm++)
     //std::cout << "\t\t\t\tClassification: "  << _classR[mm].first << "\t\t" << _classR[mm].second << std::endl;
+
+  //make ordered classification vector
+  _ordClassR = _classR;
+  std::sort(_ordClassR.begin(), _ordClassR.end(), [](const std::pair<double, std::string> &left, const std::pair<double, std::string> &right) {
+      return left.first > right.first;
+    });
+  
 }
 void ResTTEvaluator::classifyG(){
   std::cout << "If I were a real little classifer (Gen), I would have done some classification (and stuff!). Since I'm not (yet), I'll just let you know this worked!" << std::endl;
@@ -518,14 +525,15 @@ std::vector<std::pair<double, std::string>> ResTTEvaluator::getOrderedClassesR()
   // 		return left.second < right.second;
   // 	      });
   //could be moved to classify or evaluate method instead, so no double sorting
-  std::vector<std::pair<double, std::string>> _ordClassRout = _classR;
-  std::sort(_ordClassRout.begin(), _ordClassRout.end(), [](const std::pair<double, std::string> &left, const std::pair<double, std::string> &right) {
-      return left.first > right.first;
-    });
+  // std::vector<std::pair<double, std::string>> _ordClassRout = _classR;
+  // std::sort(_ordClassRout.begin(), _ordClassRout.end(), [](const std::pair<double, std::string> &left, const std::pair<double, std::string> &right) {
+  //     return left.first > right.first;
+  //   });
   // for(int rr = 0; rr < _ordClassR.size(); rr++){
   //   _ordClassRout.push_back(*(_ordClassR[rr]));
   // }
-  return _ordClassRout;
+  //return _ordClassRout;
+  return _ordClassR;
 }
 
 
@@ -542,7 +550,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 1000;
+  uint maxEventsToProcess = 10000;
 
   //Event Info Histograms
   TH1I *h_nTrueRecoTops_full = new TH1I ("h_nTrueRecoTops_full", 
@@ -1389,9 +1397,11 @@ int main()
 	    std::vector<std::pair<double, std::string>> tCR = HOTEval.getClassesR();
 	    std::vector<std::pair<double, std::string>> tCR_ord = HOTEval.getOrderedClassesR();
 	    std::cout << "\n\tOrdered candidates: ";
-	    for(int f = 0; f < tCR_ord.size(); f++){
-	      std::cout << tCR_ord[f].first << " (" << tCR_ord[f].second << ")\t";
-	    }
+	    if(tCR_ord.size() > 1)
+	      for(int f = 2; f < tCR_ord.size(); f++){
+		//std::cout << tCR_ord[f].first << " (" << tCR_ord[f].second << ")\t";
+		if(tCR_ord[f].first > tCR_ord[f-1].first) nERROR++;
+	      }
 	    if(tCR.size() != nHOTTops) nERROR++;
 
 	    for(int e = 0; e < tCR.size(); e++){
