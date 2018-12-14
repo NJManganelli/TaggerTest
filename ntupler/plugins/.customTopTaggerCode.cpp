@@ -756,6 +756,11 @@ int main()
     std::vector<int>** recoTop3flags = new std::vector<int>*();
     std::vector<int>** recoTop4flags = new std::vector<int>*();
 
+    //run, lumi, event variables
+    uint run;
+    uint lumiBlock;
+    uint event;
+
 
     //Deactivate all branches, then activate the branches of interest
     tree->SetBranchStatus("*", 0);
@@ -886,6 +891,16 @@ int main()
       // tree->SetBranchAddress("ak8softDropMass", AK8JetSoftdropMass);
     }
     else if(runStdExample == false){
+      //run, lumi, event branches
+      tree->SetBranchStatus( "run", 1);
+      tree->SetBranchAddress("run", &run);
+
+      tree->SetBranchStatus( "lumiBlock", 1);
+      tree->SetBranchAddress("lumiBlock", &lumiBlock);
+
+      tree->SetBranchStatus( "event", 1);
+      tree->SetBranchAddress("event", &event);
+
       //SLntuple.root branches
       //Activate branches of interest
       //AK4 jet lorentz vectors
@@ -1286,6 +1301,12 @@ int main()
 		  if((**recoTop4flags)[0] > 2)
 		    nRecoTops++;
 		}
+	      }
+	      if(nAnyHadTops == 0){
+		std::cout << "\n>>>>>>>>>>>>\n";
+		for(const uint oldflag: **FlagTop)
+		  std::cout << "\tO: " << oldflag;
+		std::cout << "\n\tRun: " << run << "\tLumi: " << lumiBlock << "\tEvent: " << event << std::endl;
 	      }
 	    }
 	    std::cout << "\n\t\t\t\tNumber of Hadronic Tops passed from event: " << nAnyHadTops << std::endl;
