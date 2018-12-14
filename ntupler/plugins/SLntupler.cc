@@ -106,6 +106,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   bool is2016, is2017, is2018;
   double HTMin;
   int NjMin;
+  int NbMin;
 
   //Tokens
   edm::EDGetTokenT<std::vector<pat::Jet> > JetToken;
@@ -166,6 +167,7 @@ class SLntupler : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
   bool MuMu, ElMu, ElEl, El, Mu, SL, DL;   //bool HLT
   bool selectedLepIsMu, vetoLep1IsMu, vetoLep2IsMu; //FIXME add these to tree, etc...
   double HT, HTX, HT2M; //FIXME Calculate and add these...
+  int nBTags;
   //std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > *allRecoTops;
   //std::vector<topContainer> *allRecoTops;
   std::vector<TLorentzVector> *recoTop1, *recoTop2, *recoTop3, *recoTop4; //new style top containers and flags
@@ -199,6 +201,7 @@ SLntupler::SLntupler(const edm::ParameterSet& iConfig):
   maskDeepCSV(iConfig.getParameter<bool>("maskDeepCSV")), is2016(iConfig.getParameter<bool>("is2016")), 
   is2017(iConfig.getParameter<bool>("is2017")), is2018(iConfig.getParameter<bool>("is2018")), 
   HTMin(iConfig.getParameter<double>("HTMin")), NjMin(iConfig.getParameter<int>("NjMin")),
+  NbMin(iConfig.getParameter<int>("NbMin")),
   EleVetoIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap2016"))),
   EleLooseIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap2016"))),
   EleMediumIdMapToken(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap2016"))),
@@ -737,7 +740,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //auto ea = ea_pfiso_->getEffectiveArea(fabs(getEtaForEA(&electron)));
      //float scale = relative_ ? 1.0/obj.pt() : 1;
 
-     if(electron.pt() > 30 && fabs(electron.eta()) < 2.1 && tightID){
+     if(electron.pt() > 35 && fabs(electron.eta()) < 2.1 && tightID){
      //Set up Lorentz Vector for Electrons
      TLorentzVector perElectronLVec;
      perElectronLVec.SetPtEtaPhiE( electron.pt(), electron.eta(), electron.phi(), electron.energy() );
@@ -776,6 +779,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(verBose) std::cout << "\n=============Jets============\n";
    //Reset HT to 0
    HT = 0;
+
+   //Reset Number of BTags
+   nBTags = 0;
+   
    if(deBug && counter == theProblemEvent) std::cout << "L1 ";
    for(const pat::Jet&jet : *jets){
      // if(jet.genParton()){
@@ -784,7 +791,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      // 															  //<< " Phi's: " << jet.phi() << " " << jet.genParton()->phi() << std::endl;
      // }
      //Jet Selection 30GeV, usual calorimeter acceptance
-     if(jet.pt() < 30 || fabs(jet.eta()) >= 2.5)
+     if(jet.pt() < 30 || fabs(jet.eta()) >= 2.4)
        continue;
    //===/////////////
    //===//// CUT ///
@@ -871,6 +878,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //Sum HT for selected jets
      HT += jet.pt();
 
+     //count number of medium b-tags
+     if(btag > 0.8484)
+       nBTags++;
+
      if(deBug && counter == theProblemEvent) std::cout << "L9 ";
      JetLVec->push_back(perJetLVec);
      qgPtDVec->push_back(qgPtD);
@@ -931,6 +942,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    if(deBug && counter == theProblemEvent) std::cout << "L14 ";
    nEvts++;
 
+   ////////////////////////////////
+   /// B-tagged Jet Minimum cut ///
+   ////////////////////////////////
+   if(NbMin > -1)
+     if(nBTags < NbMin){
+       return;
+     }
    //////////////////////
    //// Gen Matching ////
    //////////////////////
@@ -1528,6 +1546,7 @@ SLntupler::beginJob()
    tree->Branch("lumiBlock", &nLumiBlock);
    tree->Branch("event", &nEvent);
    tree->Branch("nHadronicTops", &nHadronicTops);
+   tree->Branch("nBTags", &nBTags);
    tree->Branch("nElectronicTops", &nElectronicTops);
    tree->Branch("nMuonicTops", &nMuonicTops);
    tree->Branch("nTauonicTops", &nTauonicTops);

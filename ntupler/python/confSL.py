@@ -35,7 +35,8 @@ process.tree.deBug = cms.bool(False)
 process.tree.verBose = cms.bool(False)
 process.tree.maskDeepCSV = cms.bool(False)
 process.tree.HTMin = cms.double(500)
-process.tree.NjMin = cms.int32(3)
+process.tree.NjMin = cms.int32(7)
+process.tree.NbMin = cms.int32(2)
 
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('SLNewtuple.root'),

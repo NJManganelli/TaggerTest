@@ -168,6 +168,7 @@ process.tree.verBose = cms.bool(False)
 process.tree.maskDeepCSV = cms.bool(False)
 process.tree.HTMin = cms.double(500)
 process.tree.NjMin = cms.int32(7)
+process.tree.NbMin = cms.int32(2)
 # process.myNtupler = cms.EDProducer('prepper', 
 #                                    src = cms.InputTag("selectedUpdatedPatJetsDeepCSV"),
 # )
@@ -186,7 +187,7 @@ process.tree.NjMin = cms.int32(7)
 
 #for the ntupler
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string('LongTT500HT.root'),
+                                   fileName = cms.string('LongTT500HT_corr.root'),
                                    closeFileFast = cms.untracked.bool(True) 
                                    )
 
