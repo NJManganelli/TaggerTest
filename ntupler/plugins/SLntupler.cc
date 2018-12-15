@@ -322,6 +322,8 @@ SLntupler::~SLntupler()
 void
 SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  bool foundProbEvent = (iEvent.id().event() == theProblemEvent);
+
    counter++;
    if(deBug) std::cout << "Counter: " << counter << std::endl;
 
@@ -525,7 +527,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    /////////////////////////////
    /// HLT TRIGGER SELECTION ///
    /////////////////////////////
-   if(verBose) std::cout << "\n=============HLT=============\n";
+   if(verBose || foundProbEvent) std::cout << "\n=============HLT=============\n";
    const edm::TriggerNames &HLTnames = iEvent.triggerNames(*HLTTrg);
    for (unsigned int i = 0, n = HLTTrg->size(); i < n; ++i) {
      //std::cout << HLTnames.triggerName(i) << std::endl;
@@ -537,33 +539,33 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::string trgSubName = trgName.substr(0, trgName.find(delimeter) + delimeter.length()); //only take the common portion of trigger (up through version marker _v)
      for(uint j = 0; j < HLT_MuMu_S.size(); j++)
        if (trgSubName == HLT_MuMu_S[j]){
-	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_MuMu_B;
+	 if(verBose || foundProbEvent) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_MuMu_B;
 	 HLT_MuMu_B[j] = trgBit; //sets individual bit, starting from most significant ("leftmost" in 'operator<<' language)
-	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_MuMu_B << std::endl;
+	 if(verBose || foundProbEvent) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_MuMu_B << std::endl;
        }
      for(uint jj = 0; jj < HLT_ElMu_S.size(); jj++)
        if (trgSubName == HLT_ElMu_S[jj]){
-	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElMu_B;
+	 if(verBose || foundProbEvent) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElMu_B;
 	 HLT_ElMu_B[jj] = trgBit;
-	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElMu_B << std::endl;
+	 if(verBose || foundProbEvent) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElMu_B << std::endl;
        }
      for(uint jjj = 0; jjj < HLT_ElEl_S.size(); jjj++)
        if (trgSubName == HLT_ElEl_S[jjj]){
-	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElEl_B;
+	 if(verBose || foundProbEvent) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_ElEl_B;
 	 HLT_ElEl_B[jjj] = trgBit;
-	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElEl_B << std::endl;
+	 if(verBose || foundProbEvent) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_ElEl_B << std::endl;
        }
      for(uint k = 0; k < HLT_Mu_S.size(); k++)
        if (trgSubName == HLT_Mu_S[k]){
-	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_Mu_B;
+	 if(verBose || foundProbEvent) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_Mu_B;
 	 HLT_Mu_B[k] = trgBit;
-	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_Mu_B << std::endl;
+	 if(verBose || foundProbEvent) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_Mu_B << std::endl;
        }
      for(uint kk = 0; kk < HLT_El_S.size(); kk++)
        if (trgSubName == HLT_El_S[kk]){
-	 if(verBose) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_El_B;
+	 if(verBose || foundProbEvent) std::cout << " Name: " << trgName << " Initial Bits: " << HLT_El_B;
 	 HLT_El_B[kk] = trgBit;
-	 if(verBose) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_El_B << std::endl;
+	 if(verBose || foundProbEvent) std::cout << " Accepted: " << trgBit << " Final Bits: " << HLT_El_B << std::endl;
        }     
    }
    //bitset -> unsigned long -> unsigned int (ROOT-compatible format)
@@ -579,7 +581,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    //SL Trigger only
    if(!(HLT_Mu_B.any() || HLT_El_B.any())){
-     if(verBose)
+     if(verBose || foundProbEvent)
        std::cout << "No SL triggers pass!" << std::endl;
      return; //move to next event if not SL trigger
    }
@@ -594,13 +596,13 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      const edm::TriggerNames &names = iEvent.triggerNames(*METFlt);
      for (uint i = 0; i < METFlt->size(); ++i) {
        std::string fltName = names.triggerName(i); //convenient name storage
-       if(verBose) std::cout << fltName << std::endl;
+       if(verBose || foundProbEvent) std::cout << fltName << std::endl;
        bool fltBit = METFlt->accept(i); //filter pass bit
        for(uint j = 0; j < MET_Flt_S.size(); j++){
 	 if (fltName == MET_Flt_S[j]){
-	   if(verBose) std::cout << "Initial Bits: " << MET_Flt_B;
+	   if(verBose || foundProbEvent) std::cout << "Initial Bits: " << MET_Flt_B;
 	   MET_Flt_B[j] = fltBit; //store bit decision in bitset
-	   if(verBose) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
+	   if(verBose || foundProbEvent) std::cout << " Name: " << fltName << " Accepted: " << fltBit << " Bits: " << MET_Flt_B << std::endl;
 	 }     
        }
      }
@@ -615,6 +617,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nRun = iEvent.id().run();
    nLumiBlock = iEvent.id().luminosityBlock();
    nEvent = iEvent.id().event();
+   //bool foundProbEvent = (nEvent == theProblemEvent);
 
    /////////////////////
    //// Good Vertex ////
@@ -629,7 +632,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
    //Require good vertex
    if(firstGoodVertex == vertices->end()){
-     if(verBose)
+     if(verBose || foundProbEvent)
        std::cout << "No good PV!" << std::endl;
      return;
    }
@@ -643,11 +646,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ///////////////////////
    //// MET Selection ////
    ///////////////////////
-   if(verBose) std::cout << "\n=============MET=============\n";
+   if(verBose || foundProbEvent) std::cout << "\n=============MET=============\n";
    const pat::MET &met = mets->front();
-   if(verBose) std::cout << "MET Pt: " << met.pt() << " Phi: " << met.phi() << std::endl;
+   if(verBose || foundProbEvent) std::cout << "MET Pt: " << met.pt() << " Phi: " << met.phi() << std::endl;
    if(met.pt() < 50){
-     if(verBose) 
+     if(verBose || foundProbEvent) 
        std::cout << "MET below 50GeV!" << std::endl;
      return;
    }
@@ -661,7 +664,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////
    //// Selected Muons ////
    ////////////////////////
-   if(verBose) std::cout << "\n============Muons============\n";
+   if(verBose || foundProbEvent) std::cout << "\n============Muons============\n";
    for(const pat::Muon& muon : *muons){
      //Min cuts for the Loose (veto) Muon selection
      if(muon.pt() <= 10 || fabs(muon.eta()) >= 2.5)
@@ -690,14 +693,14 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        selectedLepLVec->push_back(perMuonLVec);
 
        //debug info
-       if(verBose)
+       if(verBose || foundProbEvent)
 	 std::cout << "Pt: " << muon.pt() << " Eta: " << muon.eta() << " Phi: " << muon.phi()  << "Tight ID: " << muon.isTightMuon(*firstGoodVertex)
 		   << " Loose ID: " << muon.isLooseMuon() << " relIso: " << relIso << std::endl;
      }
 
      //Select Loose Muons for Veto (Loose ID, relIso < 0.25, pt > 10, |eta| < 2.5)
      else if(muon.isLooseMuon() ){
-       if(verBose)
+       if(verBose || foundProbEvent)
 	 std::cout << "Loose Muon (2nd Lepton) detected!" << std::endl;
        return;  // If there are any Loose/Veto Leptons, then not in the SL channel!
      }
@@ -710,7 +713,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////////
    //// Selected Electrons ////
    ////////////////////////////
-   if(verBose) std::cout << "\n==========Electrons==========\n";
+   if(verBose || foundProbEvent) std::cout << "\n==========Electrons==========\n";
    int ii = -1;
    for(const reco::GsfElectron& electron : *gsfelectrons){
      ii++;
@@ -728,7 +731,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      bool tightID = (*tight_id_decisions)[el];
 
      //verBose info
-     if(verBose)
+     if(verBose || foundProbEvent)
        std::cout << "Pt: " << electron.pt() << " Eta: " << electron.eta() << " Phi: " << electron.phi() << " Veto ID: " << vetoID << " Tight ID: " << tightID << std::endl;
 
      //Calculate Isolation
@@ -749,7 +752,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      selectedLepLVec->push_back(perElectronLVec);
      }
      else if(vetoID){
-       if(verBose)
+       if(verBose || foundProbEvent)
 	 std::cout << "Veto electron (2nd Lepton) detected!" << std::endl;
        return;
      }
@@ -760,12 +763,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        
    //SL Select events with only 1 isolated lepton
    if(selectedLepLVec->size() > 1){
-     if(verBose)
+     if(verBose || foundProbEvent)
        std::cout << "Two well-ID'd, well-isolated leptons detected!" << std::endl;
      return;
    }
    if(selectedLepLVec->size() < 1){
-     if(verBose)
+     if(verBose || foundProbEvent)
        std::cout << "No well-ID'd, well isolated leptons detected!" << std::endl;
      return;
    }
@@ -776,7 +779,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ///////////////////////
    //// Selected Jets ////
    ///////////////////////
-   if(verBose) std::cout << "\n=============Jets============\n";
+   if(verBose || foundProbEvent) std::cout << "\n=============Jets============\n";
    //Reset HT to 0
    HT = 0;
 
@@ -844,7 +847,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      bool looseJetID = 
        (neutralHadronEnergyFraction < 0.99 && neutralEmEnergyFraction < 0.99 && (jet.chargedMultiplicity() + jet.neutralMultiplicity() ) > 1) && 
        ((fabs(jet.eta()) <= 2.4 && chargedHadronEnergyFraction > 0 && jet.chargedMultiplicity() > 0 && chargedEmEnergyFraction < 0.99) || fabs(jet.eta()) > 2.4 );
-     if(verBose) std::cout << "Pt: " << jet.pt() << " Eta: " << jet.eta() << " Phi: " << jet.phi() << " Jet Loose ID: " 
+     if(verBose || foundProbEvent) std::cout << "Pt: " << jet.pt() << " Eta: " << jet.eta() << " Phi: " << jet.phi() << " Jet Loose ID: " 
 			 << looseJetID << " CSVv2: " << btag << " DeepCSV(b+bb): " << deepCSVb + deepCSVbb << std::endl;
      if(deBug && counter == theProblemEvent) std::cout << "L6 ";
      if(!looseJetID)
@@ -861,12 +864,12 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    // }
      double dR = perJetLVec.DeltaR(selectedLepLVec->at(0));
      if(deBug && counter == theProblemEvent) std::cout << "L7B ";
-     if(verBose) 
+     if(verBose || foundProbEvent) 
        std::cout << ">>Cross-Cleaning<< Jet Eta: " << jet.eta() << " Jet Phi: " << jet.phi() << " Lep Eta: " << selectedLepLVec->at(0).Eta() 
 		 << " Lep Phi: " << selectedLepLVec->at(0).Phi() << " Jet-Lep DeltaR: " << dR << std::endl;
      //0.4 for SL, 0.3 for DL!
      if(dR < 0.4){
-       if(verBose)
+       if(verBose || foundProbEvent)
 	 std::cout << "Cross-cleaning jet!" << std::endl;
        continue;
      }
@@ -916,10 +919,10 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //////////////////////
    /// HT Minimum cut ///
    //////////////////////
-   if(verBose)
+   if(verBose || foundProbEvent)
      std::cout << "HT: " << HT << std::endl;
    if(HT < HTMin){
-     if(verBose)
+     if(verBose || foundProbEvent)
        std::cout << "HT below threshold of " << HTMin << "!" << std::endl;
      return;
    }
@@ -931,11 +934,11 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    ////////////////////////
    /// Njet Minimum cut ///
    ////////////////////////
-   if(verBose)
+   if(verBose || foundProbEvent)
      std::cout << "Njet: " << JetLVec->size() << std::endl;
    if(NjMin > -1)
      if(JetLVec->size() < (uint)NjMin){
-       if(verBose) 
+       if(verBose || foundProbEvent) 
 	 std::cout << "Below threshold of minimum jets, continuing to next event" << std::endl;
        return;
      }
@@ -961,7 +964,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nTauonicTops = 0;
    if(isMC){
      //bottom up gen approach
-     if(verBose)
+     if(verBose || foundProbEvent)
        std::cout << "============================Jet Gen Dump===================================" << std::endl;
      //std::vector<const reco::GenParticle*> tquarks, uniquetquarks;
      std::pair< std::vector <const reco::GenParticle*>, std::vector <const pat::Jet*> > candTop1, candTop2, candTop3, candTop4;
@@ -973,7 +976,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //If you're reading this now, you owe me for this magnificent set of puns. Please send USD$5.00 to my paypal account at Tu...
      for(const reco::GenParticle& part: *gens){
 
-       if(verBose) std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
+       if(verBose || foundProbEvent) std::cout << "Status: " << part.status() << " pdgId: " << part.pdgId() << " numMothers: " << part.numberOfMothers() << " numDaughters: " << part.numberOfDaughters() << std::endl;
        if(fabs(part.pdgId()) == 6 && part.numberOfDaughters() == 2 
 	  && ( fabs(part.daughterRefVector()[0]->pdgId()) == 24 || fabs(part.daughterRefVector()[1]->pdgId()) == 24) ){
 	 const reco::GenParticle top = part;
@@ -1002,21 +1005,21 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 // }
 
 	 //debug info from bottom daughters... not always a nice fragmentation
-	 if(verBose) 
+	 if(verBose || foundProbEvent) 
 	   std::cout << "\nBottom quark and daughters \n pdgId \t p \t pt \t eta \t phi  \nb Id: " 
 		     << bottom->pdgId() << " Pt: " << bottom->pt() << " Eta: " << bottom->eta() << " Phi: " << bottom->phi()
 		     << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < bottom->numberOfDaughters(); i++){
 	   auto deDau = *(bottom->daughterRefVector()[i]);
 	   //if(fabs(deDau.pdgId()) == 5)
-	   if(verBose) 
+	   if(verBose || foundProbEvent) 
 	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
 	 }
 	 //std::cout  << "\n\"W\": " << W.pdgId() << std::endl;
 
 	 //assign and loop through daughter chains
 	 const reco::GenParticle* Wdau1 = &(**(W->daughterRefVector().begin()));
-	 if(verBose)
+	 if(verBose || foundProbEvent)
 	   std:: cout << "Wdau1 pdgId reads: " << Wdau1->pdgId() << std::endl;
 	 //int rcount = 0;
 	 // while(Wdau1->numberOfDaughters() == 1 && rcount < 100){
@@ -1026,18 +1029,18 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 // }
 
 	 //debug info from Wdau1 daughters...
-	 if(verBose) 
+	 if(verBose || foundProbEvent) 
 	   std::cout << "\nW daughter q1 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq1 Id: " 
 		     << Wdau1->pdgId() << " Pt: " << Wdau1->pt() << " Eta: " << Wdau1->eta() << " Phi: " << Wdau1->phi()
 		     << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < Wdau1->numberOfDaughters(); i++){
 	   auto deDau = *(Wdau1->daughterRefVector()[i]);
-	   if(verBose) 
+	   if(verBose || foundProbEvent) 
 	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
 	 }
 
 	 const reco::GenParticle* Wdau2 = &(**(++(W->daughterRefVector().begin())));
-	 if(verBose)
+	 if(verBose || foundProbEvent)
 	   std:: cout << "Wdau2 pdgId reads: " << Wdau2->pdgId() << std::endl;
 	 //int lcount = 0;
 	 // while(Wdau2->numberOfDaughters() == 1 && lcount < 100){
@@ -1048,18 +1051,18 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 // }
 	 //debug info from Wdau1 daughters...
 
-	 if(verBose) 
+	 if(verBose || foundProbEvent) 
 	   std::cout << "\nW daughter q2 and daughters  \n pdgId \t p \t pt \t eta \t phi \nq2 Id: " 
 		     << Wdau2->pdgId() << " Pt: " << Wdau2->pt() << " Eta: " << Wdau2->eta() << " Phi: " << Wdau2->phi()
 		     << "\n ===================================" << std::endl;
 	 for(uint i = 0; i < Wdau2->numberOfDaughters(); i++){
 	   auto deDau = *(Wdau2->daughterRefVector()[i]);
-	   if(verBose) 
+	   if(verBose || foundProbEvent) 
 	     std::cout << deDau.pdgId() << "\t" << deDau.p() << "\t" << deDau.pt() << "\t" << deDau.eta() << "\t" << deDau.phi() << std::endl;
 	 }
 
 	 //loop through all selected jets and find any that closely match the hadronic top constituents
-	 if(verBose) 
+	 if(verBose || foundProbEvent) 
 	   std::cout << "===> W daughters: " << W->numberOfDaughters() << " dau ID's: " << Wdau1->pdgId() << " " << Wdau2->pdgId() << std::endl;
 	 if(fabs(Wdau1->pdgId()) < 10 || fabs(Wdau2->pdgId()) < 10){
 	   nHadronicTops++;
@@ -1156,7 +1159,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 auto theGen = jet.genParton();
 	 auto theMom = theGen->motherRefVector().begin();
 	 //std::cout << " dump theMom: " << typeid(*theMom).name() << std::endl;
-	 if(verBose)
+	 if(verBose || foundProbEvent)
 	   std::cout << "\npdgId chain: " << theGen->pdgId() << " -> " << (*theMom)->pdgId();
 	 while((*theMom)->motherRefVector().size()){
 	   //std::cout << " size: " << (*theMom)->motherRefVector().size() << std::endl;
@@ -1226,19 +1229,19 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     break;
 	   }
 	   theMom = (*theMom)->motherRefVector().begin();
-	   if(verBose)
+	   if(verBose || foundProbEvent)
 	     std::cout << " -> " << (*theMom)->pdgId();
 	 }
        }
      }
 
      //debug print id's of all quarks in vectors
-     if(verBose) std::cout << "\n================Gen-Reco Matched Top Candidates================";
+     if(verBose || foundProbEvent) std::cout << "\n================Gen-Reco Matched Top Candidates================";
      for(uint ww = 0; ww < TopVec.size(); ww++){
-       if(verBose) std::cout << "\nTop Object " << ww+1 << " Constituents: ";
+       if(verBose || foundProbEvent) std::cout << "\nTop Object " << ww+1 << " Constituents: ";
        //for(uint w = 0; w < TopVec[ww].first.size(); w++)
        for(uint w = 0; w < TopVec[ww].first.size(); w++)
-	 if(verBose) std::cout << "\n" << TopVec[ww].first[w]->pdgId() << " Pt: " <<TopVec[ww].first[w]->pt() << " Eta: " << TopVec[ww].first[w]->eta();
+	 if(verBose || foundProbEvent) std::cout << "\n" << TopVec[ww].first[w]->pdgId() << " Pt: " <<TopVec[ww].first[w]->pt() << " Eta: " << TopVec[ww].first[w]->eta();
      }
    
 
@@ -1246,7 +1249,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::cout << "\n================Final Top Flags================" << std::endl;
      for(uint y = 0; y < TopVec.size(); y++){
        FlagTop->at(y) = TopVec[y].second + FlagBottom->at(y) + FlagQ1->at(y) + FlagQ2->at(y);
-       if(verBose) std::cout << "FlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second << std::endl;
+       if(verBose || foundProbEvent) std::cout << "FlagTop: " << FlagTop->at(y) << " TopVec.second: " << TopVec[y].second << std::endl;
      }
 
      //print development information
@@ -1256,15 +1259,15 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      bool filledTwo = false;
      bool filledThree = false;
      for(uint yy = 0; yy < candTopVec.size(); yy++){
-       if(verBose) std::cout << "\nTop Object " << yy+1 << std::endl;
-       if(verBose) std::cout << " (" << candTopVec[yy].first.size() << ") " << std::endl;
+       if(verBose || foundProbEvent) std::cout << "\nTop Object " << yy+1 << std::endl;
+       if(verBose || foundProbEvent) std::cout << " (" << candTopVec[yy].first.size() << ") " << std::endl;
        
        TLorentzVector theBJet, theQ1Jet, theQ2Jet;
        bool madeB = false;
        bool madeQ1 = false;
        bool madeQ2 = false;
        for(uint zz = 0; zz < candTopVec[yy].first.size(); zz++){
-	 if(verBose) std::cout << " position: " << yy+1
+	 if(verBose || foundProbEvent) std::cout << " position: " << yy+1
 		   << " pdgIds: " << candTopVec[yy].first[zz]->pdgId() << " " << candTopVec[yy].second[zz]->genParticle()->pdgId()
 		   << "\t gen matching true: " << ( candTopVec[yy].second[zz]->genParticle() == candTopVec[yy].first[zz])
 		   << "\t CSVv2: " << candTopVec[yy].second[zz]->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") 
@@ -1458,7 +1461,7 @@ SLntupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
      std::cout << "\nnHadronicTops = " << nHadronicTops << "\n\nEnd Event! Run: " << nRun << " Lumi: " << nLumiBlock << " Event: " 
 	       << nEvent << "\n===========================================================================" << std::endl;
-     if(verBose) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
+     if(verBose || foundProbEvent) std::cout << "nHadronicTops = " << nHadronicTops << " nElectronicTops = " << nElectronicTops << " nMuonicTops = " << nMuonicTops << " nTauonicTops = " << nTauonicTops << std::endl;
    }
    
    ///////////////////////////////////////////
