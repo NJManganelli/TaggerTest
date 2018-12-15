@@ -38,6 +38,10 @@ process.source = cms.Source("PoolSource",
 'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv2/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/ECEDB033-3DD0-E611-B113-001E674FB24D.root',
 'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv2/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/ECE0DD20-49D0-E611-82E9-00259048A860.root',
 'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv2/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/E2DED8FE-3AD0-E611-A76E-ECF4BBE1DD48.root',
+'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv2/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/DAC8D8EF-30D0-E611-B997-0CC47A0AD704.root',
+'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv2/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/DA98F8C5-42D0-E611-993F-00259048AC08.root',
+'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv2/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/D6C70088-34D0-E611-8170-002590FD5A52.root',
+'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv2/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/D4FB383E-32D0-E611-A630-002590FD5A52.root',
     )
 )
 

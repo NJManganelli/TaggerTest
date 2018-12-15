@@ -21,7 +21,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #else:
 print "Running on MC"
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(11000) )
 
 ################################
 ################################
@@ -155,6 +155,7 @@ process.eleIDntupler = cms.EDAnalyzer(
 
 # Placeholder for integrating ../../ntupler/plugins/ntupler.cc #
 process.load("Demo.ntupler.CfiFile_SL")
+#process.tree.theProblemEvent = cms.uint32(463408) #Bad event in TTToSL Gen Filtered sample (DL channel, actually!)
 process.tree.theProblemEvent = cms.uint32(0)
 process.tree.isMC = cms.bool(True)
 process.tree.is2016 = cms.bool(True)
