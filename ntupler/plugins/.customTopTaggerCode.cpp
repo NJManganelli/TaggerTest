@@ -656,6 +656,9 @@ int main()
   TH1F *h_eventN3_Itp_bdt = new TH1F ("h_eventN3_tItp_bdt", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
   TH1F *h_eventN3_0xI_bdt = new TH1F ("h_eventN3_t0x1_bdt", "3rd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);  
 
+  //store errors
+  TH1I *h_nERROR = new TH1I ("h_nERROR", "Number of logic errors in classification system + miscellaneous", 100, 0, 100);
+
   //TH1F *TypeWDiscr = new TH1F ("h_fullWdiscr", "Fully Reconstructible W bosons; Discriminant; Number of matches", nBins, 0.0, 1.0);
 
   TH1I *RecoTypes = new TH1I ("h_recoTypes", "Reconstructible Top Candidates; I: IIbq: IIqq: III:;Number Gen Particles", 3, 0, 3);
@@ -682,11 +685,15 @@ int main()
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT250HT.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTT500HT.root");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/NewTTTT500HT.root");
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/ShortTT500HT_corr.root", "r"); //test of corrections to b-tagging, eta, pt requirements
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/ShortTT500HT_corr.root", "r"); //test of corrections to b-tagging, eta, pt requirements
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTT50HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTT500HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTSLFilt500HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTTT500HT.root", "r");
+
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTSLFilt500HT_corr.root", "r");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -1679,6 +1686,8 @@ int main()
     h_eventN3_Itp_bdt->Write();
     h_eventN3_0xI_bdt->Write();
 
+    h_nERROR->Write();
+
     //Write others, write file, close
     // h_typeIII->Write();
     // h_typeIIb->Write();
@@ -1802,6 +1811,7 @@ int main()
     delete h_eventN3_Itp_bdt;
     delete h_eventN3_0xI_bdt;
 
+    delete h_nERROR;
     delete tf, tf2, td, tree, of;
     //delete h_typeIII, h_typeIIb, h_typeIIw, h_typeIIo, h_typeI, RecoTypes;
     exit(0);
