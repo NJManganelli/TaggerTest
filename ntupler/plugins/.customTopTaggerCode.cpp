@@ -606,7 +606,7 @@ int main()
 
 
   //HOT discriminant histos
-  int nBins = 20;
+  int nBins = 40;
   TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
   TH1F *h_typeIIb_hot = new TH1F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
   TH1F *h_typeIImib_hot = new TH1F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
