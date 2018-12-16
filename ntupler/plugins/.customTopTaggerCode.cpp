@@ -4,6 +4,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TLorentzVector.h"
 
 //manditory includes to use top tagger
@@ -607,54 +608,94 @@ int main()
 
   //HOT discriminant histos
   int nBins = 40;
-  TH1F *h_typeIII_hot = new TH1F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIIb_hot = new TH1F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIImib_hot = new TH1F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIIw_hot = new TH1F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIImiq_hot = new TH1F ("h_typeIImiq_hot_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIt_hot = new TH1F ("h_typeIt_hot_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_typeIp_hot = new TH1F ("h_typeIp_hot_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_type0xI_hot = new TH1F ("h_type0xI_hot_", "Type 0xI (all other tagger candidates); Discriminant ; Number of Tagger Candidates", nBins, 0.0, 1.0);
+  TH2F *h_typeIII_hot = new TH2F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIIb_hot = new TH2F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIImib_hot = new TH2F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				    nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIIw_hot = new TH2F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIImiq_hot = new TH2F ("h_typeIImiq_hot_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				    nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIt_hot = new TH2F ("h_typeIt_hot_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+				 nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_typeIp_hot = new TH2F ("h_typeIp_hot_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+				 nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_type0xI_hot = new TH2F ("h_type0xI_hot_", "Type 0xI (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH1F *h_eventN1_III_hot = new TH1F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN1_II_hot = new TH1F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN1_Itp_hot = new TH1F ("h_eventN1_tItp_hot", "Highest Disc Cand (Type Itp) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN1_0xI_hot = new TH1F ("h_eventN1_t0x1_hot", "Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
+  TH2F *h_eventN1_III_hot = new TH2F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN1_II_hot = new TH2F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+				     nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN1_Itp_hot = new TH2F ("h_eventN1_tItp_hot", "Highest Disc Cand (Type Itp) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN1_0xI_hot = new TH2F ("h_eventN1_t0x1_hot", "Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH1F *h_eventN2_III_hot = new TH1F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN2_II_hot = new TH1F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN2_Itp_hot = new TH1F ("h_eventN2_tItp_hot", "2nd Highest Disc Cand (Type Itp) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN2_0xI_hot = new TH1F ("h_eventN2_t0x1_hot", "2nd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
+  TH2F *h_eventN2_III_hot = new TH2F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN2_II_hot = new TH2F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+				     nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN2_Itp_hot = new TH2F ("h_eventN2_tItp_hot", "2nd Highest Disc Cand (Type Itp) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN2_0xI_hot = new TH2F ("h_eventN2_t0x1_hot", "2nd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH1F *h_eventN3_III_hot = new TH1F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN3_II_hot = new TH1F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN3_Itp_hot = new TH1F ("h_eventN3_tItp_hot", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN3_0xI_hot = new TH1F ("h_eventN3_t0x1_hot", "3rd Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
+  TH2F *h_eventN3_III_hot = new TH2F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN3_II_hot = new TH2F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+				     nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN3_Itp_hot = new TH2F ("h_eventN3_tItp_hot", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN3_0xI_hot = new TH2F ("h_eventN3_t0x1_hot", "3rd Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
 
   //BDT Candidates
-  TH1F *h_typeIII_bdt = new TH1F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIIb_bdt = new TH1F ("h_typeIIb_bdt_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIIw_bdt = new TH1F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIImib_bdt = new TH1F ("h_typeIImib_bdt_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIImiq_bdt = new TH1F ("h_typeIImiq_bdt_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0); 
-  TH1F *h_typeIt_bdt = new TH1F ("h_typeIt_bdt_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_typeIp_bdt = new TH1F ("h_typeIp_bdt_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_type0xI_bdt = new TH1F ("h_type0xI_bdt_", "Type 0x1 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", nBins, 0.0, 1.0);
+  TH2F *h_typeIII_bdt = new TH2F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIIb_bdt = new TH2F ("h_typeIIb_bdt_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIIw_bdt = new TH2F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIImib_bdt = new TH2F ("h_typeIImib_bdt_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				    nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIImiq_bdt = new TH2F ("h_typeIImiq_bdt_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 
+				    nBins, 0.0, 1.0, 5, 7, 12); 
+  TH2F *h_typeIt_bdt = new TH2F ("h_typeIt_bdt_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+				 nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_typeIp_bdt = new TH2F ("h_typeIp_bdt_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+				 nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_type0xI_bdt = new TH2F ("h_type0xI_bdt_", "Type 0x1 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 
+				  nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH1F *h_eventN1_III_bdt = new TH1F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN1_II_bdt = new TH1F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN1_Itp_bdt = new TH1F ("h_eventN1_tItp_bdt", "Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN1_0xI_bdt = new TH1F ("h_eventN1_t0x1_bdt", "Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
+  TH2F *h_eventN1_III_bdt = new TH2F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN1_II_bdt = new TH2F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+				     nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN1_Itp_bdt = new TH2F ("h_eventN1_tItp_bdt", "Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN1_0xI_bdt = new TH2F ("h_eventN1_t0x1_bdt", "Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH1F *h_eventN2_III_bdt = new TH1F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN2_II_bdt = new TH1F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN2_Itp_bdt = new TH1F ("h_eventN2_tItp_bdt", "2nd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN2_0xI_bdt = new TH1F ("h_eventN2_t0x1_bdt", "2nd Highest Disc Cand (Type 0 / 1) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
+  TH2F *h_eventN2_III_bdt = new TH2F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN2_II_bdt = new TH2F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+				     nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN2_Itp_bdt = new TH2F ("h_eventN2_tItp_bdt", "2nd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN2_0xI_bdt = new TH2F ("h_eventN2_t0x1_bdt", "2nd Highest Disc Cand (Type 0 / 1) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH1F *h_eventN3_III_bdt = new TH1F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN3_II_bdt = new TH1F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN3_Itp_bdt = new TH1F ("h_eventN3_tItp_bdt", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);
-  TH1F *h_eventN3_0xI_bdt = new TH1F ("h_eventN3_t0x1_bdt", "3rd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", nBins, 0.0, 1.0);  
+  TH2F *h_eventN3_III_bdt = new TH2F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN3_II_bdt = new TH2F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+				     nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN3_Itp_bdt = new TH2F ("h_eventN3_tItp_bdt", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
+  TH2F *h_eventN3_0xI_bdt = new TH2F ("h_eventN3_t0x1_bdt", "3rd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);  
 
   //store errors
   TH1I *h_nERROR = new TH1I ("h_nERROR", "Number of logic errors in classification system + miscellaneous", 100, 0, 100);
@@ -691,9 +732,9 @@ int main()
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTSLFilt500HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTTT500HT.root", "r");
 
-    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTSLFilt500HT_corr.root", "r");
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -1154,6 +1195,9 @@ int main()
 	    int nHOTTops = 0;
 	    int nBDTTops = 0;
 
+	    //get number of jets for categorization of discriminants
+	    int nJets = (**AK4JetLV).size();
+
 
 	    //no longer really used...
 	    int nRecoWs = 0;
@@ -1439,21 +1483,21 @@ int main()
 
 	    for(int e = 0; e < tCR.size(); e++){
 	      if(tCR[e].second == "typeIII")
-		h_typeIII_hot->Fill(tCR[e].first);
+		h_typeIII_hot->Fill(tCR[e].first, nJets);
 	      else if(tCR[e].second == "typeIIb")
-		h_typeIIb_hot->Fill(tCR[e].first);
+		h_typeIIb_hot->Fill(tCR[e].first, nJets);
 	      else if(tCR[e].second == "typeIImib")
-		h_typeIImib_hot->Fill(tCR[e].first);
+		h_typeIImib_hot->Fill(tCR[e].first, nJets);
 	      else if(tCR[e].second == "typeIIw")
-		h_typeIIw_hot->Fill(tCR[e].first);
+		h_typeIIw_hot->Fill(tCR[e].first, nJets);
 	      else if(tCR[e].second == "typeIImiq")
-		h_typeIImiq_hot->Fill(tCR[e].first);
+		h_typeIImiq_hot->Fill(tCR[e].first, nJets);
 	      else if(tCR[e].second == "typeIt")
-		h_typeIt_hot->Fill(tCR[e].first);
+		h_typeIt_hot->Fill(tCR[e].first, nJets);
 	      else if(tCR[e].second == "typeIp")
-		h_typeIp_hot->Fill(tCR[e].first);
+		h_typeIp_hot->Fill(tCR[e].first, nJets);
 	      else if(tCR[e].second == "type0xI")
-		h_type0xI_hot->Fill(tCR[e].first);
+		h_type0xI_hot->Fill(tCR[e].first, nJets);
 	      else{
 		std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
 		std::cout << tCR[e].second << std::endl;
@@ -1463,21 +1507,21 @@ int main()
 	      switch(e){
 	      case 0:{
 		if(tCR[e].second == "typeIII")
-		  h_eventN1_III_hot->Fill(tCR[e].first);
+		  h_eventN1_III_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIIb")
-		  h_eventN1_II_hot->Fill(tCR[e].first);
+		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIImib")
-		  h_eventN1_II_hot->Fill(tCR[e].first);
+		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIIw")
-		  h_eventN1_II_hot->Fill(tCR[e].first);
+		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIImiq")
-		  h_eventN1_II_hot->Fill(tCR[e].first);
+		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIt")
-		  h_eventN1_Itp_hot->Fill(tCR[e].first);
+		  h_eventN1_Itp_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIp")
-		  h_eventN1_Itp_hot->Fill(tCR[e].first);
+		  h_eventN1_Itp_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "type0xI")
-		  h_eventN1_0xI_hot->Fill(tCR[e].first);
+		  h_eventN1_0xI_hot->Fill(tCR[e].first, nJets);
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
 		  std::cout << tCR[e].second << std::endl;
@@ -1487,21 +1531,21 @@ int main()
 		break;
 	      case 1:{
 		if(tCR[e].second == "typeIII")
-		  h_eventN2_III_hot->Fill(tCR[e].first);
+		  h_eventN2_III_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIIb")
-		  h_eventN2_II_hot->Fill(tCR[e].first);
+		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIImib")
-		  h_eventN2_II_hot->Fill(tCR[e].first);
+		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIIw")
-		  h_eventN2_II_hot->Fill(tCR[e].first);
+		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIImiq")
-		  h_eventN2_II_hot->Fill(tCR[e].first);
+		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIt")
-		  h_eventN2_Itp_hot->Fill(tCR[e].first);
+		  h_eventN2_Itp_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIp")
-		  h_eventN2_Itp_hot->Fill(tCR[e].first);
+		  h_eventN2_Itp_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "type0xI")
-		  h_eventN2_0xI_hot->Fill(tCR[e].first);
+		  h_eventN2_0xI_hot->Fill(tCR[e].first, nJets);
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
 		  std::cout << tCR[e].second << std::endl;
@@ -1511,21 +1555,21 @@ int main()
 		break;
 	      case 2:{
 		if(tCR[e].second == "typeIII")
-		  h_eventN3_III_hot->Fill(tCR[e].first);
+		  h_eventN3_III_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIIb")
-		  h_eventN3_II_hot->Fill(tCR[e].first);
+		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIImib")
-		  h_eventN3_II_hot->Fill(tCR[e].first);
+		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIIw")
-		  h_eventN3_II_hot->Fill(tCR[e].first);
+		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIImiq")
-		  h_eventN3_II_hot->Fill(tCR[e].first);
+		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIt")
-		  h_eventN3_Itp_hot->Fill(tCR[e].first);
+		  h_eventN3_Itp_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "typeIp")
-		  h_eventN3_Itp_hot->Fill(tCR[e].first);
+		  h_eventN3_Itp_hot->Fill(tCR[e].first, nJets);
 		else if(tCR[e].second == "type0xI")
-		  h_eventN3_0xI_hot->Fill(tCR[e].first);
+		  h_eventN3_0xI_hot->Fill(tCR[e].first, nJets);
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
 		  std::cout << tCR[e].second << std::endl;
