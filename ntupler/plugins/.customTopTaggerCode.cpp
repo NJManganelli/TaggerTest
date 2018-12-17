@@ -551,10 +551,16 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 1000000;
+  uint maxEventsToProcess = 10000000;
 
-  //nJet histo
-  TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 12, 6, 18);
+  //nJet and candidate counting histos
+  TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 18, 6, 24);
+  TH1I *h_nJet_N1_hot = new TH1I ("h_nJet_N1_hot", "Number of events with 1st HOT candidate; nJets; Number of Events", 18, 6, 24);
+  TH1I *h_nJet_N2_hot = new TH1I ("h_nJet_N2_hot", "Number of events with 2nd HOT candidate; nJets; Number of Events", 18, 6, 24);
+  TH1I *h_nJet_N3_hot = new TH1I ("h_nJet_N3_hot", "Number of events with 3rd HOT candidate; nJets; Number of Events", 18, 6, 24);
+  TH1I *h_nJet_N1_bdt = new TH1I ("h_nJet_N1_bdt", "Number of events with 1st BDT candidate; nJets; Number of Events", 18, 6, 24);
+  TH1I *h_nJet_N2_bdt = new TH1I ("h_nJet_N2_bdt", "Number of events with 2nd BDT candidate; nJets; Number of Events", 18, 6, 24);
+  TH1I *h_nJet_N3_bdt = new TH1I ("h_nJet_N3_bdt", "Number of events with 3rd BDT candidate; nJets; Number of Events", 18, 6, 24);
 
   //Event Info Histograms
   TH1I *h_nTrueRecoTops_full = new TH1I ("h_nTrueRecoTops_full", 
@@ -747,9 +753,9 @@ int main()
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTSLFilt500HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTTT500HT.root", "r");
 
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTSLFilt500HT_corr.root", "r");
-    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -1522,6 +1528,7 @@ int main()
 	      //ordered candidates
 	      switch(e){
 	      case 0:{
+		h_nJet_N1_hot->Fill(nJets);
 		if(tCR[e].second == "typeIII"){
 		  h_eventN1_III_hot->Fill(tCR[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
@@ -1562,6 +1569,7 @@ int main()
 	      }//case 0 (Highest)
 		break;
 	      case 1:{
+		h_nJet_N2_hot->Fill(nJets);
 		if(tCR[e].second == "typeIII"){
 		  h_eventN2_III_hot->Fill(tCR[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
@@ -1602,6 +1610,7 @@ int main()
 	      }//case 1 (2nd highest)
 		break;
 	      case 2:{
+		h_nJet_N3_hot->Fill(nJets);
 		if(tCR[e].second == "typeIII"){
 		  h_eventN3_III_hot->Fill(tCR[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
@@ -1720,6 +1729,12 @@ int main()
 
     //Write nJet Histo
     h_nJet->Write();
+    h_nJet_N1_hot->Write();
+    h_nJet_N2_hot->Write();
+    h_nJet_N3_hot->Write();
+    h_nJet_N1_bdt->Write();
+    h_nJet_N2_bdt->Write();
+    h_nJet_N3_bdt->Write();
     
     //Write Event Histos
     h_nTrueRecoTops_full->Write();
@@ -1854,6 +1869,13 @@ int main()
 
     // Event histos
     delete h_nJet;
+    delete h_nJet_N1_hot;
+    delete h_nJet_N2_hot;
+    delete h_nJet_N3_hot;
+    delete h_nJet_N1_bdt;
+    delete h_nJet_N2_bdt;
+    delete h_nJet_N3_bdt;
+
     delete h_nTrueRecoTops_full;
     delete h_nTrueRecoTops;
     delete h_nCandTops_hot;	       
