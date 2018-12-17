@@ -625,6 +625,8 @@ int main()
   TH2F *h_type0xI_hot = new TH2F ("h_type0xI_hot_", "Type 0xI (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 
 				  nBins, 0.0, 1.0, 5, 7, 12);
 
+  TH2F *h_eventN1_sum_hot = new TH2F ("h_eventN1_sum_hot", "Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN1_III_hot = new TH2F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN1_II_hot = new TH2F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
@@ -634,6 +636,8 @@ int main()
   TH2F *h_eventN1_0xI_hot = new TH2F ("h_eventN1_t0x1_hot", "Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
+  TH2F *h_eventN2_sum_hot = new TH2F ("h_eventN2_sum_hot", "2nd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN2_III_hot = new TH2F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN2_II_hot = new TH2F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
@@ -643,6 +647,8 @@ int main()
   TH2F *h_eventN2_0xI_hot = new TH2F ("h_eventN2_t0x1_hot", "2nd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
+  TH2F *h_eventN3_sum_hot = new TH2F ("h_eventN3_sum_hot", "3rd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN3_III_hot = new TH2F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN3_II_hot = new TH2F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
@@ -670,6 +676,8 @@ int main()
   TH2F *h_type0xI_bdt = new TH2F ("h_type0xI_bdt_", "Type 0x1 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 
 				  nBins, 0.0, 1.0, 5, 7, 12);
 
+  TH2F *h_eventN1_sum_bdt = new TH2F ("h_eventN1_sum_bdt", "Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN1_III_bdt = new TH2F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN1_II_bdt = new TH2F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
@@ -679,6 +687,8 @@ int main()
   TH2F *h_eventN1_0xI_bdt = new TH2F ("h_eventN1_t0x1_bdt", "Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
+  TH2F *h_eventN2_sum_bdt = new TH2F ("h_eventN2_sum_bdt", "2nd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN2_III_bdt = new TH2F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN2_II_bdt = new TH2F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
@@ -688,6 +698,8 @@ int main()
   TH2F *h_eventN2_0xI_bdt = new TH2F ("h_eventN2_t0x1_bdt", "2nd Highest Disc Cand (Type 0 / 1) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
+  TH2F *h_eventN3_sum_bdt = new TH2F ("h_eventN3_sum_bdt", "3rd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN3_III_bdt = new TH2F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
   TH2F *h_eventN3_II_bdt = new TH2F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
@@ -732,9 +744,9 @@ int main()
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTSLFilt500HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTTT500HT.root", "r");
 
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTSLFilt500HT_corr.root", "r");
-    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -1506,22 +1518,38 @@ int main()
 	      //ordered candidates
 	      switch(e){
 	      case 0:{
-		if(tCR[e].second == "typeIII")
+		if(tCR[e].second == "typeIII"){
 		  h_eventN1_III_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIIb")
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIIb"){
 		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIImib")
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIImib"){
 		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIIw")
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIIw"){
 		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIImiq")
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIImiq"){
 		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIt")
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIt"){
 		  h_eventN1_Itp_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIp")
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIp"){
 		  h_eventN1_Itp_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "type0xI")
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "type0xI"){
 		  h_eventN1_0xI_hot->Fill(tCR[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		}
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
 		  std::cout << tCR[e].second << std::endl;
@@ -1530,22 +1558,38 @@ int main()
 	      }//case 0 (Highest)
 		break;
 	      case 1:{
-		if(tCR[e].second == "typeIII")
+		if(tCR[e].second == "typeIII"){
 		  h_eventN2_III_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIIb")
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIIb"){
 		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIImib")
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIImib"){
 		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIIw")
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIIw"){
 		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIImiq")
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIImiq"){
 		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIt")
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIt"){
 		  h_eventN2_Itp_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIp")
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIp"){
 		  h_eventN2_Itp_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "type0xI")
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "type0xI"){
 		  h_eventN2_0xI_hot->Fill(tCR[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		}
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
 		  std::cout << tCR[e].second << std::endl;
@@ -1554,22 +1598,38 @@ int main()
 	      }//case 1 (2nd highest)
 		break;
 	      case 2:{
-		if(tCR[e].second == "typeIII")
+		if(tCR[e].second == "typeIII"){
 		  h_eventN3_III_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIIb")
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIIb"){
 		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIImib")
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIImib"){
 		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIIw")
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIIw"){
 		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIImiq")
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIImiq"){
 		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIt")
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIt"){
 		  h_eventN3_Itp_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "typeIp")
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "typeIp"){
 		  h_eventN3_Itp_hot->Fill(tCR[e].first, nJets);
-		else if(tCR[e].second == "type0xI")
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
+		else if(tCR[e].second == "type0xI"){
 		  h_eventN3_0xI_hot->Fill(tCR[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		}
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
 		  std::cout << tCR[e].second << std::endl;
@@ -1653,6 +1713,7 @@ int main()
 
     //Open output file for histograms and tuples
     of = new TFile("results.root", "RECREATE");
+
     //Write Event Histos
     h_nTrueRecoTops_full->Write();
     h_nTrueRecoTops->Write();
@@ -1690,16 +1751,19 @@ int main()
     h_typeIp_hot->Write();
     h_type0xI_hot->Write();
 
+    h_eventN1_sum_hot->Write();
     h_eventN1_III_hot->Write();
     h_eventN1_II_hot->Write();
     h_eventN1_Itp_hot->Write();
     h_eventN1_0xI_hot->Write();
 
+    h_eventN2_sum_hot->Write();
     h_eventN2_III_hot->Write();
     h_eventN2_II_hot->Write();
     h_eventN2_Itp_hot->Write();
     h_eventN2_0xI_hot->Write();
 
+    h_eventN3_sum_hot->Write();
     h_eventN3_III_hot->Write();
     h_eventN3_II_hot->Write();
     h_eventN3_Itp_hot->Write();
@@ -1715,16 +1779,19 @@ int main()
     h_typeIp_bdt->Write();
     h_type0xI_bdt->Write();
 
+    h_eventN1_sum_bdt->Write();
     h_eventN1_III_bdt->Write();
     h_eventN1_II_bdt->Write();
     h_eventN1_Itp_bdt->Write();
     h_eventN1_0xI_bdt->Write();
 
+    h_eventN2_sum_bdt->Write();
     h_eventN2_III_bdt->Write();
     h_eventN2_II_bdt->Write();
     h_eventN2_Itp_bdt->Write();
     h_eventN2_0xI_bdt->Write();
 
+    h_eventN3_sum_bdt->Write();
     h_eventN3_III_bdt->Write();
     h_eventN3_II_bdt->Write();
     h_eventN3_Itp_bdt->Write();
@@ -1815,16 +1882,19 @@ int main()
     delete h_typeIp_hot;
     delete h_type0xI_hot;
 
+    delete h_eventN1_sum_hot;
     delete h_eventN1_III_hot;
     delete h_eventN1_II_hot;
     delete h_eventN1_Itp_hot;
     delete h_eventN1_0xI_hot;
 
+    delete h_eventN2_sum_hot;
     delete h_eventN2_III_hot;
     delete h_eventN2_II_hot;
     delete h_eventN2_Itp_hot;
     delete h_eventN2_0xI_hot;
 
+    delete h_eventN3_sum_hot;
     delete h_eventN3_III_hot;
     delete h_eventN3_II_hot;
     delete h_eventN3_Itp_hot;
@@ -1840,16 +1910,19 @@ int main()
     delete h_typeIp_bdt;
     delete h_type0xI_bdt;
 
+    delete h_eventN1_sum_bdt;
     delete h_eventN1_III_bdt;
     delete h_eventN1_II_bdt;
     delete h_eventN1_Itp_bdt;
     delete h_eventN1_0xI_bdt;
 
+    delete h_eventN2_sum_bdt;
     delete h_eventN2_III_bdt;
     delete h_eventN2_II_bdt;
     delete h_eventN2_Itp_bdt;
     delete h_eventN2_0xI_bdt;
 
+    delete h_eventN3_sum_bdt;
     delete h_eventN3_III_bdt;
     delete h_eventN3_II_bdt;
     delete h_eventN3_Itp_bdt;
