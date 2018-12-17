@@ -553,6 +553,9 @@ int main()
   //std::string postfix = "tttt";
   uint maxEventsToProcess = 1000000;
 
+  //nJet histo
+  TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 12, 6, 18);
+
   //Event Info Histograms
   TH1I *h_nTrueRecoTops_full = new TH1I ("h_nTrueRecoTops_full", 
 					 "Number of true hadronic tops that are fully in event selection and acceptance; Tops per event; Events", 6, 0, 6);
@@ -744,9 +747,9 @@ int main()
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTSLFilt500HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTTT500HT.root", "r");
 
-    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
+    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTSLFilt500HT_corr.root", "r");
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -1209,6 +1212,7 @@ int main()
 
 	    //get number of jets for categorization of discriminants
 	    int nJets = (**AK4JetLV).size();
+	    h_nJet->Fill(nJets);
 
 
 	    //no longer really used...
@@ -1714,6 +1718,9 @@ int main()
     //Open output file for histograms and tuples
     of = new TFile("results.root", "RECREATE");
 
+    //Write nJet Histo
+    h_nJet->Write();
+    
     //Write Event Histos
     h_nTrueRecoTops_full->Write();
     h_nTrueRecoTops->Write();
@@ -1846,6 +1853,7 @@ int main()
     //Delete histograms
 
     // Event histos
+    delete h_nJet;
     delete h_nTrueRecoTops_full;
     delete h_nTrueRecoTops;
     delete h_nCandTops_hot;	       
