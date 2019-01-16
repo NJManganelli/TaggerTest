@@ -1226,9 +1226,13 @@ int main()
 
 	    //Setup and Run BDT Method
 	    //
+	    std::string btagvar = "btag";
+	    float btag = 0.456;
+	    //std::cout << "The variable c_str values is: " << btag.c_str() << std::endl;
 	    TMVA::Reader *reader;
 	    reader = new TMVA::Reader( "!Color:!Silent" );
-	    reader->BookMVA( "BDT method", "JetCombTrainer_DT.weights.xml" );
+	    reader->AddVariable(btagvar.c_str(), &btag);
+	    reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
 
 	    //End BDT Method
 
