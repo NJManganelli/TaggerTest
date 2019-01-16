@@ -18,6 +18,10 @@
 
 #include "rootdict.h"
 
+//Includes to use BDT (based on TMVA)
+#include "TMVA/Reader.h"
+#include "TMVA/Tools.h"
+
 class ResTTEvaluator{
  public:
   ResTTEvaluator(std::string topTaggerName);
@@ -551,7 +555,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 10000000;
+  uint maxEventsToProcess = 1000;
 
   //nJet and candidate counting histos
   TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 18, 6, 24);
@@ -1219,6 +1223,14 @@ int main()
 	    //get number of jets for categorization of discriminants
 	    int nJets = (**AK4JetLV).size();
 	    h_nJet->Fill(nJets);
+
+	    //Setup and Run BDT Method
+	    //
+	    TMVA::Reader *reader;
+	    reader = new TMVA::Reader( "!Color:!Silent" );
+	    reader->BookMVA( "BDT method", "JetCombTrainer_DT.weights.xml" );
+
+	    //End BDT Method
 
 
 	    //no longer really used...
