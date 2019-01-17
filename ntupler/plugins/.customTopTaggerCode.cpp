@@ -555,7 +555,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 1000;
+  uint maxEventsToProcess = 10;
 
   //nJet and candidate counting histos
   TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 18, 6, 24);
@@ -833,6 +833,20 @@ int main()
     uint run;
     uint lumiBlock;
     uint event;
+
+    //Setup and TMVA for evaluating the BDT
+    float vars[6];
+    TMVA::Reader *reader;
+    reader = new TMVA::Reader( "!Color:!Silent" );
+    //std::string btagvar = "btag";
+    //reader->AddVariable(btagvar.c_str(), &btag);
+    reader->AddVariable("btag", &vars[0]);
+    reader->AddVariable("ThPtOverSumPt", &vars[1]);
+    reader->AddVariable("AngleThWh", &vars[2]);
+    reader->AddVariable("AngleThBh", &vars[3]);
+    reader->AddVariable("HadrWmass", &vars[4]);
+    reader->AddVariable("TopMass", &vars[5]);
+    reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
 
 
     //Deactivate all branches, then activate the branches of interest
@@ -1224,16 +1238,25 @@ int main()
 	    int nJets = (**AK4JetLV).size();
 	    h_nJet->Fill(nJets);
 
-	    //Setup and Run BDT Method
-	    //
-	    std::string btagvar = "btag";
-	    float btag = 0.456;
-	    //std::cout << "The variable c_str values is: " << btag.c_str() << std::endl;
-	    TMVA::Reader *reader;
-	    reader = new TMVA::Reader( "!Color:!Silent" );
-	    reader->AddVariable(btagvar.c_str(), &btag);
-	    reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
 
+	    //Example BDT evaluation
+	    vars[0] = 0.93;
+	    vars[1] = 0.88;
+	    vars[2] = 0.41;
+	    vars[3] = 0.32;
+	    vars[4] = 79.0;
+	    vars[5] = 173.0;
+
+	    std::cout << "Test value BDT output is: " << reader->EvaluateMVA("BDT method") << std::endl;
+
+	    vars[0] = 0.71;
+	    vars[1] = 0.56;
+	    vars[2] = 0.21;
+	    vars[3] = 0.11;
+	    vars[4] = 45.0;
+	    vars[5] = 100.0;
+
+	    std::cout << "Test value BDT output 2 is: " << reader->EvaluateMVA("BDT method") << std::endl;
 	    //End BDT Method
 
 
@@ -1849,6 +1872,9 @@ int main()
     of->Write();
     of->Close();
     
+    //detele TMVA reader
+    delete reader;
+
     //clean up pointers 
     delete AK4JetLV;
     delete AK4JetBtag;
