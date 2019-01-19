@@ -29,35 +29,65 @@ public:
   ResTTPermuter();
   ~ResTTPermuter();
   void test();
+  void test2();
 
 private:
   //Will need include when splitting this off
-  TMVA::Reader* _reader;
+  //TMVA::Reader* _reader;
+  TMVA::Reader _reader;
   std::vector<TLorentzVector>* _inJets;
   //BDT Variables, 2016 default...
-  float _defaultVars[6];
+  float _defaultVars[6] = {0};
   //Create internal candidates, storing the jet indices and the highest BDT discriminant from the 3 permutations (3 unique W-candidate jet-pairs)
   //Should return the TLorentzVectors and Discriminant
   std::vector<std::pair<std::vector<int>, double> > _cand; 
 };
 ResTTPermuter::ResTTPermuter(){
-  //Setup TMVA for evaluating the 2016 default BDT
-  TMVA::Reader *_reader;
-  _reader = new TMVA::Reader( "!Color:!Silent" );
-  //std::string btagvar = "btag";
-  //reader->AddVariable(btagvar.c_str(), &btag);
-  _reader->AddVariable("btag", &_defaultVars[0]);
-  _reader->AddVariable("ThPtOverSumPt", &_defaultVars[1]);
-  _reader->AddVariable("AngleThWh", &_defaultVars[2]);
-  _reader->AddVariable("AngleThBh", &_defaultVars[3]);
-  _reader->AddVariable("HadrWmass", &_defaultVars[4]);
-  _reader->AddVariable("TopMass", &_defaultVars[5]);
-  _reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
+  // //Setup TMVA for evaluating the 2016 default BDT
+  // TMVA::Reader *_reader;
+  // _reader = new TMVA::Reader( "!Color:!Silent" );
+  // //std::string btagvar = "btag";
+  // //reader->AddVariable(btagvar.c_str(), &btag);
+  // _reader->AddVariable("btag", &_defaultVars[0]);
+  // _reader->AddVariable("ThPtOverSumPt", &_defaultVars[1]);
+  // _reader->AddVariable("AngleThWh", &_defaultVars[2]);
+  // _reader->AddVariable("AngleThBh", &_defaultVars[3]);
+  // _reader->AddVariable("HadrWmass", &_defaultVars[4]);
+  // _reader->AddVariable("TopMass", &_defaultVars[5]);
+  // std::string weightsPath = "JetCombTrainer_BDT.weights.xml";
+  // try{
+  //   //_reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
+  //   _reader->BookMVA("BDT method", weightsPath );
+  // }
+  // catch(...){
+  //   std::cout << "\nOpening weights file " << weightsPath << " failed." << std::endl;
+  // }
 }
 ResTTPermuter::~ResTTPermuter(){
   delete _reader;
 }
 void ResTTPermuter::test(){
+  //Setup TMVA for evaluating the 2016 default BDT
+  TMVA::Reader *_reader;
+  _reader = *TMVA::Reader( "!Color:!Silent" );
+  //std::string btagvar = "btag";
+  //reader->AddVariable(btagvar.c_str(), &btag);
+  _reader.AddVariable("btag", &_defaultVars[0]);
+  _reader.AddVariable("ThPtOverSumPt", &_defaultVars[1]);
+  _reader.AddVariable("AngleThWh", &_defaultVars[2]);
+  _reader.AddVariable("AngleThBh", &_defaultVars[3]);
+  _reader.AddVariable("HadrWmass", &_defaultVars[4]);
+  _reader.AddVariable("TopMass", &_defaultVars[5]);
+  std::string weightsPath = "JetCombTrainer_BDT.weights.xml";
+  try{
+    //_reader.BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
+    _reader.BookMVA("BDT method", weightsPath );
+  }
+  catch(...){
+    std::cout << "\nOpening weights file " << weightsPath << " failed." << std::endl;
+  }
+  
+  std::cout << "Test value BDT output 0 is: " << _reader.EvaluateMVA("BDT method") << std::endl;
   //Example BDT evaluation
   _defaultVars[0] = 0.93;
   _defaultVars[1] = 0.88;
@@ -65,8 +95,11 @@ void ResTTPermuter::test(){
   _defaultVars[3] = 0.32;
   _defaultVars[4] = 79.0;
   _defaultVars[5] = 173.0;
-
-  std::cout << "Test value BDT output is: " << _reader->EvaluateMVA("BDT method") << std::endl;
+  std::vector<double> inputVars;
+  for(int i = 0; i < 6; i++) inputVars.push_back(_defaultVars[i]);
+  std::cout << "Var5: " << &_defaultVars[5] << std::endl;
+  //std::cout << "Test value BDT output is: " << _reader.EvaluateMVA(inputVars, "BDT method") << std::endl;
+  //_reader.EvaluateMVA();
 
   _defaultVars[0] = 0.71;
   _defaultVars[1] = 0.56;
@@ -74,8 +107,12 @@ void ResTTPermuter::test(){
   _defaultVars[3] = 0.11;
   _defaultVars[4] = 45.0;
   _defaultVars[5] = 100.0;
+  std::cout << "Var5: " << &_defaultVars[5] << std::endl;
 
-  std::cout << "Test value BDT output 2 is: " << _reader->EvaluateMVA("BDT method") << std::endl;
+  //std::cout << "Test value BDT output 2 is: " << _reader.EvaluateMVA("BDT method") << std::endl;
+}
+void ResTTPermuter::test2(){
+  std::cout << "Test value BDT output B2 is: " << _reader.EvaluateMVA("BDT method") << std::endl;
 }
 
 class ResTTEvaluator{
@@ -1194,6 +1231,11 @@ int main()
     //Create top tagger object
     TopTagger tt;
 
+    //Create ResTTPermuter, using braces to avoid the Most Vexing Parse (C++)
+    ResTTPermuter BDTPermute{};
+    BDTPermute.test();
+    BDTPermute.test2();
+
     //try-catch on TTException which are thrown by the top tagger
     try
     {
@@ -1374,6 +1416,8 @@ int main()
 
 	    //ResTTEvaluator HOTEval("HOT");
 	    ResTTEvaluator HOTEval("HOT", true, false);
+
+	    //BDTPermute.test();
 
 	    //Old style tops
 	    if(!isNewStyle){
