@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <vector>
 
+//File and plotting includes
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1F.h"
@@ -21,6 +22,61 @@
 //Includes to use BDT (based on TMVA)
 #include "TMVA/Reader.h"
 #include "TMVA/Tools.h"
+
+//Class for doing jet combinatorics and returning the list of best resolved top-tagged jets using the BDT method from the 2016 Four-top DL/SL analysis
+class ResTTPermuter{
+public:
+  ResTTPermuter();
+  ~ResTTPermuter();
+  void test();
+
+private:
+  //Will need include when splitting this off
+  TMVA::Reader* _reader;
+  std::vector<TLorentzVector>* _inJets;
+  //BDT Variables, 2016 default...
+  float _defaultVars[6];
+  //Create internal candidates, storing the jet indices and the highest BDT discriminant from the 3 permutations (3 unique W-candidate jet-pairs)
+  //Should return the TLorentzVectors and Discriminant
+  std::vector<std::pair<std::vector<int>, double> > _cand; 
+};
+ResTTPermuter::ResTTPermuter(){
+  //Setup TMVA for evaluating the 2016 default BDT
+  TMVA::Reader *_reader;
+  _reader = new TMVA::Reader( "!Color:!Silent" );
+  //std::string btagvar = "btag";
+  //reader->AddVariable(btagvar.c_str(), &btag);
+  _reader->AddVariable("btag", &_defaultVars[0]);
+  _reader->AddVariable("ThPtOverSumPt", &_defaultVars[1]);
+  _reader->AddVariable("AngleThWh", &_defaultVars[2]);
+  _reader->AddVariable("AngleThBh", &_defaultVars[3]);
+  _reader->AddVariable("HadrWmass", &_defaultVars[4]);
+  _reader->AddVariable("TopMass", &_defaultVars[5]);
+  _reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
+}
+ResTTPermuter::~ResTTPermuter(){
+  delete _reader;
+}
+void ResTTPermuter::test(){
+  //Example BDT evaluation
+  _defaultVars[0] = 0.93;
+  _defaultVars[1] = 0.88;
+  _defaultVars[2] = 0.41;
+  _defaultVars[3] = 0.32;
+  _defaultVars[4] = 79.0;
+  _defaultVars[5] = 173.0;
+
+  std::cout << "Test value BDT output is: " << _reader->EvaluateMVA("BDT method") << std::endl;
+
+  _defaultVars[0] = 0.71;
+  _defaultVars[1] = 0.56;
+  _defaultVars[2] = 0.21;
+  _defaultVars[3] = 0.11;
+  _defaultVars[4] = 45.0;
+  _defaultVars[5] = 100.0;
+
+  std::cout << "Test value BDT output 2 is: " << _reader->EvaluateMVA("BDT method") << std::endl;
+}
 
 class ResTTEvaluator{
  public:
@@ -834,21 +890,6 @@ int main()
     uint lumiBlock;
     uint event;
 
-    //Setup and TMVA for evaluating the BDT
-    float vars[6];
-    TMVA::Reader *reader;
-    reader = new TMVA::Reader( "!Color:!Silent" );
-    //std::string btagvar = "btag";
-    //reader->AddVariable(btagvar.c_str(), &btag);
-    reader->AddVariable("btag", &vars[0]);
-    reader->AddVariable("ThPtOverSumPt", &vars[1]);
-    reader->AddVariable("AngleThWh", &vars[2]);
-    reader->AddVariable("AngleThBh", &vars[3]);
-    reader->AddVariable("HadrWmass", &vars[4]);
-    reader->AddVariable("TopMass", &vars[5]);
-    reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
-
-
     //Deactivate all branches, then activate the branches of interest
     tree->SetBranchStatus("*", 0);
     std::cout << "Deactivated all branches" << std::endl;
@@ -1237,27 +1278,6 @@ int main()
 	    //get number of jets for categorization of discriminants
 	    int nJets = (**AK4JetLV).size();
 	    h_nJet->Fill(nJets);
-
-
-	    //Example BDT evaluation
-	    vars[0] = 0.93;
-	    vars[1] = 0.88;
-	    vars[2] = 0.41;
-	    vars[3] = 0.32;
-	    vars[4] = 79.0;
-	    vars[5] = 173.0;
-
-	    std::cout << "Test value BDT output is: " << reader->EvaluateMVA("BDT method") << std::endl;
-
-	    vars[0] = 0.71;
-	    vars[1] = 0.56;
-	    vars[2] = 0.21;
-	    vars[3] = 0.11;
-	    vars[4] = 45.0;
-	    vars[5] = 100.0;
-
-	    std::cout << "Test value BDT output 2 is: " << reader->EvaluateMVA("BDT method") << std::endl;
-	    //End BDT Method
 
 
 	    //no longer really used...
@@ -1871,9 +1891,6 @@ int main()
     RecoTypes->Write();
     of->Write();
     of->Close();
-    
-    //detele TMVA reader
-    delete reader;
 
     //clean up pointers 
     delete AK4JetLV;
