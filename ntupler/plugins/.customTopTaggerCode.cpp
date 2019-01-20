@@ -45,14 +45,16 @@ class ResTTPermuter{
 public:
   ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtag);
   ~ResTTPermuter();
-  uint GetNumPermutations();
-  std::vector<BDTCand> PitchCandidates(int index);
+  //uint GetNumPermutations();
+  bool shouldSkip(uint jetIndex);
+  std::vector<BDTCand> PitchCandidates(int candIndex);
   void CatchCandidates(std::vector<BDTCand> tossedCandidates); //should evaluate and store the best in the finalCandidates, plus store jet indices to be skipped next round
   std::vector<BDTCand> GetFinalCandidates();
 
 private:
-  bool _canPermute;
+  uint _numTrijets = 0;
   uint _numPermutations = 0;
+  uint _size = 0;
   //index list of jets that belong to a best candidate
   std::vector<uint> _skipIndices;
   //pointer to the AK4 jets and CSVv2 btags to be evaluated with the BDT method
@@ -66,22 +68,65 @@ private:
 //ResTTPermuter::ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<double> inBtags){
 ResTTPermuter::ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtags){
   _inJets = inJets;
+  _size = _inJets->size();
   //_inBtags = &*inBtags->begin();//Doesn't work... just iterate and assign
   for(std::vector<float>::iterator b = inBtags->begin(); b != inBtags->end(); b++)
     _inBtags.push_back(*b);
+  int availJets = _inJets->size() - _skipIndices.size();
+  _numTrijets = floor(availJets/3);
+  // if(_numTrijets > 0)
+  //   _canPermute = true;
+
 }
 ResTTPermuter::~ResTTPermuter(){
 }
-uint ResTTPermuter::GetNumPermutations(){
-  int possibilities = _inJets->size() - _skipIndices.size() + 1; //account for default 9999 in vector
-  if( possibilities < 3) // number of jets that can still be permuted
-    return 0;
-  else{
-    _canPermute = true;
-    return floor(possibilities/3);
-  }
+// uint ResTTPermuter::GetNumPermutations(){
+//   inline uint Factorial(uint in){
+//     if(in < 2)
+//       return 1;
+//     else
+//       return in*Factorial((in-1));
+//   }
+//   int availJets = (_inJets->size() - _skipIndices.size());
+//   if(availJets > 2)
+    
+
+//     return 0;
+//   else{
+//     _canPermute = true;
+//     return floor(possibilities/3);
+//   }
+// }
+//Pitch all candidates, to be analyzed by BDT tagger, then Caught with updated discriminant and the best chosen
+bool ResTTPermuter::shouldSkip(uint jetIndex){
+  bool inSkipList = false;
+  for(int check = 0; check < _skipIndices.size(); check++)
+    if(jetIndex == _skipIndices[check]){
+      inSkipList = true; //could eliminate bool, just return true for this conditional, then return false after the for-loop
+      return inSkipList;
+    }
+  return inSkipList;
 }
-std::vector<BDTCand> ResTTPermuter::PitchCandidates(int index){
+std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
+  std::cout << "Starting to Pitch Candidates" << std::endl;
+  if(candIndex < _numTrijets){
+    for(uint i = 0; i < _size; i++){
+      if(shouldSkip(i))
+	continue;
+      for(uint j = i+1; j < _size; j++){
+	if(shouldSkip(j))
+	  continue;
+	for(uint k = j+1; k < _size; k++){
+	  if(shouldSkip(k))
+	    continue;
+	  TLorentzVector first = (*_inJets)[i];
+	  TLorentzVector second = (*_inJets)[j];
+	  TLorentzVector third = (*_inJets)[k];
+	  
+	}
+      }
+    }
+  }
 }
 void ResTTPermuter::CatchCandidates(std::vector<BDTCand> tossedCandidates){
 }
