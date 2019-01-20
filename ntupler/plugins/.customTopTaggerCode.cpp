@@ -99,16 +99,14 @@ ResTTPermuter::~ResTTPermuter(){
 // }
 //Pitch all candidates, to be analyzed by BDT tagger, then Caught with updated discriminant and the best chosen
 bool ResTTPermuter::shouldSkip(uint jetIndex){
-  bool inSkipList = false;
   for(int check = 0; check < _skipIndices.size(); check++)
-    if(jetIndex == _skipIndices[check]){
-      inSkipList = true; //could eliminate bool, just return true for this conditional, then return false after the for-loop
-      return inSkipList;
-    }
-  return inSkipList;
+    if(jetIndex == _skipIndices[check])
+      return true; //if passed jet index matches any in the skip list
+  return false; //if jet index doesn't match against any in the skip list
 }
 std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
   std::cout << "Starting to Pitch Candidates" << std::endl;
+  std::vector<BDTCand> tempVector;
   if(candIndex < _numTrijets){
     for(uint i = 0; i < _size; i++){
       if(shouldSkip(i))
@@ -122,11 +120,18 @@ std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
 	  TLorentzVector first = (*_inJets)[i];
 	  TLorentzVector second = (*_inJets)[j];
 	  TLorentzVector third = (*_inJets)[k];
+
+	  BDTCand temp;
+	  temp.idx_i = i;
+	  temp.idx_j = j;
+	  temp.idx_k = k;
+	  tempVector.push_back(temp);
 	  
 	}
       }
     }
   }
+  //_candVectorVector.push_back(tempVector);
 }
 void ResTTPermuter::CatchCandidates(std::vector<BDTCand> tossedCandidates){
 }
@@ -1352,6 +1357,14 @@ int main()
 
 	    //Create ResTTPermuter, be aware of the Most Vexing Parse (C++), necessitating curly brackets around argument if it looks like a function declaration
 	    ResTTPermuter BDTPermute(*AK4JetLV, *AK4JetBtag);
+	    std::cout << "Should we skip index 0? Permuter says... " << BDTPermute.shouldSkip(0) << std::endl;
+	    std::cout << "Should we skip index 1? Permuter says... " << BDTPermute.shouldSkip(1) << std::endl;
+	    std::cout << "Should we skip index 2? Permuter says... " << BDTPermute.shouldSkip(2) << std::endl;
+	    std::cout << "Should we skip index 3? Permuter says... " << BDTPermute.shouldSkip(3) << std::endl;
+	    std::cout << "Should we skip index 4? Permuter says... " << BDTPermute.shouldSkip(4) << std::endl;
+	    std::cout << "Should we skip index 5? Permuter says... " << BDTPermute.shouldSkip(5) << std::endl;
+	    std::cout << "Should we skip index 7? Permuter says... " << BDTPermute.shouldSkip(7) << std::endl;
+	    std::cout << "Should we skip index 11? Permuter says... " << BDTPermute.shouldSkip(11) << std::endl;
 
 	    //no longer really used...
 	    int nRecoWs = 0;
