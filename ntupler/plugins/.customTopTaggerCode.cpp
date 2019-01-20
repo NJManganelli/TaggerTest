@@ -46,7 +46,7 @@ public:
   ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtag);
   ~ResTTPermuter();
   //uint GetNumPermutations();
-  bool shouldSkip(uint jetIndex);
+  bool ShouldSkip(uint jetIndex);
   std::vector<BDTCand> PitchCandidates(int candIndex);
   void CatchCandidates(std::vector<BDTCand> tossedCandidates); //should evaluate and store the best in the finalCandidates, plus store jet indices to be skipped next round
   std::vector<BDTCand> GetFinalCandidates();
@@ -98,7 +98,7 @@ ResTTPermuter::~ResTTPermuter(){
 //   }
 // }
 //Pitch all candidates, to be analyzed by BDT tagger, then Caught with updated discriminant and the best chosen
-bool ResTTPermuter::shouldSkip(uint jetIndex){
+bool ResTTPermuter::ShouldSkip(uint jetIndex){
   for(int check = 0; check < _skipIndices.size(); check++)
     if(jetIndex == _skipIndices[check])
       return true; //if passed jet index matches any in the skip list
@@ -109,17 +109,17 @@ std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
   std::vector<BDTCand> tempVector;
   if(candIndex < _numTrijets){
     for(uint i = 0; i < _size; i++){
-      if(shouldSkip(i))
+      if(this->ShouldSkip(i))
 	continue;
       for(uint j = i+1; j < _size; j++){
-	if(shouldSkip(j))
+	if(this->ShouldSkip(j))
 	  continue;
 	for(uint k = j+1; k < _size; k++){
-	  if(shouldSkip(k))
+	  if(this->ShouldSkip(k))
 	    continue;
-	  TLorentzVector first = (*_inJets)[i];
-	  TLorentzVector second = (*_inJets)[j];
-	  TLorentzVector third = (*_inJets)[k];
+	  //TLorentzVector first = (*_inJets)[i];
+	  //TLorentzVector second = (*_inJets)[j];
+	  //TLorentzVector third = (*_inJets)[k];
 
 	  BDTCand temp;
 	  temp.idx_i = i;
@@ -131,7 +131,9 @@ std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
       }
     }
   }
-  //_candVectorVector.push_back(tempVector);
+  std::cout << "\nSize of tempVector is ... " << tempVector.size() << std::endl;
+  _candVectorVector.push_back(tempVector);
+  return tempVector;
 }
 void ResTTPermuter::CatchCandidates(std::vector<BDTCand> tossedCandidates){
 }
@@ -1357,14 +1359,15 @@ int main()
 
 	    //Create ResTTPermuter, be aware of the Most Vexing Parse (C++), necessitating curly brackets around argument if it looks like a function declaration
 	    ResTTPermuter BDTPermute(*AK4JetLV, *AK4JetBtag);
-	    std::cout << "Should we skip index 0? Permuter says... " << BDTPermute.shouldSkip(0) << std::endl;
-	    std::cout << "Should we skip index 1? Permuter says... " << BDTPermute.shouldSkip(1) << std::endl;
-	    std::cout << "Should we skip index 2? Permuter says... " << BDTPermute.shouldSkip(2) << std::endl;
-	    std::cout << "Should we skip index 3? Permuter says... " << BDTPermute.shouldSkip(3) << std::endl;
-	    std::cout << "Should we skip index 4? Permuter says... " << BDTPermute.shouldSkip(4) << std::endl;
-	    std::cout << "Should we skip index 5? Permuter says... " << BDTPermute.shouldSkip(5) << std::endl;
-	    std::cout << "Should we skip index 7? Permuter says... " << BDTPermute.shouldSkip(7) << std::endl;
-	    std::cout << "Should we skip index 11? Permuter says... " << BDTPermute.shouldSkip(11) << std::endl;
+	    std::cout << "Should we skip index 0? Permuter says... " << BDTPermute.ShouldSkip(0) << std::endl;
+	    std::cout << "Should we skip index 1? Permuter says... " << BDTPermute.ShouldSkip(1) << std::endl;
+	    std::cout << "Should we skip index 2? Permuter says... " << BDTPermute.ShouldSkip(2) << std::endl;
+	    std::cout << "Should we skip index 3? Permuter says... " << BDTPermute.ShouldSkip(3) << std::endl;
+	    std::cout << "Should we skip index 4? Permuter says... " << BDTPermute.ShouldSkip(4) << std::endl;
+	    std::cout << "Should we skip index 5? Permuter says... " << BDTPermute.ShouldSkip(5) << std::endl;
+	    std::cout << "Should we skip index 7? Permuter says... " << BDTPermute.ShouldSkip(7) << std::endl;
+	    std::cout << "Should we skip index 11? Permuter says... " << BDTPermute.ShouldSkip(11) << std::endl;
+	    std::vector<BDTCand> batter = BDTPermute.PitchCandidates(0);
 
 	    //no longer really used...
 	    int nRecoWs = 0;
