@@ -117,22 +117,54 @@ std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
 	for(uint k = j+1; k < _size; k++){
 	  if(this->ShouldSkip(k))
 	    continue;
+	  TLorentzVector Wh, Bh, Th;
 	  TLorentzVector first = (*_inJets)[i];
 	  TLorentzVector second = (*_inJets)[j];
 	  TLorentzVector third = (*_inJets)[k];
+
+	  double angle12 = first.DeltaR(second);
+	  double angle13 = first.DeltaR(third);
+	  double angle23 = second.DeltaR(third);
+	  double minAngle = fmin(fmin(angle12, angle13), angle23);
+	  double theBtag = -9876.54321;
+	  //Define the W hadron as the jet pair with minimum DeltaR
+	  if(minAngle == angle12){
+	    Wh = first + second;
+	    Bh = third;
+	    theBtag = _inBtags[k];
+	  }
+	  else if(minAngle == angle13){
+	    Wh = first + third;
+	    Bh = second;
+	    theBtag = _inBtags[j];
+	  }
+	  else if(minAngle == angle23){
+	    Wh = second + third;
+	    Bh = first;
+	    theBtag = _inBtags[i];
+	  }
+	  else
+	    throw std::runtime_error("Logic Error! ResTTPermuter::PitchCandidates tripped on a Banana Peel");
+	  Th = Wh + Bh;
 
 	  BDTCand temp;
 	  temp.idx_i = i;
 	  temp.idx_j = j;
 	  temp.idx_k = k;
+	  temp.btag = theBtag;
+	  temp.ThPtOverSumPt = Th.Pt()/(first.Pt() + second.Pt() + third.Pt());
+	  temp.AngleThWh = fabs(Th.DeltaPhi(Wh)); //DeltaPhi separation
+	  temp.AngleThBh = fabs(Th.DeltaPhi(Bh)); //DeltaPhi separation
+	  temp.HadrWmass = Wh.M();
+	  temp.TopMass = Th.M();
+	  temp.discriminant = -9876.54321; //To be filled by TMVA and batted back to ResTTPermuter
 	  tempVector.push_back(temp);
-	  
 	}
       }
     }
   }
   std::cout << "\nSize of tempVector is ... " << tempVector.size() << std::endl;
-  _candVectorVector.push_back(tempVector);
+  //_candVectorVector.push_back(tempVector);
   return tempVector;
 }
 void ResTTPermuter::CatchCandidates(std::vector<BDTCand> tossedCandidates){
@@ -1359,14 +1391,6 @@ int main()
 
 	    //Create ResTTPermuter, be aware of the Most Vexing Parse (C++), necessitating curly brackets around argument if it looks like a function declaration
 	    ResTTPermuter BDTPermute(*AK4JetLV, *AK4JetBtag);
-	    std::cout << "Should we skip index 0? Permuter says... " << BDTPermute.ShouldSkip(0) << std::endl;
-	    std::cout << "Should we skip index 1? Permuter says... " << BDTPermute.ShouldSkip(1) << std::endl;
-	    std::cout << "Should we skip index 2? Permuter says... " << BDTPermute.ShouldSkip(2) << std::endl;
-	    std::cout << "Should we skip index 3? Permuter says... " << BDTPermute.ShouldSkip(3) << std::endl;
-	    std::cout << "Should we skip index 4? Permuter says... " << BDTPermute.ShouldSkip(4) << std::endl;
-	    std::cout << "Should we skip index 5? Permuter says... " << BDTPermute.ShouldSkip(5) << std::endl;
-	    std::cout << "Should we skip index 7? Permuter says... " << BDTPermute.ShouldSkip(7) << std::endl;
-	    std::cout << "Should we skip index 11? Permuter says... " << BDTPermute.ShouldSkip(11) << std::endl;
 	    std::vector<BDTCand> batter = BDTPermute.PitchCandidates(0);
 	    std::cout << std::endl;
 	    for(int bat = 0; bat < batter.size(); bat++){
@@ -1374,6 +1398,13 @@ int main()
 			<< batter[bat].idx_i << " "
 			<< batter[bat].idx_j << " "
 			<< batter[bat].idx_k << " "
+			<< batter[bat].btag << " "
+			<< batter[bat].ThPtOverSumPt << " "
+			<< batter[bat].AngleThWh << " "
+			<< batter[bat].AngleThBh << " "
+			<< batter[bat].HadrWmass << " "
+			<< batter[bat].TopMass << " "
+			<< batter[bat].discriminant << " "
 			<< std::endl;
 	    }
 
