@@ -117,9 +117,9 @@ std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
 	for(uint k = j+1; k < _size; k++){
 	  if(this->ShouldSkip(k))
 	    continue;
-	  //TLorentzVector first = (*_inJets)[i];
-	  //TLorentzVector second = (*_inJets)[j];
-	  //TLorentzVector third = (*_inJets)[k];
+	  TLorentzVector first = (*_inJets)[i];
+	  TLorentzVector second = (*_inJets)[j];
+	  TLorentzVector third = (*_inJets)[k];
 
 	  BDTCand temp;
 	  temp.idx_i = i;
@@ -1368,6 +1368,14 @@ int main()
 	    std::cout << "Should we skip index 7? Permuter says... " << BDTPermute.ShouldSkip(7) << std::endl;
 	    std::cout << "Should we skip index 11? Permuter says... " << BDTPermute.ShouldSkip(11) << std::endl;
 	    std::vector<BDTCand> batter = BDTPermute.PitchCandidates(0);
+	    std::cout << std::endl;
+	    for(int bat = 0; bat < batter.size(); bat++){
+	      std::cout << "\t"
+			<< batter[bat].idx_i << " "
+			<< batter[bat].idx_j << " "
+			<< batter[bat].idx_k << " "
+			<< std::endl;
+	    }
 
 	    //no longer really used...
 	    int nRecoWs = 0;
