@@ -23,97 +23,72 @@
 #include "TMVA/Reader.h"
 #include "TMVA/Tools.h"
 
+//Struct for holding BDT candidate information
+struct BDTCand {
+  //Jet Indices
+  uint idx_i;
+  uint idx_j;
+  uint idx_k;
+  //BDT Variables, 2016 default...
+  float btag;
+  float ThPtOverSumPt;
+  float AngleThWh;
+  float AngleThBh;
+  float HadrWmass;
+  float TopMass;
+  //BDT discriminant
+  double discriminant;
+};
+
 //Class for doing jet combinatorics and returning the list of best resolved top-tagged jets using the BDT method from the 2016 Four-top DL/SL analysis
 class ResTTPermuter{
 public:
-  ResTTPermuter();
+  ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtag);
   ~ResTTPermuter();
-  void test();
-  void test2();
+  uint GetNumPermutations();
+  std::vector<BDTCand> PitchCandidates(int index);
+  void CatchCandidates(std::vector<BDTCand> tossedCandidates); //should evaluate and store the best in the finalCandidates, plus store jet indices to be skipped next round
+  std::vector<BDTCand> GetFinalCandidates();
 
 private:
-  //Will need include when splitting this off
-  //TMVA::Reader* _reader;
-  TMVA::Reader _reader;
+  bool _canPermute;
+  uint _numPermutations = 0;
+  //index list of jets that belong to a best candidate
+  std::vector<uint> _skipIndices;
+  //pointer to the AK4 jets and CSVv2 btags to be evaluated with the BDT method
   std::vector<TLorentzVector>* _inJets;
-  //BDT Variables, 2016 default...
-  float _defaultVars[6] = {0};
-  //Create internal candidates, storing the jet indices and the highest BDT discriminant from the 3 permutations (3 unique W-candidate jet-pairs)
-  //Should return the TLorentzVectors and Discriminant
-  std::vector<std::pair<std::vector<int>, double> > _cand; 
+  std::vector<float> _inBtags;
+  //Permit limitless number of candidates
+  std::vector<std::vector<BDTCand> > _candVectorVector;
+  //Create final candidates, storing the jet indices and the highest BDT discriminant from the 3 permutations (3 unique W-candidate jet-pairs) for the final best candidate
+  std::vector<BDTCand> _finalCandidates;
 };
-ResTTPermuter::ResTTPermuter(){
-  // //Setup TMVA for evaluating the 2016 default BDT
-  // TMVA::Reader *_reader;
-  // _reader = new TMVA::Reader( "!Color:!Silent" );
-  // //std::string btagvar = "btag";
-  // //reader->AddVariable(btagvar.c_str(), &btag);
-  // _reader->AddVariable("btag", &_defaultVars[0]);
-  // _reader->AddVariable("ThPtOverSumPt", &_defaultVars[1]);
-  // _reader->AddVariable("AngleThWh", &_defaultVars[2]);
-  // _reader->AddVariable("AngleThBh", &_defaultVars[3]);
-  // _reader->AddVariable("HadrWmass", &_defaultVars[4]);
-  // _reader->AddVariable("TopMass", &_defaultVars[5]);
-  // std::string weightsPath = "JetCombTrainer_BDT.weights.xml";
-  // try{
-  //   //_reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
-  //   _reader->BookMVA("BDT method", weightsPath );
-  // }
-  // catch(...){
-  //   std::cout << "\nOpening weights file " << weightsPath << " failed." << std::endl;
-  // }
+//ResTTPermuter::ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<double> inBtags){
+ResTTPermuter::ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtags){
+  _inJets = inJets;
+  //_inBtags = &*inBtags->begin();//Doesn't work... just iterate and assign
+  for(std::vector<float>::iterator b = inBtags->begin(); b != inBtags->end(); b++)
+    _inBtags.push_back(*b);
 }
 ResTTPermuter::~ResTTPermuter(){
-  delete _reader;
 }
-void ResTTPermuter::test(){
-  //Setup TMVA for evaluating the 2016 default BDT
-  TMVA::Reader *_reader;
-  _reader = *TMVA::Reader( "!Color:!Silent" );
-  //std::string btagvar = "btag";
-  //reader->AddVariable(btagvar.c_str(), &btag);
-  _reader.AddVariable("btag", &_defaultVars[0]);
-  _reader.AddVariable("ThPtOverSumPt", &_defaultVars[1]);
-  _reader.AddVariable("AngleThWh", &_defaultVars[2]);
-  _reader.AddVariable("AngleThBh", &_defaultVars[3]);
-  _reader.AddVariable("HadrWmass", &_defaultVars[4]);
-  _reader.AddVariable("TopMass", &_defaultVars[5]);
-  std::string weightsPath = "JetCombTrainer_BDT.weights.xml";
-  try{
-    //_reader.BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
-    _reader.BookMVA("BDT method", weightsPath );
+uint ResTTPermuter::GetNumPermutations(){
+  int possibilities = _inJets->size() - _skipIndices.size() + 1; //account for default 9999 in vector
+  if( possibilities < 3) // number of jets that can still be permuted
+    return 0;
+  else{
+    _canPermute = true;
+    return floor(possibilities/3);
   }
-  catch(...){
-    std::cout << "\nOpening weights file " << weightsPath << " failed." << std::endl;
-  }
-  
-  std::cout << "Test value BDT output 0 is: " << _reader.EvaluateMVA("BDT method") << std::endl;
-  //Example BDT evaluation
-  _defaultVars[0] = 0.93;
-  _defaultVars[1] = 0.88;
-  _defaultVars[2] = 0.41;
-  _defaultVars[3] = 0.32;
-  _defaultVars[4] = 79.0;
-  _defaultVars[5] = 173.0;
-  std::vector<double> inputVars;
-  for(int i = 0; i < 6; i++) inputVars.push_back(_defaultVars[i]);
-  std::cout << "Var5: " << &_defaultVars[5] << std::endl;
-  //std::cout << "Test value BDT output is: " << _reader.EvaluateMVA(inputVars, "BDT method") << std::endl;
-  //_reader.EvaluateMVA();
-
-  _defaultVars[0] = 0.71;
-  _defaultVars[1] = 0.56;
-  _defaultVars[2] = 0.21;
-  _defaultVars[3] = 0.11;
-  _defaultVars[4] = 45.0;
-  _defaultVars[5] = 100.0;
-  std::cout << "Var5: " << &_defaultVars[5] << std::endl;
-
-  //std::cout << "Test value BDT output 2 is: " << _reader.EvaluateMVA("BDT method") << std::endl;
 }
-void ResTTPermuter::test2(){
-  std::cout << "Test value BDT output B2 is: " << _reader.EvaluateMVA("BDT method") << std::endl;
+std::vector<BDTCand> ResTTPermuter::PitchCandidates(int index){
 }
+void ResTTPermuter::CatchCandidates(std::vector<BDTCand> tossedCandidates){
+}
+std::vector<BDTCand> ResTTPermuter::GetFinalCandidates(){
+  return _finalCandidates;
+}
+
 
 class ResTTEvaluator{
  public:
@@ -1231,10 +1206,18 @@ int main()
     //Create top tagger object
     TopTagger tt;
 
-    //Create ResTTPermuter, using braces to avoid the Most Vexing Parse (C++)
-    ResTTPermuter BDTPermute{};
-    BDTPermute.test();
-    BDTPermute.test2();
+    //Setup TMVA for evaluating the 2016 default BDT
+    float defaultVars[6] = {0};
+    TMVA::Reader *reader;
+    reader = new TMVA::Reader( "!Color:!Silent" );
+    reader->AddVariable("btag", &defaultVars[0]);
+    reader->AddVariable("ThPtOverSumPt", &defaultVars[1]);
+    reader->AddVariable("AngleThWh", &defaultVars[2]);
+    reader->AddVariable("AngleThBh", &defaultVars[3]);
+    reader->AddVariable("HadrWmass", &defaultVars[4]);
+    reader->AddVariable("TopMass", &defaultVars[5]);
+    reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
+    //Reader is ready to evaluate.
 
     //try-catch on TTException which are thrown by the top tagger
     try
@@ -1321,6 +1304,9 @@ int main()
 	    int nJets = (**AK4JetLV).size();
 	    h_nJet->Fill(nJets);
 
+
+	    //Create ResTTPermuter, be aware of the Most Vexing Parse (C++), necessitating curly brackets around argument if it looks like a function declaration
+	    ResTTPermuter BDTPermute(*AK4JetLV, *AK4JetBtag);
 
 	    //no longer really used...
 	    int nRecoWs = 0;
