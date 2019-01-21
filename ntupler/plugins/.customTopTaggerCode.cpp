@@ -46,9 +46,11 @@ public:
   ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtag);
   ~ResTTPermuter();
   //uint GetNumPermutations();
+  uint GetNumTrijets();
   bool ShouldSkip(uint jetIndex);
   std::vector<BDTCand> PitchCandidates(int candIndex);
   void CatchCandidates(std::vector<BDTCand> tossedCandidates); //should evaluate and store the best in the finalCandidates, plus store jet indices to be skipped next round
+  void CatchCandidate(BDTCand tossedCandidate);
   std::vector<BDTCand> GetFinalCandidates();
 
 private:
@@ -79,6 +81,9 @@ ResTTPermuter::ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<fl
 
 }
 ResTTPermuter::~ResTTPermuter(){
+}
+uint ResTTPermuter::GetNumTrijets(){
+  return _numTrijets;
 }
 // uint ResTTPermuter::GetNumPermutations(){
 //   inline uint Factorial(uint in){
@@ -172,6 +177,12 @@ void ResTTPermuter::CatchCandidates(std::vector<BDTCand> tossedCandidates){
   _skipIndices.push_back(tossedCandidates[0].idx_i);
   _skipIndices.push_back(tossedCandidates[0].idx_j);
   _skipIndices.push_back(tossedCandidates[0].idx_k);
+}
+void ResTTPermuter::CatchCandidate(BDTCand tossedCandidate){
+  _finalCandidates.push_back(tossedCandidate);
+  _skipIndices.push_back(tossedCandidate.idx_i);
+  _skipIndices.push_back(tossedCandidate.idx_j);
+  _skipIndices.push_back(tossedCandidate.idx_k);
 }
 std::vector<BDTCand> ResTTPermuter::GetFinalCandidates(){
   return _finalCandidates;
@@ -1402,73 +1413,42 @@ int main()
 
 
 	    //Create ResTTPermuter, be aware of the Most Vexing Parse (C++), necessitating curly brackets around argument if it looks like a function declaration
-	    ResTTPermuter BDTPermute(*AK4JetLV, *AK4JetBtag);
-	    //Begin First Round
-	    std::vector<BDTCand> batter = BDTPermute.PitchCandidates(0);
-	    std::cout << std::endl;
-	    for(int bat = 0; bat < batter.size(); bat++){
-	      std::cout << "\t"
-			<< batter[bat].idx_i << " "
-			<< batter[bat].idx_j << " "
-			<< batter[bat].idx_k << " "
-			<< batter[bat].btag << " "
-			<< batter[bat].ThPtOverSumPt << " "
-			<< batter[bat].AngleThWh << " "
-			<< batter[bat].AngleThBh << " "
-			<< batter[bat].HadrWmass << " "
-			<< batter[bat].TopMass << " "
-			<< batter[bat].discriminant << " "
-			<< std::endl;
-	      defaultVars[0] = batter[bat].btag;
-	      defaultVars[1] = batter[bat].ThPtOverSumPt;
-	      defaultVars[2] = batter[bat].AngleThWh;
-	      defaultVars[3] = batter[bat].AngleThBh;
-	      defaultVars[4] = batter[bat].HadrWmass;
-	      defaultVars[5] = batter[bat].TopMass;
-	      //std::cout <<  reader->EvaluateMVA( "BDT method" ) << std::endl;
-	      batter[bat].discriminant = reader->EvaluateMVA( "BDT method" );
-	      
+	    //Create loopable version
+	    ResTTPermuter Pitcher(*AK4JetLV, *AK4JetBtag);
+	    uint loopLimit = Pitcher.GetNumTrijets();
+	    for(uint loop = 0; loop < loopLimit; loop++){
+	      std::cout << ">>>>>>>>>>>>>>>>>>>>> Loop: " << loop << std::endl;
+	      std::vector<BDTCand> lineup = Pitcher.PitchCandidates(loop);
+	      for(int bat = 0; bat < lineup.size(); bat++){
+		std::cout << "\t>>"
+			  << lineup[bat].idx_i << " "
+			  << lineup[bat].idx_j << " "
+			  << lineup[bat].idx_k << " "
+			  << lineup[bat].btag << " "
+			  << lineup[bat].ThPtOverSumPt << " "
+			  << lineup[bat].AngleThWh << " "
+			  << lineup[bat].AngleThBh << " "
+			  << lineup[bat].HadrWmass << " "
+			  << lineup[bat].TopMass << " "
+			  << lineup[bat].discriminant << " "
+			  << std::endl;
+		defaultVars[0] = lineup[bat].btag;
+		defaultVars[1] = lineup[bat].ThPtOverSumPt;
+		defaultVars[2] = lineup[bat].AngleThWh;
+		defaultVars[3] = lineup[bat].AngleThBh;
+		defaultVars[4] = lineup[bat].HadrWmass;
+		defaultVars[5] = lineup[bat].TopMass;
+		lineup[bat].discriminant = reader->EvaluateMVA( "BDT method" );
+	      }
+	      std::sort(lineup.begin(), lineup.end(), [](const BDTCand &left, const BDTCand &right) {
+		  return left.discriminant > right.discriminant;
+		});
+	      for(int bat = 0; bat < lineup.size(); bat++){
+		std::cout << "lineup disc: " << lineup[bat].discriminant << std::endl;
+	      }
+	      Pitcher.CatchCandidate(lineup[0]);
 	    }
-	    std::sort(batter.begin(), batter.end(), [](const BDTCand &left, const BDTCand &right) {
-		return left.discriminant > right.discriminant;
-	      });
-	    for(int bat = 0; bat < batter.size(); bat++){
-	      std::cout << batter[bat].discriminant << std::endl;
-	    }//End First Round
-
-	    //Begin Second Round
-	    BDTPermute.CatchCandidates(batter);
-	    std::vector<BDTCand> batter2 = BDTPermute.PitchCandidates(1);
-	    for(int bat = 0; bat < batter2.size(); bat++){
-	      std::cout << "\t"
-			<< batter2[bat].idx_i << " "
-			<< batter2[bat].idx_j << " "
-			<< batter2[bat].idx_k << " "
-			<< batter2[bat].btag << " "
-			<< batter2[bat].ThPtOverSumPt << " "
-			<< batter2[bat].AngleThWh << " "
-			<< batter2[bat].AngleThBh << " "
-			<< batter2[bat].HadrWmass << " "
-			<< batter2[bat].TopMass << " "
-			<< batter2[bat].discriminant << " "
-			<< std::endl;
-	      defaultVars[0] = batter2[bat].btag;
-	      defaultVars[1] = batter2[bat].ThPtOverSumPt;
-	      defaultVars[2] = batter2[bat].AngleThWh;
-	      defaultVars[3] = batter2[bat].AngleThBh;
-	      defaultVars[4] = batter2[bat].HadrWmass;
-	      defaultVars[5] = batter2[bat].TopMass;
-	      //std::cout <<  reader->EvaluateMVA( "BDT method" ) << std::endl;
-	      batter2[bat].discriminant = reader->EvaluateMVA( "BDT method" );
-	      
-	    }
-	    std::sort(batter2.begin(), batter2.end(), [](const BDTCand &left, const BDTCand &right) {
-		return left.discriminant > right.discriminant;
-	      });
-	    for(int bat = 0; bat < batter2.size(); bat++){
-	      std::cout << batter2[bat].discriminant << std::endl;
-	    }
-	    //End Second Round
+	    
 
 	    //no longer really used...
 	    int nRecoWs = 0;
