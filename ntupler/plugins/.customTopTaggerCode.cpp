@@ -44,6 +44,7 @@ struct BDTCand {
 class ResTTPermuter{
 public:
   ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtag);
+  ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtag, bool debug);
   ~ResTTPermuter();
   //uint GetNumPermutations();
   uint GetNumTrijets();
@@ -51,9 +52,11 @@ public:
   std::vector<BDTCand> PitchCandidates(int candIndex);
   void CatchCandidates(std::vector<BDTCand> tossedCandidates); //should evaluate and store the best in the finalCandidates, plus store jet indices to be skipped next round
   void CatchCandidate(BDTCand tossedCandidate);
-  std::vector<BDTCand> GetFinalCandidates();
+  std::vector<BDTCand> GetFinalIDXCandidates();
+  std::vector<std::pair<std::vector<TLorentzVector>, double> > GetFinalCandidates();
 
 private:
+  bool _debug = false;
   uint _numTrijets = 0;
   uint _numPermutations = 0;
   uint _size = 0;
@@ -79,6 +82,15 @@ ResTTPermuter::ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<fl
   // if(_numTrijets > 0)
   //   _canPermute = true;
 
+}
+ResTTPermuter::ResTTPermuter(std::vector<TLorentzVector>* inJets, std::vector<float, std::allocator<float> >*& inBtags, bool debug){
+  _debug = debug;
+  _inJets = inJets;
+  _size = _inJets->size();
+  for(std::vector<float>::iterator b = inBtags->begin(); b != inBtags->end(); b++)
+    _inBtags.push_back(*b);
+  int availJets = _inJets->size() - _skipIndices.size();
+  _numTrijets = floor(availJets/3);
 }
 ResTTPermuter::~ResTTPermuter(){
 }
@@ -110,7 +122,8 @@ bool ResTTPermuter::ShouldSkip(uint jetIndex){
   return false; //if jet index doesn't match against any in the skip list
 }
 std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
-  std::cout << "Starting to Pitch Candidates" << std::endl;
+  if(_debug)
+    std::cout << "Starting to Pitch Candidates" << std::endl;
   std::vector<BDTCand> tempVector;
   if(candIndex < _numTrijets){
     for(uint i = 0; i < _size; i++){
@@ -168,7 +181,8 @@ std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
       }
     }
   }
-  std::cout << "\nSize of tempVector is ... " << tempVector.size() << std::endl;
+  if(_debug)
+    std::cout << "\nSize of tempVector is ... " << tempVector.size() << std::endl;
   //_candVectorVector.push_back(tempVector);
   return tempVector;
 }
@@ -184,10 +198,25 @@ void ResTTPermuter::CatchCandidate(BDTCand tossedCandidate){
   _skipIndices.push_back(tossedCandidate.idx_j);
   _skipIndices.push_back(tossedCandidate.idx_k);
 }
-std::vector<BDTCand> ResTTPermuter::GetFinalCandidates(){
+std::vector<BDTCand> ResTTPermuter::GetFinalIDXCandidates(){
   return _finalCandidates;
 }
-
+std::vector<std::pair<std::vector<TLorentzVector>, double> > ResTTPermuter::GetFinalCandidates(){
+  std::vector<std::pair<std::vector<TLorentzVector>, double> > tempVector;
+  for(uint finals = 0; finals < _numTrijets; finals++){
+    std::pair<std::vector<TLorentzVector>, double> tempPair;
+    std::vector<TLorentzVector> tempTLV;
+    tempTLV.push_back( (*_inJets)[ _finalCandidates[finals].idx_i] );
+    tempTLV.push_back( (*_inJets)[ _finalCandidates[finals].idx_j] );
+    tempTLV.push_back( (*_inJets)[ _finalCandidates[finals].idx_k] );
+    tempPair.first = tempTLV;
+    tempPair.second = _finalCandidates[finals].discriminant;
+    tempVector.push_back(tempPair);
+    if(_debug)
+      std::cout << "Chosen Indices: " << _finalCandidates[finals].idx_i << " " << _finalCandidates[finals].idx_j << " " << _finalCandidates[finals].idx_k << std::endl;
+  }
+  return tempVector;
+}
 
 class ResTTEvaluator{
  public:
@@ -1430,8 +1459,8 @@ int main()
 			  << lineup[bat].AngleThBh << " "
 			  << lineup[bat].HadrWmass << " "
 			  << lineup[bat].TopMass << " "
-			  << lineup[bat].discriminant << " "
-			  << std::endl;
+			  << lineup[bat].discriminant << " ";
+		//<< std::endl;
 		defaultVars[0] = lineup[bat].btag;
 		defaultVars[1] = lineup[bat].ThPtOverSumPt;
 		defaultVars[2] = lineup[bat].AngleThWh;
@@ -1439,6 +1468,7 @@ int main()
 		defaultVars[4] = lineup[bat].HadrWmass;
 		defaultVars[5] = lineup[bat].TopMass;
 		lineup[bat].discriminant = reader->EvaluateMVA( "BDT method" );
+		std::cout << "   -->   " << lineup[bat].discriminant << std::endl;
 	      }
 	      std::sort(lineup.begin(), lineup.end(), [](const BDTCand &left, const BDTCand &right) {
 		  return left.discriminant > right.discriminant;
@@ -1448,6 +1478,8 @@ int main()
 	      }
 	      Pitcher.CatchCandidate(lineup[0]);
 	    }
+	    auto BDTResults = Pitcher.GetFinalCandidates();
+	    
 	    
 
 	    //no longer really used...
@@ -1544,8 +1576,8 @@ int main()
 
 	    //ResTTEvaluator HOTEval("HOT");
 	    ResTTEvaluator HOTEval("HOT", true, false);
-
-	    //BDTPermute.test();
+	    
+	    ResTTEvaluator BDTEval("BDT", true, false);
 
 	    //Old style tops
 	    if(!isNewStyle){
@@ -1554,16 +1586,19 @@ int main()
 	      auto the1Top = **hadTop1Constit;
 	      if(the1Top.size() > 0){
 		HOTEval.addReco(*hadTop1Constit, Top1flags);
+		BDTEval.addReco(*hadTop1Constit, Top1flags);
 		//nAnyHadTops++;
 	      }
 	      auto the2Top = **hadTop2Constit;
 	      if(the2Top.size() > 0){
 		HOTEval.addReco(*hadTop2Constit, Top1flags);
+		BDTEval.addReco(*hadTop2Constit, Top1flags);
 		//nAnyHadTops++;
 	      }
 	      auto the3Top = **hadTop3Constit;
 	      if(the3Top.size() > 0){
 		HOTEval.addReco(*hadTop3Constit, Top1flags);
+		BDTEval.addReco(*hadTop3Constit, Top1flags);
 		//nAnyHadTops++;
 	      }
 	    }
@@ -1573,6 +1608,7 @@ int main()
 	      if((**recoTop1).size() > 0 && (**recoTop1flags)[0] > -1){
 		//if((**recoTop1).size() > 0){ leptonic permitted
 		HOTEval.addReco(*recoTop1, **recoTop1flags);
+		BDTEval.addReco(*recoTop1, **recoTop1flags);
 		if((**recoTop1flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop1flags)[0] > 2)
@@ -1582,6 +1618,7 @@ int main()
 	      if((**recoTop2).size() > 0 && (**recoTop2flags)[0] > -1){
 		//if((**recoTop2).size() > 0){
 		HOTEval.addReco(*recoTop2, **recoTop2flags);
+		BDTEval.addReco(*recoTop2, **recoTop2flags);
 		if((**recoTop2flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop2flags)[0] > 2)
@@ -1591,6 +1628,7 @@ int main()
 	      if((**recoTop3).size() > 0 && (**recoTop3flags)[0] > -1){
 		//if((**recoTop3).size() > 0){
 		HOTEval.addReco(*recoTop3, **recoTop3flags);
+		BDTEval.addReco(*recoTop3, **recoTop3flags);
 		if((**recoTop3flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop3flags)[0] > 2)
@@ -1600,6 +1638,7 @@ int main()
 	      if((**recoTop4).size() > 0 && (**recoTop4flags)[0] > -1){
 		//if((**recoTop4).size() > 0){
 		HOTEval.addReco(*recoTop4, **recoTop4flags);
+		BDTEval.addReco(*recoTop4, **recoTop4flags);
 		if((**recoTop4flags)[0] > -1){
 		  nAnyHadTops++;
 		  if((**recoTop4flags)[0] > 2)
@@ -1711,7 +1750,7 @@ int main()
 		    }
                 }
 
-		//add candidate to ResTTEvaluator
+		//add candidate to ResTTEvaluator for HOT
 		HOTEval.addCand(theCand, top->getDiscriminator());
 		//printf("\t\t\ttop1: %2d || top2: %2d|| top3: %2d || Discriminant: %6.4lf\n", mat2, mat3, mat4, top->getDiscriminator());
 		//if(mat2 == 3 || mat3 == 3 || mat4 == 3) h_typeIII->Fill(top->getDiscriminator());
@@ -1719,6 +1758,11 @@ int main()
 		//if(mat2 < 2 && mat3 < 2 && mat4 < 2) h_typeI->Fill(top->getDiscriminator());
 		delete theCand;
             }
+	    
+	    //add candidate to ResTTEvaluator for BDT, results were stored in BDTResults as vector of pairs of TLVs and discriminant
+	    BDTEval.addCand(&BDTResults[0].first, BDTResults[0].second);
+
+	    //CONTHERE
 	    std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
 	    HOTEval.printDimensions();
 	    HOTEval.evaluateR();
