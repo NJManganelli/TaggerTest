@@ -168,6 +168,10 @@ std::vector<BDTCand> ResTTPermuter::PitchCandidates(int candIndex){
   return tempVector;
 }
 void ResTTPermuter::CatchCandidates(std::vector<BDTCand> tossedCandidates){
+  _finalCandidates.push_back(tossedCandidates[0]);
+  _skipIndices.push_back(tossedCandidates[0].idx_i);
+  _skipIndices.push_back(tossedCandidates[0].idx_j);
+  _skipIndices.push_back(tossedCandidates[0].idx_k);
 }
 std::vector<BDTCand> ResTTPermuter::GetFinalCandidates(){
   return _finalCandidates;
@@ -1302,7 +1306,15 @@ int main()
     reader->AddVariable("TopMass", &defaultVars[5]);
     reader->BookMVA( "BDT method", "JetCombTrainer_BDT.weights.xml" );
     //Reader is ready to evaluate.
+    defaultVars[0] = 0.99;
+    defaultVars[0] = 0.6;
+    defaultVars[0] = 0.13;
+    defaultVars[0] = 0.3;
+    defaultVars[0] = 81.0;
+    defaultVars[0] = 173.2;
 
+    std::cout << "Testing MVA: " << reader->EvaluateMVA( "BDT method" ) << std::endl;
+    
     //try-catch on TTException which are thrown by the top tagger
     try
     {
@@ -1391,6 +1403,7 @@ int main()
 
 	    //Create ResTTPermuter, be aware of the Most Vexing Parse (C++), necessitating curly brackets around argument if it looks like a function declaration
 	    ResTTPermuter BDTPermute(*AK4JetLV, *AK4JetBtag);
+	    //Begin First Round
 	    std::vector<BDTCand> batter = BDTPermute.PitchCandidates(0);
 	    std::cout << std::endl;
 	    for(int bat = 0; bat < batter.size(); bat++){
@@ -1406,7 +1419,56 @@ int main()
 			<< batter[bat].TopMass << " "
 			<< batter[bat].discriminant << " "
 			<< std::endl;
+	      defaultVars[0] = batter[bat].btag;
+	      defaultVars[1] = batter[bat].ThPtOverSumPt;
+	      defaultVars[2] = batter[bat].AngleThWh;
+	      defaultVars[3] = batter[bat].AngleThBh;
+	      defaultVars[4] = batter[bat].HadrWmass;
+	      defaultVars[5] = batter[bat].TopMass;
+	      //std::cout <<  reader->EvaluateMVA( "BDT method" ) << std::endl;
+	      batter[bat].discriminant = reader->EvaluateMVA( "BDT method" );
+	      
 	    }
+	    std::sort(batter.begin(), batter.end(), [](const BDTCand &left, const BDTCand &right) {
+		return left.discriminant > right.discriminant;
+	      });
+	    for(int bat = 0; bat < batter.size(); bat++){
+	      std::cout << batter[bat].discriminant << std::endl;
+	    }//End First Round
+
+	    //Begin Second Round
+	    BDTPermute.CatchCandidates(batter);
+	    std::vector<BDTCand> batter2 = BDTPermute.PitchCandidates(1);
+	    for(int bat = 0; bat < batter2.size(); bat++){
+	      std::cout << "\t"
+			<< batter2[bat].idx_i << " "
+			<< batter2[bat].idx_j << " "
+			<< batter2[bat].idx_k << " "
+			<< batter2[bat].btag << " "
+			<< batter2[bat].ThPtOverSumPt << " "
+			<< batter2[bat].AngleThWh << " "
+			<< batter2[bat].AngleThBh << " "
+			<< batter2[bat].HadrWmass << " "
+			<< batter2[bat].TopMass << " "
+			<< batter2[bat].discriminant << " "
+			<< std::endl;
+	      defaultVars[0] = batter2[bat].btag;
+	      defaultVars[1] = batter2[bat].ThPtOverSumPt;
+	      defaultVars[2] = batter2[bat].AngleThWh;
+	      defaultVars[3] = batter2[bat].AngleThBh;
+	      defaultVars[4] = batter2[bat].HadrWmass;
+	      defaultVars[5] = batter2[bat].TopMass;
+	      //std::cout <<  reader->EvaluateMVA( "BDT method" ) << std::endl;
+	      batter2[bat].discriminant = reader->EvaluateMVA( "BDT method" );
+	      
+	    }
+	    std::sort(batter2.begin(), batter2.end(), [](const BDTCand &left, const BDTCand &right) {
+		return left.discriminant > right.discriminant;
+	      });
+	    for(int bat = 0; bat < batter2.size(); bat++){
+	      std::cout << batter2[bat].discriminant << std::endl;
+	    }
+	    //End Second Round
 
 	    //no longer really used...
 	    int nRecoWs = 0;
