@@ -1760,167 +1760,320 @@ int main()
             }
 	    
 	    //add candidate to ResTTEvaluator for BDT, results were stored in BDTResults as vector of pairs of TLVs and discriminant
-	    BDTEval.addCand(&BDTResults[0].first, BDTResults[0].second);
+	    for(uint bdtrescnt = 0; bdtrescnt < BDTResults.size(); bdtrescnt++)
+	      BDTEval.addCand(&BDTResults[bdtrescnt].first, BDTResults[bdtrescnt].second);
+	    BDTEval.printDimensions();
+	    BDTEval.evaluateR();
+	    std::vector<std::pair<double, std::string>> tCR_bdt = BDTEval.getOrderedClassesR();
+	    //*
+	    for(int e = 0; e < tCR_bdt.size(); e++){
+	      if(tCR_bdt[e].second == "typeIII")
+		h_typeIII_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else if(tCR_bdt[e].second == "typeIIb")
+		h_typeIIb_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else if(tCR_bdt[e].second == "typeIImib")
+		h_typeIImib_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else if(tCR_bdt[e].second == "typeIIw")
+		h_typeIIw_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else if(tCR_bdt[e].second == "typeIImiq")
+		h_typeIImiq_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else if(tCR_bdt[e].second == "typeIt")
+		h_typeIt_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else if(tCR_bdt[e].second == "typeIp")
+		h_typeIp_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else if(tCR_bdt[e].second == "type0xI")
+		h_type0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+	      else{
+		std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
+		std::cout << tCR_bdt[e].second << std::endl;
+		nERROR++;
+		  }
+	      //ordered candidates
+	      switch(e){
+	      case 0:{
+		h_nJet_N1_bdt->Fill(nJets);
+		if(tCR_bdt[e].second == "typeIII"){
+		  h_eventN1_III_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIIb"){
+		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIImib"){
+		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIIw"){
+		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIImiq"){
+		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIt"){
+		  h_eventN1_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIp"){
+		  h_eventN1_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "type0xI"){
+		  h_eventN1_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else{
+		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
+		  std::cout << tCR_bdt[e].second << std::endl;
+		  nERROR++;
+		}
+	      }//case 0 (Highest)
+		break;
+	      case 1:{
+		h_nJet_N2_bdt->Fill(nJets);
+		if(tCR_bdt[e].second == "typeIII"){
+		  h_eventN2_III_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIIb"){
+		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIImib"){
+		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIIw"){
+		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIImiq"){
+		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIt"){
+		  h_eventN2_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIp"){
+		  h_eventN2_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "type0xI"){
+		  h_eventN2_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else{
+		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
+		  std::cout << tCR_bdt[e].second << std::endl;
+		  nERROR++;
+		}
+	      }//case 1 (2nd highest)
+		break;
+	      case 2:{
+		h_nJet_N3_bdt->Fill(nJets);
+		if(tCR_bdt[e].second == "typeIII"){
+		  h_eventN3_III_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIIb"){
+		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIImib"){
+		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIIw"){
+		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIImiq"){
+		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIt"){
+		  h_eventN3_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "typeIp"){
+		  h_eventN3_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "type0xI"){
+		  h_eventN3_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else{
+		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
+		  std::cout << tCR_bdt[e].second << std::endl;
+		  nERROR++;
+		}
+	      }//case 2 (3rd highest)
+		break;
+	      default: break;
+	      }
+	    } //*/
 
-	    //CONTHERE
 	    std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
 	    HOTEval.printDimensions();
 	    HOTEval.evaluateR();
-	    //std::vector<std::pair<double, std::string>> tCR = HOTEval.getClassesR();
-	    std::vector<std::pair<double, std::string>> tCR = HOTEval.getOrderedClassesR();
+	    std::vector<std::pair<double, std::string>> tCR_hot = HOTEval.getOrderedClassesR();
 	    
 	    //Error checking
 	    std::cout << "\n\tOrdered candidates: ";
-	    if(tCR.size() > 1)
-	      for(int f = 2; f < tCR.size(); f++){
-		//std::cout << tCR[f].first << " (" << tCR[f].second << ")\t";
-		if(tCR[f].first > tCR[f-1].first) nERROR++;
+	    if(tCR_hot.size() > 1)
+	      for(int f = 2; f < tCR_hot.size(); f++){
+		//std::cout << tCR_hot[f].first << " (" << tCR_hot[f].second << ")\t";
+		if(tCR_hot[f].first > tCR_hot[f-1].first) nERROR++;
 	      }
-	    if(tCR.size() != nHOTTops) nERROR++;
+	    if(tCR_hot.size() != nHOTTops) nERROR++;
 
-	    for(int e = 0; e < tCR.size(); e++){
-	      if(tCR[e].second == "typeIII")
-		h_typeIII_hot->Fill(tCR[e].first, nJets);
-	      else if(tCR[e].second == "typeIIb")
-		h_typeIIb_hot->Fill(tCR[e].first, nJets);
-	      else if(tCR[e].second == "typeIImib")
-		h_typeIImib_hot->Fill(tCR[e].first, nJets);
-	      else if(tCR[e].second == "typeIIw")
-		h_typeIIw_hot->Fill(tCR[e].first, nJets);
-	      else if(tCR[e].second == "typeIImiq")
-		h_typeIImiq_hot->Fill(tCR[e].first, nJets);
-	      else if(tCR[e].second == "typeIt")
-		h_typeIt_hot->Fill(tCR[e].first, nJets);
-	      else if(tCR[e].second == "typeIp")
-		h_typeIp_hot->Fill(tCR[e].first, nJets);
-	      else if(tCR[e].second == "type0xI")
-		h_type0xI_hot->Fill(tCR[e].first, nJets);
+	    for(int e = 0; e < tCR_hot.size(); e++){
+	      if(tCR_hot[e].second == "typeIII")
+		h_typeIII_hot->Fill(tCR_hot[e].first, nJets);
+	      else if(tCR_hot[e].second == "typeIIb")
+		h_typeIIb_hot->Fill(tCR_hot[e].first, nJets);
+	      else if(tCR_hot[e].second == "typeIImib")
+		h_typeIImib_hot->Fill(tCR_hot[e].first, nJets);
+	      else if(tCR_hot[e].second == "typeIIw")
+		h_typeIIw_hot->Fill(tCR_hot[e].first, nJets);
+	      else if(tCR_hot[e].second == "typeIImiq")
+		h_typeIImiq_hot->Fill(tCR_hot[e].first, nJets);
+	      else if(tCR_hot[e].second == "typeIt")
+		h_typeIt_hot->Fill(tCR_hot[e].first, nJets);
+	      else if(tCR_hot[e].second == "typeIp")
+		h_typeIp_hot->Fill(tCR_hot[e].first, nJets);
+	      else if(tCR_hot[e].second == "type0xI")
+		h_type0xI_hot->Fill(tCR_hot[e].first, nJets);
 	      else{
 		std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
-		std::cout << tCR[e].second << std::endl;
+		std::cout << tCR_hot[e].second << std::endl;
 		nERROR++;
 		  }
 	      //ordered candidates
 	      switch(e){
 	      case 0:{
 		h_nJet_N1_hot->Fill(nJets);
-		if(tCR[e].second == "typeIII"){
-		  h_eventN1_III_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		if(tCR_hot[e].second == "typeIII"){
+		  h_eventN1_III_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIIb"){
-		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIIb"){
+		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIImib"){
-		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIImib"){
+		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIIw"){
-		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIIw"){
+		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIImiq"){
-		  h_eventN1_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIImiq"){
+		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIt"){
-		  h_eventN1_Itp_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIt"){
+		  h_eventN1_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIp"){
-		  h_eventN1_Itp_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIp"){
+		  h_eventN1_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "type0xI"){
-		  h_eventN1_0xI_hot->Fill(tCR[e].first, nJets);
-		  h_eventN1_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "type0xI"){
+		  h_eventN1_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
-		  std::cout << tCR[e].second << std::endl;
+		  std::cout << tCR_hot[e].second << std::endl;
 		  nERROR++;
 		}
 	      }//case 0 (Highest)
 		break;
 	      case 1:{
 		h_nJet_N2_hot->Fill(nJets);
-		if(tCR[e].second == "typeIII"){
-		  h_eventN2_III_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		if(tCR_hot[e].second == "typeIII"){
+		  h_eventN2_III_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIIb"){
-		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIIb"){
+		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIImib"){
-		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIImib"){
+		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIIw"){
-		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIIw"){
+		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIImiq"){
-		  h_eventN2_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIImiq"){
+		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIt"){
-		  h_eventN2_Itp_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIt"){
+		  h_eventN2_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIp"){
-		  h_eventN2_Itp_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIp"){
+		  h_eventN2_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "type0xI"){
-		  h_eventN2_0xI_hot->Fill(tCR[e].first, nJets);
-		  h_eventN2_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "type0xI"){
+		  h_eventN2_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
-		  std::cout << tCR[e].second << std::endl;
+		  std::cout << tCR_hot[e].second << std::endl;
 		  nERROR++;
 		}
 	      }//case 1 (2nd highest)
 		break;
 	      case 2:{
 		h_nJet_N3_hot->Fill(nJets);
-		if(tCR[e].second == "typeIII"){
-		  h_eventN3_III_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		if(tCR_hot[e].second == "typeIII"){
+		  h_eventN3_III_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIIb"){
-		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIIb"){
+		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIImib"){
-		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIImib"){
+		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIIw"){
-		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIIw"){
+		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIImiq"){
-		  h_eventN3_II_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIImiq"){
+		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIt"){
-		  h_eventN3_Itp_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIt"){
+		  h_eventN3_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "typeIp"){
-		  h_eventN3_Itp_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "typeIp"){
+		  h_eventN3_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR[e].second == "type0xI"){
-		  h_eventN3_0xI_hot->Fill(tCR[e].first, nJets);
-		  h_eventN3_sum_hot->Fill(tCR[e].first, nJets);
+		else if(tCR_hot[e].second == "type0xI"){
+		  h_eventN3_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else{
 		  std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
-		  std::cout << tCR[e].second << std::endl;
+		  std::cout << tCR_hot[e].second << std::endl;
 		  nERROR++;
 		}
 	      }//case 2 (3rd highest)
