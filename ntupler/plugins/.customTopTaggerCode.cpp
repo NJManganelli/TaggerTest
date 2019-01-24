@@ -40,6 +40,16 @@ struct BDTCand {
   double discriminant;
 };
 
+double scaleBDT(double input){
+  //return 1.666666666666*(input + 0.4);
+  return 1.85*(input + 0.34);
+}
+double unscaleBDT(double input){
+  //return 1.666666666666*(input + 0.4);
+  return 1.85*(input + 0.34);
+  return input/1.85 - 0.34;
+}
+
 //Class for doing jet combinatorics and returning the list of best resolved top-tagged jets using the BDT method from the 2016 Four-top DL/SL analysis
 class ResTTPermuter{
 public:
@@ -751,7 +761,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 10;
+  uint maxEventsToProcess = 10000;
 
   //nJet and candidate counting histos
   TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 18, 6, 24);
@@ -817,106 +827,111 @@ int main()
 
   //HOT discriminant histos
   int nBins = 40;
-  TH2F *h_typeIII_hot = new TH2F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIII_hot = new TH2F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIIb_hot = new TH2F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIIb_hot = new TH2F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIImib_hot = new TH2F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIImib_hot = new TH2F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Jets", 
 				    nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIIw_hot = new TH2F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIIw_hot = new TH2F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIImiq_hot = new TH2F ("h_typeIImiq_hot_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIImiq_hot = new TH2F ("h_typeIImiq_hot_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Jets", 
 				    nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIt_hot = new TH2F ("h_typeIt_hot_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIt_hot = new TH2F ("h_typeIt_hot_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
 				 nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_typeIp_hot = new TH2F ("h_typeIp_hot_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIp_hot = new TH2F ("h_typeIp_hot_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
 				 nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_type0xI_hot = new TH2F ("h_type0xI_hot_", "Type 0xI (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 
+  TH2F *h_type0xI_hot = new TH2F ("h_type0xI_hot_", "Type 0xI (all other tagger candidates); Discriminant ; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH2F *h_eventN1_sum_hot = new TH2F ("h_eventN1_sum_hot", "Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_sum_hot = new TH2F ("h_eventN1_sum_hot", "Highest Disc Cand (all) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_III_hot = new TH2F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_III_hot = new TH2F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_II_hot = new TH2F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_II_hot = new TH2F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
 				     nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_Itp_hot = new TH2F ("h_eventN1_tItp_hot", "Highest Disc Cand (Type Itp) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_Itp_hot = new TH2F ("h_eventN1_tItp_hot", "Highest Disc Cand (Type Itp) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_0xI_hot = new TH2F ("h_eventN1_t0x1_hot", "Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_0xI_hot = new TH2F ("h_eventN1_t0x1_hot", "Highest Disc Cand (Type 0x1) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH2F *h_eventN2_sum_hot = new TH2F ("h_eventN2_sum_hot", "2nd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_sum_hot = new TH2F ("h_eventN2_sum_hot", "2nd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_III_hot = new TH2F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_III_hot = new TH2F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_II_hot = new TH2F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_II_hot = new TH2F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
 				     nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_Itp_hot = new TH2F ("h_eventN2_tItp_hot", "2nd Highest Disc Cand (Type Itp) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_Itp_hot = new TH2F ("h_eventN2_tItp_hot", "2nd Highest Disc Cand (Type Itp) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_0xI_hot = new TH2F ("h_eventN2_t0x1_hot", "2nd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_0xI_hot = new TH2F ("h_eventN2_t0x1_hot", "2nd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH2F *h_eventN3_sum_hot = new TH2F ("h_eventN3_sum_hot", "3rd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_sum_hot = new TH2F ("h_eventN3_sum_hot", "3rd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_III_hot = new TH2F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_III_hot = new TH2F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_II_hot = new TH2F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_II_hot = new TH2F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
 				     nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_Itp_hot = new TH2F ("h_eventN3_tItp_hot", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_Itp_hot = new TH2F ("h_eventN3_tItp_hot", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_0xI_hot = new TH2F ("h_eventN3_t0x1_hot", "3rd Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_0xI_hot = new TH2F ("h_eventN3_t0x1_hot", "3rd Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
   //BDT Candidates
-  TH2F *h_typeIII_bdt = new TH2F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIII_bdt = new TH2F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIIb_bdt = new TH2F ("h_typeIIb_bdt_", "Type II (b swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIIb_bdt = new TH2F ("h_typeIIb_bdt_", "Type II (b swapped) Top Quarks; Discriminant; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIIw_bdt = new TH2F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIIw_bdt = new TH2F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIImib_bdt = new TH2F ("h_typeIImib_bdt_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIImib_bdt = new TH2F ("h_typeIImib_bdt_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Jets", 
 				    nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIImiq_bdt = new TH2F ("h_typeIImiq_bdt_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIImiq_bdt = new TH2F ("h_typeIImiq_bdt_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Jets", 
 				    nBins, 0.0, 1.0, 5, 7, 12); 
-  TH2F *h_typeIt_bdt = new TH2F ("h_typeIt_bdt_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIt_bdt = new TH2F ("h_typeIt_bdt_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
 				 nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_typeIp_bdt = new TH2F ("h_typeIp_bdt_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Tagger Candidates", 
+  TH2F *h_typeIp_bdt = new TH2F ("h_typeIp_bdt_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
 				 nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_type0xI_bdt = new TH2F ("h_type0xI_bdt_", "Type 0x1 (all other tagger candidates); Discriminant ; Number of Tagger Candidates", 
+  TH2F *h_type0xI_bdt = new TH2F ("h_type0xI_bdt_", "Type 0x1 (all other tagger candidates); Discriminant ; Number of Jets", 
 				  nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH2F *h_eventN1_sum_bdt = new TH2F ("h_eventN1_sum_bdt", "Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_sum_bdt = new TH2F ("h_eventN1_sum_bdt", "Highest Disc Cand (all) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_III_bdt = new TH2F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_III_bdt = new TH2F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_II_bdt = new TH2F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_II_bdt = new TH2F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
 				     nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_Itp_bdt = new TH2F ("h_eventN1_tItp_bdt", "Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_Itp_bdt = new TH2F ("h_eventN1_tItp_bdt", "Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN1_0xI_bdt = new TH2F ("h_eventN1_t0x1_bdt", "Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN1_0xI_bdt = new TH2F ("h_eventN1_t0x1_bdt", "Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH2F *h_eventN2_sum_bdt = new TH2F ("h_eventN2_sum_bdt", "2nd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_sum_bdt = new TH2F ("h_eventN2_sum_bdt", "2nd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_III_bdt = new TH2F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_III_bdt = new TH2F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_II_bdt = new TH2F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_II_bdt = new TH2F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
 				     nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_Itp_bdt = new TH2F ("h_eventN2_tItp_bdt", "2nd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_Itp_bdt = new TH2F ("h_eventN2_tItp_bdt", "2nd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN2_0xI_bdt = new TH2F ("h_eventN2_t0x1_bdt", "2nd Highest Disc Cand (Type 0 / 1) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN2_0xI_bdt = new TH2F ("h_eventN2_t0x1_bdt", "2nd Highest Disc Cand (Type 0 / 1) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
 
-  TH2F *h_eventN3_sum_bdt = new TH2F ("h_eventN3_sum_bdt", "3rd Highest Disc Cand (all) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_sum_bdt = new TH2F ("h_eventN3_sum_bdt", "3rd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_III_bdt = new TH2F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_III_bdt = new TH2F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_II_bdt = new TH2F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_II_bdt = new TH2F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
 				     nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_Itp_bdt = new TH2F ("h_eventN3_tItp_bdt", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_Itp_bdt = new TH2F ("h_eventN3_tItp_bdt", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);
-  TH2F *h_eventN3_0xI_bdt = new TH2F ("h_eventN3_t0x1_bdt", "3rd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Tagger Candidates", 
+  TH2F *h_eventN3_0xI_bdt = new TH2F ("h_eventN3_t0x1_bdt", "3rd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Jets", 
 				      nBins, 0.0, 1.0, 5, 7, 12);  
+  //BDT Scaling histograms (map range of BDT to [0,1] using function scalebdt(BDTdiscriminant)
+  TH1F *h_noscaling_bdt = new TH1F ("h_noscaling_bdt", "Un-scaled BDT Distribution;Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35);
+  TH1F *h_noscaling2_bdt = new TH1F ("h_noscaling2_bdt", "Un-scaled BDT Distribution (2nd Highest);Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35);
+  TH1F *h_scaling_bdt = new TH1F ("h_scaling_bdt", "scaled BDT Distribution;Discriminant;Number of Tagger Candidates", 200, -0.2, 1.4);
+  TH1F *h_scaling2_bdt = new TH1F ("h_scaling2_bdt", "scaled BDT Distribution (2nd Highest);Discriminant;Number of Tagger Candidates", 200, 0.0, 1.0);
 
   //store errors
   TH1I *h_nERROR = new TH1I ("h_nERROR", "Number of logic errors in classification system + miscellaneous", 100, 0, 100);
@@ -1467,7 +1482,7 @@ int main()
 		defaultVars[3] = lineup[bat].AngleThBh;
 		defaultVars[4] = lineup[bat].HadrWmass;
 		defaultVars[5] = lineup[bat].TopMass;
-		lineup[bat].discriminant = reader->EvaluateMVA( "BDT method" );
+		lineup[bat].discriminant = scaleBDT(reader->EvaluateMVA( "BDT method" ));
 		std::cout << "   -->   " << lineup[bat].discriminant << std::endl;
 	      }
 	      std::sort(lineup.begin(), lineup.end(), [](const BDTCand &left, const BDTCand &right) {
@@ -1479,6 +1494,9 @@ int main()
 	      Pitcher.CatchCandidate(lineup[0]);
 	    }
 	    auto BDTResults = Pitcher.GetFinalCandidates();
+	    nBDTTops = BDTResults.size();
+	    if(nBDTTops != Pitcher.GetNumTrijets())
+	      nERROR++;
 	    
 	    
 
@@ -1767,6 +1785,8 @@ int main()
 	    std::vector<std::pair<double, std::string>> tCR_bdt = BDTEval.getOrderedClassesR();
 	    //*
 	    for(int e = 0; e < tCR_bdt.size(); e++){
+	      h_scaling_bdt->Fill(tCR_bdt[e].first);
+	      h_noscaling_bdt->Fill( unscaleBDT(tCR_bdt[e].first) );
 	      if(tCR_bdt[e].second == "typeIII")
 		h_typeIII_bdt->Fill(tCR_bdt[e].first, nJets);
 	      else if(tCR_bdt[e].second == "typeIIb")
@@ -1833,6 +1853,8 @@ int main()
 		break;
 	      case 1:{
 		h_nJet_N2_bdt->Fill(nJets);
+		h_scaling2_bdt->Fill(tCR_bdt[e].first);
+		h_noscaling2_bdt->Fill( unscaleBDT(tCR_bdt[e].first) );
 		if(tCR_bdt[e].second == "typeIII"){
 		  h_eventN2_III_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
@@ -2246,6 +2268,10 @@ int main()
     h_eventN3_II_bdt->Write();
     h_eventN3_Itp_bdt->Write();
     h_eventN3_0xI_bdt->Write();
+    h_noscaling_bdt->Write();
+    h_noscaling2_bdt->Write();
+    h_scaling_bdt->Write();
+    h_scaling2_bdt->Write();
 
     h_nERROR->Write();
 
@@ -2357,6 +2383,10 @@ int main()
     delete h_eventN3_II_hot;
     delete h_eventN3_Itp_hot;
     delete h_eventN3_0xI_hot;
+    delete h_noscaling_bdt;
+    delete h_noscaling2_bdt;
+    delete h_scaling_bdt;
+    delete h_scaling2_bdt;
 
     // BDT histos
     delete h_typeIII_bdt;
