@@ -974,9 +974,12 @@ int main(int argc, char* argv[])
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTSLFilt500HT.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/StoreTTTT500HT.root", "r");
 
-    tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
+    //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTT500HT_corr.root", "r"); //corrected btagging sample
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTSLFilt500HT_corr.root", "r");
     //tf2 = TFile::Open("/afs/cern.ch/user/n/nmangane/LTW3/Demo/ntupler/test/LongTTTT500HT_corr.root", "r");
+
+    //Get TFile from input string
+    tf2 = TFile::Open(inFile.c_str(), "r");
 
     //Get TDirectory next
     td = (TDirectory*)tf2->Get("tree");
@@ -2195,7 +2198,8 @@ int main(int argc, char* argv[])
     }
 
     //Open output file for histograms and tuples
-    of = new TFile("results.root", "RECREATE");
+    //of = new TFile("results.root", "RECREATE");
+    of = new TFile(outFile.c_str(), "RECREATE");
 
     //Write nJet Histo
     h_nJet->Write();
