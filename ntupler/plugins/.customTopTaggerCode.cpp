@@ -694,7 +694,8 @@ void ResTTEvaluator::classifyR(){
       }
       //no b jets, no q jets...
       else if(bestNumBR[m] == 0){
-	std::cout << "We apparently found a perfectly UNMATCHED case... Type0. Complete Failure. Amazing!" << std::endl;
+	if(_verbose)
+	  std::cout << "We apparently found a perfectly UNMATCHED case... Type0. Complete Failure. Amazing!" << std::endl;
 	tempClass = "type0xI";
       }
       else
@@ -748,8 +749,13 @@ std::vector<std::pair<double, std::string>> ResTTEvaluator::getOrderedClassesR()
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
+  const std::string inFile = argv[1];
+  const std::string outFile = argv[2];
+
+  std::cout << "Input file: " << inFile << " Output file: " << outFile << std::endl;
+
   //bool for silencing original top quark properties (except event #)
   bool silentRunning = true;
   bool debug1 = false;
@@ -761,7 +767,7 @@ int main()
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = -1;
+  uint maxEventsToProcess = 15;
 
   //nJet and candidate counting histos
   TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 18, 6, 24);
@@ -1385,11 +1391,13 @@ int main()
         {
             //increment event number
             ++Nevt;
-	    if(-1 <  maxEventsToProcess && maxEventsToProcess < Nevt)
+	    //Fixed buggy logic comparison with -1, switching to != -1 statement
+	    if(maxEventsToProcess != -1 && maxEventsToProcess < Nevt)
 	      break;
 
             //Print event number 
-            printf("\n===================================================>\nEvent #: %i\n", Nevt);
+            if(!silentRunning)
+	      printf("\n===================================================>\nEvent #: %i\n", Nevt);
 
             //Use helper function to create input list 
             //Create AK4 inputs object
@@ -1461,20 +1469,22 @@ int main()
 	    ResTTPermuter Pitcher(*AK4JetLV, *AK4JetBtag);
 	    uint loopLimit = Pitcher.GetNumTrijets();
 	    for(uint loop = 0; loop < loopLimit; loop++){
-	      std::cout << ">>>>>>>>>>>>>>>>>>>>> Loop: " << loop << std::endl;
+	      //std::cout << ">>>>>>>>>>>>>>>>>>>>> Loop: " << loop << std::endl;
 	      std::vector<BDTCand> lineup = Pitcher.PitchCandidates(loop);
 	      for(int bat = 0; bat < lineup.size(); bat++){
-		std::cout << "\t>>"
-			  << lineup[bat].idx_i << " "
-			  << lineup[bat].idx_j << " "
-			  << lineup[bat].idx_k << " "
-			  << lineup[bat].btag << " "
-			  << lineup[bat].ThPtOverSumPt << " "
-			  << lineup[bat].AngleThWh << " "
-			  << lineup[bat].AngleThBh << " "
-			  << lineup[bat].HadrWmass << " "
-			  << lineup[bat].TopMass << " "
-			  << lineup[bat].discriminant << " ";
+		if(debug2){
+		  std::cout << "\t>>"
+			    << lineup[bat].idx_i << " "
+			    << lineup[bat].idx_j << " "
+			    << lineup[bat].idx_k << " "
+			    << lineup[bat].btag << " "
+			    << lineup[bat].ThPtOverSumPt << " "
+			    << lineup[bat].AngleThWh << " "
+			    << lineup[bat].AngleThBh << " "
+			    << lineup[bat].HadrWmass << " "
+			    << lineup[bat].TopMass << " "
+			    << lineup[bat].discriminant << " ";
+		}
 		//<< std::endl;
 		defaultVars[0] = lineup[bat].btag;
 		defaultVars[1] = lineup[bat].ThPtOverSumPt;
@@ -1483,14 +1493,15 @@ int main()
 		defaultVars[4] = lineup[bat].HadrWmass;
 		defaultVars[5] = lineup[bat].TopMass;
 		lineup[bat].discriminant = scaleBDT(reader->EvaluateMVA( "BDT method" ));
-		std::cout << "   -->   " << lineup[bat].discriminant << std::endl;
+		if(debug2)
+		  std::cout << "   -->   " << lineup[bat].discriminant << std::endl;
 	      }
 	      std::sort(lineup.begin(), lineup.end(), [](const BDTCand &left, const BDTCand &right) {
 		  return left.discriminant > right.discriminant;
 		});
-	      for(int bat = 0; bat < lineup.size(); bat++){
-		std::cout << "lineup disc: " << lineup[bat].discriminant << std::endl;
-	      }
+	      // for(int bat = 0; bat < lineup.size(); bat++){
+	      // 	std::cout << "lineup disc: " << lineup[bat].discriminant << std::endl;
+	      // }
 	      Pitcher.CatchCandidate(lineup[0]);
 	    }
 	    auto BDTResults = Pitcher.GetFinalCandidates();
@@ -1593,9 +1604,9 @@ int main()
 
 
 	    //ResTTEvaluator HOTEval("HOT");
-	    ResTTEvaluator HOTEval("HOT", true, false);
+	    ResTTEvaluator HOTEval("HOT", false, false);
 	    
-	    ResTTEvaluator BDTEval("BDT", true, false);
+	    ResTTEvaluator BDTEval("BDT", false, false);
 
 	    //Old style tops
 	    if(!isNewStyle){
@@ -1664,13 +1675,16 @@ int main()
 		}
 	      }
 	      if(nAnyHadTops == 0){
-		std::cout << "\n>>>>>>>>>>>>\n";
+		if(debug1)
+		  std::cout << "\n>>>>>>>>>>>>\n";
 		for(const uint oldflag: **FlagTop)
 		  std::cout << "\tO: " << oldflag;
-		std::cout << "\n\tRun: " << run << "\tLumi: " << lumiBlock << "\tEvent: " << event << std::endl;
+		if(debug1)
+		  std::cout << "\n\tRun: " << run << "\tLumi: " << lumiBlock << "\tEvent: " << event << std::endl;
 	      }
 	    }
-	    std::cout << "\n\t\t\t\tNumber of Hadronic Tops passed from event: " << nAnyHadTops << std::endl;
+	    if(!silentRunning)
+	      std::cout << "\n\t\t\t\tNumber of Hadronic Tops passed from event: " << nAnyHadTops << std::endl;
 
 	    // if(the1Top.size() > 0)
 	    //   HOTEval.addCand(*hadTop1Constit, 0.873);
@@ -1679,7 +1693,8 @@ int main()
 	    // if(the3Top.size() > 0)
 	    //   HOTEval.addCand(*hadTop3Constit, 0.463);
 
-	    std::cout << "\n============================" << std::endl;
+	    if(!silentRunning)
+	      std::cout << "\n============================" << std::endl;
 	    for(const uint topflag: **FlagTop){
 	      if(debug1) printf("\n\ttopflag = %6d", topflag);
 	      if(topflag < 9999){
@@ -1731,7 +1746,8 @@ int main()
 		uint mat4 = 0;
 
 		//prepare container for candidate:
-		std::cout << "=========> Top candidate" << std::endl;
+		if(debug2)
+		  std::cout << "=========> Top candidate" << std::endl;
 		std::vector<TLorentzVector>* theCand;
 		theCand = new std::vector<TLorentzVector>;
 
@@ -1780,7 +1796,8 @@ int main()
 	    //add candidate to ResTTEvaluator for BDT, results were stored in BDTResults as vector of pairs of TLVs and discriminant
 	    for(uint bdtrescnt = 0; bdtrescnt < BDTResults.size(); bdtrescnt++)
 	      BDTEval.addCand(&BDTResults[bdtrescnt].first, BDTResults[bdtrescnt].second);
-	    BDTEval.printDimensions();
+	    if(debug2)
+	      BDTEval.printDimensions();
 	    BDTEval.evaluateR();
 	    std::vector<std::pair<double, std::string>> tCR_bdt = BDTEval.getOrderedClassesR();
 	    //*
@@ -1939,13 +1956,16 @@ int main()
 	      }
 	    } //*/
 
-	    std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
-	    HOTEval.printDimensions();
+	    if(debug2){
+	      std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
+	      HOTEval.printDimensions();
+	    }
 	    HOTEval.evaluateR();
 	    std::vector<std::pair<double, std::string>> tCR_hot = HOTEval.getOrderedClassesR();
 	    
 	    //Error checking
-	    std::cout << "\n\tOrdered candidates: ";
+	    if(debug2)
+	      std::cout << "\n\tOrdered candidates: ";
 	    if(tCR_hot.size() > 1)
 	      for(int f = 2; f < tCR_hot.size(); f++){
 		//std::cout << tCR_hot[f].first << " (" << tCR_hot[f].second << ")\t";
