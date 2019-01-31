@@ -46,8 +46,7 @@ double scaleBDT(double input){
 }
 double unscaleBDT(double input){
   //return 1.666666666666*(input + 0.4);
-  return 1.85*(input + 0.34);
-  return input/1.85 - 0.34;
+  return (input/1.85 - 0.34);
 }
 
 //Class for doing jet combinatorics and returning the list of best resolved top-tagged jets using the BDT method from the 2016 Four-top DL/SL analysis
@@ -767,7 +766,7 @@ int main(int argc, char* argv[])
   TDirectory *td;
   TTree *tree;
   //std::string postfix = "tttt";
-  uint maxEventsToProcess = 15;
+  uint maxEventsToProcess = -1;
 
   //nJet and candidate counting histos
   TH1I *h_nJet = new TH1I ("h_nJet", "Event Jet Distribution; nJets; Number of Events", 18, 6, 24);
