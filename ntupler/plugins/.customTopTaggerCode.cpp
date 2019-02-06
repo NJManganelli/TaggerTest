@@ -831,107 +831,209 @@ int main(int argc, char* argv[])
 
 
   //HOT discriminant histos
-  int nBins = 40;
+  int nBins = 100;
   TH2F *h_typeIII_hot = new TH2F ("h_typeIII_hot_", "Type III (correct) Top Quarks; Discriminant; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12); 
+				  nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIIb_hot = new TH2F ("h_typeIIb_hot_", "Type II (b swapped) Top Quarks; Discriminant; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12); 
+				  nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIImib_hot = new TH2F ("h_typeIImib_hot_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Jets", 
-				    nBins, 0.0, 1.0, 5, 7, 12); 
+				    nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIIw_hot = new TH2F ("h_typeIIw_hot_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12); 
+				  nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIImiq_hot = new TH2F ("h_typeIImiq_hot_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Jets", 
-				    nBins, 0.0, 1.0, 5, 7, 12); 
+				    nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIt_hot = new TH2F ("h_typeIt_hot_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
-				 nBins, 0.0, 1.0, 5, 7, 12);
+				 nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_typeIp_hot = new TH2F ("h_typeIp_hot_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
-				 nBins, 0.0, 1.0, 5, 7, 12);
+				 nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_type0xI_hot = new TH2F ("h_type0xI_hot_", "Type 0xI (all other tagger candidates); Discriminant ; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12);
+				  nBins, 0.0, 1.0, 7, 7, 14);
 
   TH2F *h_eventN1_sum_hot = new TH2F ("h_eventN1_sum_hot", "Highest Disc Cand (all) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_III_hot = new TH2F ("h_eventN1_tIII_hot", "Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_II_hot = new TH2F ("h_eventN1_tII_hot", "Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
-				     nBins, 0.0, 1.0, 5, 7, 12);
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IIb_hot = new TH2F ("h_eventN1_tIIb_hot", "Highest Disc Cand (Type IIb) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IImib_hot = new TH2F ("h_eventN1_tIImib_hot", "Highest Disc Cand (Type IImib) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IIw_hot = new TH2F ("h_eventN1_tIIw_hot", "Highest Disc Cand (Type IIw) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IImiq_hot = new TH2F ("h_eventN1_tIImiq_hot", "Highest Disc Cand (Type IImiq) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_Itp_hot = new TH2F ("h_eventN1_tItp_hot", "Highest Disc Cand (Type Itp) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_It_hot = new TH2F ("h_eventN1_tIt_hot", "Highest Disc Cand (Type It) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_Ip_hot = new TH2F ("h_eventN1_tIp_hot", "Highest Disc Cand (Type Ip) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_0xI_hot = new TH2F ("h_eventN1_t0x1_hot", "Highest Disc Cand (Type 0x1) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_I_hot = new TH2F ("h_eventN1_t1_hot", "Highest Disc Cand (Type 1) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_0_hot = new TH2F ("h_eventN1_t0_hot", "Highest Disc Cand (Type 0) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
 
   TH2F *h_eventN2_sum_hot = new TH2F ("h_eventN2_sum_hot", "2nd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_III_hot = new TH2F ("h_eventN2_tIII_hot", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_II_hot = new TH2F ("h_eventN2_tII_hot", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
-				     nBins, 0.0, 1.0, 5, 7, 12);
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IIb_hot = new TH2F ("h_eventN2_tIIb_hot", "2nd Highest Disc Cand (Type IIb) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IImib_hot = new TH2F ("h_eventN2_tIImib_hot", "2nd Highest Disc Cand (Type IImib) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IIw_hot = new TH2F ("h_eventN2_tIIw_hot", "2nd Highest Disc Cand (Type IIw) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IImiq_hot = new TH2F ("h_eventN2_tIImiq_hot", "2nd Highest Disc Cand (Type IImiq) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_Itp_hot = new TH2F ("h_eventN2_tItp_hot", "2nd Highest Disc Cand (Type Itp) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_It_hot = new TH2F ("h_eventN2_tIt_hot", "2nd Highest Disc Cand (Type It) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_Ip_hot = new TH2F ("h_eventN2_tIp_hot", "2nd Highest Disc Cand (Type Ip) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_0xI_hot = new TH2F ("h_eventN2_t0x1_hot", "2nd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_I_hot = new TH2F ("h_eventN2_t1_hot", "2nd Highest Disc Cand (Type 1) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_0_hot = new TH2F ("h_eventN2_t0_hot", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
 
   TH2F *h_eventN3_sum_hot = new TH2F ("h_eventN3_sum_hot", "3rd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_III_hot = new TH2F ("h_eventN3_tIII_hot", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_II_hot = new TH2F ("h_eventN3_tII_hot", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
-				     nBins, 0.0, 1.0, 5, 7, 12);
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IIb_hot = new TH2F ("h_eventN3_tIIb_hot", "3rd Highest Disc Cand (Type IIb) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IImib_hot = new TH2F ("h_eventN3_tIImib_hot", "3rd Highest Disc Cand (Type IImib) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IIw_hot = new TH2F ("h_eventN3_tIIw_hot", "3rd Highest Disc Cand (Type IIw) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IImiq_hot = new TH2F ("h_eventN3_tIImiq_hot", "3rd Highest Disc Cand (Type IImiq) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_Itp_hot = new TH2F ("h_eventN3_tItp_hot", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_It_hot = new TH2F ("h_eventN3_tIt_hot", "3rd Highest Disc Cand (Type It) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_Ip_hot = new TH2F ("h_eventN3_tIp_hot", "3rd Highest Disc Cand (Type Ip) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_0xI_hot = new TH2F ("h_eventN3_t0x1_hot", "3rd Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_I_hot = new TH2F ("h_eventN3_t1_hot", "3rd Highest Disc Cand (Type 1) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_0_hot = new TH2F ("h_eventN3_t0_hot", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
 
   //BDT Candidates
   TH2F *h_typeIII_bdt = new TH2F ("h_typeIII_bdt_", "Type III (correct) Top Quarks; Discriminant; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12); 
+				  nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIIb_bdt = new TH2F ("h_typeIIb_bdt_", "Type II (b swapped) Top Quarks; Discriminant; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12); 
+				  nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIIw_bdt = new TH2F ("h_typeIIw_bdt_", "Type II (q1 or q2 swapped) Top Quarks; Discriminant; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12); 
+				  nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIImib_bdt = new TH2F ("h_typeIImib_bdt_", "Type II (misidentified b from anywhere non-b) Top Quarks; Discriminant; Number of Jets", 
-				    nBins, 0.0, 1.0, 5, 7, 12); 
+				    nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIImiq_bdt = new TH2F ("h_typeIImiq_bdt_", "Type II (misidentified q from anywhere non-q) Top Quarks; Discriminant; Number of Jets", 
-				    nBins, 0.0, 1.0, 5, 7, 12); 
+				    nBins, 0.0, 1.0, 7, 7, 14); 
   TH2F *h_typeIt_bdt = new TH2F ("h_typeIt_bdt_", "Type I (3 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
-				 nBins, 0.0, 1.0, 5, 7, 12);
+				 nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_typeIp_bdt = new TH2F ("h_typeIp_bdt_", "Type I (2 top-daughters matched, 1 per reco top); Discriminant; Number of Jets", 
-				 nBins, 0.0, 1.0, 5, 7, 12);
+				 nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_type0xI_bdt = new TH2F ("h_type0xI_bdt_", "Type 0x1 (all other tagger candidates); Discriminant ; Number of Jets", 
-				  nBins, 0.0, 1.0, 5, 7, 12);
+				  nBins, 0.0, 1.0, 7, 7, 14);
 
   TH2F *h_eventN1_sum_bdt = new TH2F ("h_eventN1_sum_bdt", "Highest Disc Cand (all) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_III_bdt = new TH2F ("h_eventN1_tIII_bdt", "Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_II_bdt = new TH2F ("h_eventN1_tII_bdt", "Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
-				     nBins, 0.0, 1.0, 5, 7, 12);
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IIb_bdt = new TH2F ("h_eventN1_tIIb_bdt", "Highest Disc Cand (Type IIb) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IImib_bdt = new TH2F ("h_eventN1_tIImib_bdt", "Highest Disc Cand (Type IImib) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IIw_bdt = new TH2F ("h_eventN1_tIIw_bdt", "Highest Disc Cand (Type IIw) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_IImiq_bdt = new TH2F ("h_eventN1_tIImiq_bdt", "Highest Disc Cand (Type IImiq) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_Itp_bdt = new TH2F ("h_eventN1_tItp_bdt", "Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_It_bdt = new TH2F ("h_eventN1_tIt_bdt", "Highest Disc Cand (Type It) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_Ip_bdt = new TH2F ("h_eventN1_tIp_bdt", "Highest Disc Cand (Type Ip) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN1_0xI_bdt = new TH2F ("h_eventN1_t0x1_bdt", "Highest Disc Cand (Type 0 / I) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_I_bdt = new TH2F ("h_eventN1_t1_bdt", "Highest Disc Cand (Type 1) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN1_0_bdt = new TH2F ("h_eventN1_t0_bdt", "Highest Disc Cand (Type 0) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+
 
   TH2F *h_eventN2_sum_bdt = new TH2F ("h_eventN2_sum_bdt", "2nd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_III_bdt = new TH2F ("h_eventN2_tIII_bdt", "2nd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_II_bdt = new TH2F ("h_eventN2_tII_bdt", "2nd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
-				     nBins, 0.0, 1.0, 5, 7, 12);
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IIb_bdt = new TH2F ("h_eventN2_tIIb_bdt", "2nd Highest Disc Cand (Type IIb) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IImib_bdt = new TH2F ("h_eventN2_tIImib_bdt", "2nd Highest Disc Cand (Type IImib) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IIw_bdt = new TH2F ("h_eventN2_tIIw_bdt", "2nd Highest Disc Cand (Type IIw) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_IImiq_bdt = new TH2F ("h_eventN2_tIImiq_bdt", "2nd Highest Disc Cand (Type IImiq) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_Itp_bdt = new TH2F ("h_eventN2_tItp_bdt", "2nd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_It_bdt = new TH2F ("h_eventN2_tIt_bdt", "2nd Highest Disc Cand (Type It) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_Ip_bdt = new TH2F ("h_eventN2_tIp_bdt", "2nd Highest Disc Cand (Type Ip) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN2_0xI_bdt = new TH2F ("h_eventN2_t0x1_bdt", "2nd Highest Disc Cand (Type 0 / 1) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_I_bdt = new TH2F ("h_eventN2_t1_bdt", "2nd Highest Disc Cand (Type 1) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN2_0_bdt = new TH2F ("h_eventN2_t0_bdt", "2nd Highest Disc Cand (Type 0) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
 
   TH2F *h_eventN3_sum_bdt = new TH2F ("h_eventN3_sum_bdt", "3rd Highest Disc Cand (all) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_III_bdt = new TH2F ("h_eventN3_tIII_bdt", "3rd Highest Disc Cand (Type III) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_II_bdt = new TH2F ("h_eventN3_tII_bdt", "3rd Highest Disc Cand (Type II) ;Discriminant; Number of Jets", 
-				     nBins, 0.0, 1.0, 5, 7, 12);
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IIb_bdt = new TH2F ("h_eventN3_tIIb_bdt", "3rd Highest Disc Cand (Type IIb) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IImib_bdt = new TH2F ("h_eventN3_tIImib_bdt", "3rd Highest Disc Cand (Type IImib) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IIw_bdt = new TH2F ("h_eventN3_tIIw_bdt", "3rd Highest Disc Cand (Type IIw) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_IImiq_bdt = new TH2F ("h_eventN3_tIImiq_bdt", "3rd Highest Disc Cand (Type IImiq) ;Discriminant; Number of Jets", 
+				     nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_Itp_bdt = new TH2F ("h_eventN3_tItp_bdt", "3rd Highest Disc Cand (Type It / Ip) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_It_bdt = new TH2F ("h_eventN3_tIt_bdt", "3rd Highest Disc Cand (Type It) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_Ip_bdt = new TH2F ("h_eventN3_tIp_bdt", "3rd Highest Disc Cand (Type Ip) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
   TH2F *h_eventN3_0xI_bdt = new TH2F ("h_eventN3_t0x1_bdt", "3rd Highest Disc Cand (Type 0x1) ;Discriminant; Number of Jets", 
-				      nBins, 0.0, 1.0, 5, 7, 12);  
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_I_bdt = new TH2F ("h_eventN3_t1_bdt", "3rd Highest Disc Cand (Type 1) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH2F *h_eventN3_0_bdt = new TH2F ("h_eventN3_t0_bdt", "3rd Highest Disc Cand (Type 0) ;Discriminant; Number of Jets", 
+				      nBins, 0.0, 1.0, 7, 7, 14);
+
+  //Count number of correct hadronic top quark jets that are tagged, by jet multiplicity and discriminant
+  // TH2F *h_eventN3_CntJet_hot = new TH2F ("h_eventN3_CntJet_hot", "Sum of correctly ;Discriminant; Number of Jets", 
+  // 				      nBins, 0.0, 1.0, 7, 7, 14);
+  
   //BDT Scaling histograms (map range of BDT to [0,1] using function scalebdt(BDTdiscriminant)
   TH1F *h_noscaling_bdt = new TH1F ("h_noscaling_bdt", "Un-scaled BDT Distribution;Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35);
   TH1F *h_noscaling2_bdt = new TH1F ("h_noscaling2_bdt", "Un-scaled BDT Distribution (2nd Highest);Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35);
@@ -1837,26 +1939,32 @@ int main(int argc, char* argv[])
 		}
 		else if(tCR_bdt[e].second == "typeIIb"){
 		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_IIb_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIImib"){
 		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_IImib_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIIw"){
 		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_IIw_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIImiq"){
 		  h_eventN1_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_IImiq_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIt"){
 		  h_eventN1_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_It_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIp"){
 		  h_eventN1_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_Ip_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "type0xI"){
@@ -1880,26 +1988,32 @@ int main(int argc, char* argv[])
 		}
 		else if(tCR_bdt[e].second == "typeIIb"){
 		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_IIb_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIImib"){
 		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_IImib_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIIw"){
 		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_IIw_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIImiq"){
 		  h_eventN2_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_IImiq_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIt"){
 		  h_eventN2_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_It_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIp"){
 		  h_eventN2_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_Ip_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "type0xI"){
@@ -1921,26 +2035,32 @@ int main(int argc, char* argv[])
 		}
 		else if(tCR_bdt[e].second == "typeIIb"){
 		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_IIb_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIImib"){
 		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_IImib_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIIw"){
 		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_IIw_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIImiq"){
 		  h_eventN3_II_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_IImiq_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIt"){
 		  h_eventN3_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_It_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "typeIp"){
 		  h_eventN3_Itp_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_Ip_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else if(tCR_bdt[e].second == "type0xI"){
@@ -2007,26 +2127,32 @@ int main(int argc, char* argv[])
 		}
 		else if(tCR_hot[e].second == "typeIIb"){
 		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_IIb_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIImib"){
 		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_IImib_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIIw"){
 		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_IIw_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIImiq"){
 		  h_eventN1_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_IImiq_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIt"){
 		  h_eventN1_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_It_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIp"){
 		  h_eventN1_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_Ip_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "type0xI"){
@@ -2048,26 +2174,32 @@ int main(int argc, char* argv[])
 		}
 		else if(tCR_hot[e].second == "typeIIb"){
 		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_IIb_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIImib"){
 		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_IImib_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIIw"){
 		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_IIw_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIImiq"){
 		  h_eventN2_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_IImiq_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIt"){
 		  h_eventN2_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_It_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIp"){
 		  h_eventN2_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_Ip_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "type0xI"){
@@ -2089,26 +2221,32 @@ int main(int argc, char* argv[])
 		}
 		else if(tCR_hot[e].second == "typeIIb"){
 		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_IIb_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIImib"){
 		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_IImib_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIIw"){
 		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_IIw_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIImiq"){
 		  h_eventN3_II_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_IImiq_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIt"){
 		  h_eventN3_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_It_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "typeIp"){
 		  h_eventN3_Itp_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_Ip_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else if(tCR_hot[e].second == "type0xI"){
@@ -2249,20 +2387,44 @@ int main(int argc, char* argv[])
     h_eventN1_sum_hot->Write();
     h_eventN1_III_hot->Write();
     h_eventN1_II_hot->Write();
+    h_eventN1_IIb_hot->Write();
+    h_eventN1_IImib_hot->Write();
+    h_eventN1_IIw_hot->Write();
+    h_eventN1_IImiq_hot->Write();
     h_eventN1_Itp_hot->Write();
+    h_eventN1_It_hot->Write();
+    h_eventN1_Ip_hot->Write();
     h_eventN1_0xI_hot->Write();
+    h_eventN1_I_hot->Write();
+    h_eventN1_0_hot->Write();
 
     h_eventN2_sum_hot->Write();
     h_eventN2_III_hot->Write();
     h_eventN2_II_hot->Write();
+    h_eventN2_IIb_hot->Write();
+    h_eventN2_IImib_hot->Write();
+    h_eventN2_IIw_hot->Write();
+    h_eventN2_IImiq_hot->Write();
     h_eventN2_Itp_hot->Write();
+    h_eventN2_It_hot->Write();
+    h_eventN2_Ip_hot->Write();
     h_eventN2_0xI_hot->Write();
+    h_eventN2_I_hot->Write();
+    h_eventN2_0_hot->Write();
 
     h_eventN3_sum_hot->Write();
     h_eventN3_III_hot->Write();
     h_eventN3_II_hot->Write();
+    h_eventN3_IIb_hot->Write();
+    h_eventN3_IImib_hot->Write();
+    h_eventN3_IIw_hot->Write();
+    h_eventN3_IImiq_hot->Write();
     h_eventN3_Itp_hot->Write();
+    h_eventN3_It_hot->Write();
+    h_eventN3_Ip_hot->Write();
     h_eventN3_0xI_hot->Write();
+    h_eventN3_I_hot->Write();
+    h_eventN3_0_hot->Write();
 
     //Write BDT histos
     h_typeIII_bdt->Write();
@@ -2277,20 +2439,46 @@ int main(int argc, char* argv[])
     h_eventN1_sum_bdt->Write();
     h_eventN1_III_bdt->Write();
     h_eventN1_II_bdt->Write();
+    h_eventN1_IIb_bdt->Write();
+    h_eventN1_IImib_bdt->Write();
+    h_eventN1_IIw_bdt->Write();
+    h_eventN1_IImiq_bdt->Write();
     h_eventN1_Itp_bdt->Write();
+    h_eventN1_It_bdt->Write();
+    h_eventN1_Ip_bdt->Write();
     h_eventN1_0xI_bdt->Write();
+    h_eventN1_I_bdt->Write();
+    h_eventN1_0_bdt->Write();
 
     h_eventN2_sum_bdt->Write();
     h_eventN2_III_bdt->Write();
     h_eventN2_II_bdt->Write();
+    h_eventN2_IIb_bdt->Write();
+    h_eventN2_IImib_bdt->Write();
+    h_eventN2_IIw_bdt->Write();
+    h_eventN2_IImiq_bdt->Write();
     h_eventN2_Itp_bdt->Write();
+    h_eventN2_It_bdt->Write();
+    h_eventN2_Ip_bdt->Write();
     h_eventN2_0xI_bdt->Write();
+    h_eventN2_I_bdt->Write();
+    h_eventN2_0_bdt->Write();
 
     h_eventN3_sum_bdt->Write();
     h_eventN3_III_bdt->Write();
     h_eventN3_II_bdt->Write();
+    h_eventN3_IIb_bdt->Write();
+    h_eventN3_IImib_bdt->Write();
+    h_eventN3_IIw_bdt->Write();
+    h_eventN3_IImiq_bdt->Write();
     h_eventN3_Itp_bdt->Write();
+    h_eventN3_It_bdt->Write();
+    h_eventN3_Ip_bdt->Write();
     h_eventN3_0xI_bdt->Write();
+    h_eventN3_I_bdt->Write();
+    h_eventN3_0_bdt->Write();
+    
+    //Special BDT cross-check histograms
     h_noscaling_bdt->Write();
     h_noscaling2_bdt->Write();
     h_scaling_bdt->Write();
@@ -2394,22 +2582,43 @@ int main(int argc, char* argv[])
     delete h_eventN1_II_hot;
     delete h_eventN1_Itp_hot;
     delete h_eventN1_0xI_hot;
+    delete h_eventN1_IIb_hot;
+    delete h_eventN1_IImib_hot;
+    delete h_eventN1_IIw_hot;
+    delete h_eventN1_IImiq_hot;
+    delete h_eventN1_It_hot;
+    delete h_eventN1_Ip_hot;
+    delete h_eventN1_I_hot;
+    delete h_eventN1_0_hot;
 
     delete h_eventN2_sum_hot;
     delete h_eventN2_III_hot;
     delete h_eventN2_II_hot;
     delete h_eventN2_Itp_hot;
     delete h_eventN2_0xI_hot;
+    delete h_eventN2_IIb_hot;
+    delete h_eventN2_IImib_hot;
+    delete h_eventN2_IIw_hot;
+    delete h_eventN2_IImiq_hot;
+    delete h_eventN2_It_hot;
+    delete h_eventN2_Ip_hot;
+    delete h_eventN2_I_hot;
+    delete h_eventN2_0_hot;
 
     delete h_eventN3_sum_hot;
     delete h_eventN3_III_hot;
     delete h_eventN3_II_hot;
     delete h_eventN3_Itp_hot;
     delete h_eventN3_0xI_hot;
-    delete h_noscaling_bdt;
-    delete h_noscaling2_bdt;
-    delete h_scaling_bdt;
-    delete h_scaling2_bdt;
+    delete h_eventN3_IIb_hot;
+    delete h_eventN3_IImib_hot;
+    delete h_eventN3_IIw_hot;
+    delete h_eventN3_IImiq_hot;
+    delete h_eventN3_It_hot;
+    delete h_eventN3_Ip_hot;
+    delete h_eventN3_I_hot;
+    delete h_eventN3_0_hot;
+
 
     // BDT histos
     delete h_typeIII_bdt;
@@ -2426,18 +2635,47 @@ int main(int argc, char* argv[])
     delete h_eventN1_II_bdt;
     delete h_eventN1_Itp_bdt;
     delete h_eventN1_0xI_bdt;
+    delete h_eventN1_IIb_bdt;
+    delete h_eventN1_IImib_bdt;
+    delete h_eventN1_IIw_bdt;
+    delete h_eventN1_IImiq_bdt;
+    delete h_eventN1_It_bdt;
+    delete h_eventN1_Ip_bdt;
+    delete h_eventN1_I_bdt;
+    delete h_eventN1_0_bdt;
 
     delete h_eventN2_sum_bdt;
     delete h_eventN2_III_bdt;
     delete h_eventN2_II_bdt;
     delete h_eventN2_Itp_bdt;
     delete h_eventN2_0xI_bdt;
+    delete h_eventN2_IIb_bdt;
+    delete h_eventN2_IImib_bdt;
+    delete h_eventN2_IIw_bdt;
+    delete h_eventN2_IImiq_bdt;
+    delete h_eventN2_It_bdt;
+    delete h_eventN2_Ip_bdt;
+    delete h_eventN2_I_bdt;
+    delete h_eventN2_0_bdt;
 
     delete h_eventN3_sum_bdt;
     delete h_eventN3_III_bdt;
     delete h_eventN3_II_bdt;
     delete h_eventN3_Itp_bdt;
     delete h_eventN3_0xI_bdt;
+    delete h_eventN3_IIb_bdt;
+    delete h_eventN3_IImib_bdt;
+    delete h_eventN3_IIw_bdt;
+    delete h_eventN3_IImiq_bdt;
+    delete h_eventN3_It_bdt;
+    delete h_eventN3_Ip_bdt;
+    delete h_eventN3_I_bdt;
+    delete h_eventN3_0_bdt;
+
+    delete h_noscaling_bdt;
+    delete h_noscaling2_bdt;
+    delete h_scaling_bdt;
+    delete h_scaling2_bdt;
 
     delete h_nERROR;
     delete tf, tf2, td, tree, of;
