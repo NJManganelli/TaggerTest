@@ -274,6 +274,8 @@ class ResTTEvaluator{
   std::vector<std::pair<double, std::string>> getClassesR();
   std::vector<std::pair<double, std::string>> getOrderedClassesR();
 
+  std::vector<std::pair<double, int>> getOrderedAggregatesR();
+
  private:
   bool _debug = false;
   bool _verbose = false;
@@ -302,6 +304,8 @@ class ResTTEvaluator{
   std::vector< std::pair< std::vector<TLorentzVector>, std::vector<int> > > _gen; //include flags in here...
   std::vector< std::pair< double, std::string > > _classR; //classification, using number and string
   std::vector< std::pair< double, std::string > > _ordClassR; //shoulda made a struct...
+  std::vector< std::pair< double, int > > _aggrJetsR; //store total number of matched jets
+  std::vector< std::pair< double, int > > _ordAggrJetsR; //store in ordered fashion, to be retrieved simultaneously...
   bool _haveFlags;
 };
 ResTTEvaluator::ResTTEvaluator(std::string topTaggerName){
@@ -660,8 +664,10 @@ void ResTTEvaluator::classifyR(){
 	  tempClass = "typeIt";
 	else if( (totNumBR[m] + totNumQR[m]) == 2)
 	  tempClass = "typeIp";
+	else if( (totNumBR[m] + totNumQR[m]) == 1)
+	  tempClass = "typeI";
 	else
-	  tempClass = "type0xI";
+	  tempClass = "type0";
       }
       else
 	std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
@@ -678,16 +684,20 @@ void ResTTEvaluator::classifyR(){
 	    tempClass = "typeIt";
 	  else if( (totNumBR[m] + totNumQR[m]) == 2)
 	    tempClass = "typeIp";
+	  else if( (totNumBR[m] + totNumQR[m]) == 1)
+	    tempClass = "typeI";
 	  else
-	    tempClass = "type0xI";
+	    tempClass = "type0";
 	}
 	else if(totNumBR[m] == 1){
 	  if( (totNumBR[m] + totNumQR[m]) == 3)
 	    tempClass = "typeIt";
 	  else if( (totNumBR[m] + totNumQR[m]) == 2)
 	    tempClass = "typeIp";
+	  else if( (totNumBR[m] + totNumQR[m]) == 1)
+	    tempClass = "typeI";
 	  else
-	    tempClass = "type0xI";
+	    tempClass = "type0";
 	}
 	else
 	  std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
@@ -696,7 +706,7 @@ void ResTTEvaluator::classifyR(){
       else if(bestNumBR[m] == 0){
 	if(_verbose)
 	  std::cout << "We apparently found a perfectly UNMATCHED case... Type0. Complete Failure. Amazing!" << std::endl;
-	tempClass = "type0xI";
+	tempClass = "type0";
       }
       else
 	std::cout << "WARNING: LOGIC FAILURE!" << std::endl;
@@ -709,6 +719,10 @@ void ResTTEvaluator::classifyR(){
     tempClassPair.first = _cand[m].second;
     tempClassPair.second = tempClass;
     _classR.push_back(tempClassPair);
+    std::pair< double, uint> tempAggrPair;
+    tempAggrPair.first = _cand[m].second;
+    tempAggrPair.second = totNumBR[m]+totNumQR[m];
+    _aggrJetsR.push_back(tempAggrPair);
     if(_verbose)
       std::cout << "\t\t\t\tClassification: "  << _classR[m].first << "\t\t" << _classR[m].second << std::endl;
   }
@@ -718,6 +732,10 @@ void ResTTEvaluator::classifyR(){
   //make ordered classification vector
   _ordClassR = _classR;
   std::sort(_ordClassR.begin(), _ordClassR.end(), [](const std::pair<double, std::string> &left, const std::pair<double, std::string> &right) {
+      return left.first > right.first;
+    });
+  _ordAggrJetsR = _aggrJetsR;
+  std::sort(_ordAggrJetsR.begin(), _ordAggrJetsR.end(), [](const std::pair<double, int> &left, const std::pair<double, int> &right) {
       return left.first > right.first;
     });
   
@@ -746,6 +764,9 @@ std::vector<std::pair<double, std::string>> ResTTEvaluator::getOrderedClassesR()
   // }
   //return _ordClassRout;
   return _ordClassR;
+}
+std::vector<std::pair<double, int>> ResTTEvaluator::getOrderedAggregatesR(){
+  return _ordAggrJetsR;
 }
 
 
@@ -1040,7 +1061,7 @@ int main(int argc, char* argv[])
 					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
   TH3F *h_eventN12_CntJet_hot = new TH3F ("h_eventN12_CntJet_hot", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
 					 nBins, 0.0, 1.0, 7, 7, 14, 7, 0, 7);
-  TH3F *h_eventN123_CntJet_hot = new TH3F ("h_eventN123_CntJet_hot", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+  TH3F *h_eventN123_CntJet_hot = new TH3F ("h_eventN123_CntJet_hot", "N1 + N2 + N3 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
 					 nBins, 0.0, 1.0, 7, 7, 14, 10, 0, 10);
 
   TH3F *h_eventN1_CntJet_bdt = new TH3F ("h_eventN1_CntJet_bdt", "N1 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
@@ -1051,7 +1072,7 @@ int main(int argc, char* argv[])
 					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
   TH3F *h_eventN12_CntJet_bdt = new TH3F ("h_eventN12_CntJet_bdt", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
 					 nBins, 0.0, 1.0, 7, 7, 14, 7, 0, 7);
-  TH3F *h_eventN123_CntJet_bdt = new TH3F ("h_eventN123_CntJet_bdt", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+  TH3F *h_eventN123_CntJet_bdt = new TH3F ("h_eventN123_CntJet_bdt", "N1 + N2 + N3 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
 					 nBins, 0.0, 1.0, 7, 7, 14, 10, 0, 10);
   
   //BDT Scaling histograms (map range of BDT to [0,1] using function scalebdt(BDTdiscriminant)
@@ -1924,7 +1945,21 @@ int main(int argc, char* argv[])
 	      BDTEval.printDimensions();
 	    BDTEval.evaluateR();
 	    std::vector<std::pair<double, std::string>> tCR_bdt = BDTEval.getOrderedClassesR();
+	    std::vector<std::pair<double, int>> tAR_bdt = BDTEval.getOrderedAggregatesR();
 	    //*
+
+	    if(tAR_bdt.size() > 0){
+	      h_eventN1_CntJet_bdt->Fill(tAR_bdt[0].first, nJets, tAR_bdt[0].second);
+	    }
+	    if(tAR_bdt.size() > 1){
+	      h_eventN2_CntJet_bdt->Fill(tAR_bdt[1].first, nJets, tAR_bdt[1].second);
+	      h_eventN12_CntJet_bdt->Fill(tAR_bdt[1].first, nJets, tAR_bdt[0].second + tAR_bdt[1].second);
+	    }
+	    if(tAR_bdt.size() > 2){
+	      h_eventN3_CntJet_bdt->Fill(tAR_bdt[2].first, nJets, tAR_bdt[2].second);
+	      h_eventN123_CntJet_bdt->Fill(tAR_bdt[2].first, nJets, tAR_bdt[0].second + tAR_bdt[1].second + tAR_bdt[2].second);
+	    }
+
 	    for(int e = 0; e < tCR_bdt.size(); e++){
 	      h_scaling_bdt->Fill(tCR_bdt[e].first, nJets);
 	      h_noscaling_bdt->Fill( unscaleBDT(tCR_bdt[e].first), nJets );
@@ -1942,7 +1977,7 @@ int main(int argc, char* argv[])
 		h_typeIt_bdt->Fill(tCR_bdt[e].first, nJets);
 	      else if(tCR_bdt[e].second == "typeIp")
 		h_typeIp_bdt->Fill(tCR_bdt[e].first, nJets);
-	      else if(tCR_bdt[e].second == "type0xI")
+	      else if(tCR_bdt[e].second == "typeI" || tCR_bdt[e].second == "type0")
 		h_type0xI_bdt->Fill(tCR_bdt[e].first, nJets);
 	      else{
 		std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
@@ -1987,8 +2022,14 @@ int main(int argc, char* argv[])
 		  h_eventN1_Ip_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
-		else if(tCR_bdt[e].second == "type0xI"){
+		else if(tCR_bdt[e].second == "typeI"){
 		  h_eventN1_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_I_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "type0"){
+		  h_eventN1_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN1_0_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN1_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else{
@@ -2036,8 +2077,14 @@ int main(int argc, char* argv[])
 		  h_eventN2_Ip_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
-		else if(tCR_bdt[e].second == "type0xI"){
+		else if(tCR_bdt[e].second == "typeI"){
 		  h_eventN2_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_I_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "type0"){
+		  h_eventN2_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN2_0_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else{
@@ -2083,8 +2130,14 @@ int main(int argc, char* argv[])
 		  h_eventN3_Ip_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
-		else if(tCR_bdt[e].second == "type0xI"){
+		else if(tCR_bdt[e].second == "typeI"){
 		  h_eventN3_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_I_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
+		}
+		else if(tCR_bdt[e].second == "type0"){
+		  h_eventN3_0xI_bdt->Fill(tCR_bdt[e].first, nJets);
+		  h_eventN3_0_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN3_sum_bdt->Fill(tCR_bdt[e].first, nJets);
 		}
 		else{
@@ -2092,11 +2145,12 @@ int main(int argc, char* argv[])
 		  std::cout << tCR_bdt[e].second << std::endl;
 		  nERROR++;
 		}
-	      }//case 2 (3rd highest)
+	      }//end case 2 (3rd highest)
 		break;
 	      default: break;
 	      }
 	    } //*/
+
 
 	    if(debug2){
 	      std::cout << "\nNumber of HOT Tagger Candidates: " << nHOTTops << std::endl;
@@ -2104,6 +2158,7 @@ int main(int argc, char* argv[])
 	    }
 	    HOTEval.evaluateR();
 	    std::vector<std::pair<double, std::string>> tCR_hot = HOTEval.getOrderedClassesR();
+	    std::vector<std::pair<double, int>> tAR_hot = HOTEval.getOrderedAggregatesR();
 	    
 	    //Error checking
 	    if(debug2)
@@ -2114,6 +2169,19 @@ int main(int argc, char* argv[])
 		if(tCR_hot[f].first > tCR_hot[f-1].first) nERROR++;
 	      }
 	    if(tCR_hot.size() != nHOTTops) nERROR++;
+
+	    //Fill Aggregate Jet histograms according to discriminant, nJets, and aggregate number of matched hadronic top jets at that discr. point and above
+	    if(tAR_hot.size() > 0){
+	      h_eventN1_CntJet_hot->Fill(tAR_hot[0].first, nJets, tAR_hot[0].second);
+	    }
+	    if(tAR_hot.size() > 1){
+	      h_eventN2_CntJet_hot->Fill(tAR_hot[1].first, nJets, tAR_hot[1].second);
+	      h_eventN12_CntJet_hot->Fill(tAR_hot[1].first, nJets, tAR_hot[0].second + tAR_hot[1].second);
+	    }
+	    if(tAR_hot.size() > 2){
+	      h_eventN3_CntJet_hot->Fill(tAR_hot[2].first, nJets, tAR_hot[2].second);
+	      h_eventN123_CntJet_hot->Fill(tAR_hot[2].first, nJets, tAR_hot[0].second + tAR_hot[1].second + tAR_hot[2].second);
+	    }
 
 	    for(int e = 0; e < tCR_hot.size(); e++){
 	      if(tCR_hot[e].second == "typeIII")
@@ -2130,7 +2198,7 @@ int main(int argc, char* argv[])
 		h_typeIt_hot->Fill(tCR_hot[e].first, nJets);
 	      else if(tCR_hot[e].second == "typeIp")
 		h_typeIp_hot->Fill(tCR_hot[e].first, nJets);
-	      else if(tCR_hot[e].second == "type0xI")
+	      else if(tCR_hot[e].second == "typeI" || tCR_hot[e].second == "type0")
 		h_type0xI_hot->Fill(tCR_hot[e].first, nJets);
 	      else{
 		std::cout << "LOGIC FAILURE! LOGIC FAILURE! LOGIC FAILURE!" << std::endl;
@@ -2175,8 +2243,14 @@ int main(int argc, char* argv[])
 		  h_eventN1_Ip_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR_hot[e].second == "type0xI"){
+		else if(tCR_hot[e].second == "typeI"){
 		  h_eventN1_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_I_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
+		}
+		else if(tCR_hot[e].second == "type0"){
+		  h_eventN1_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN1_0_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN1_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else{
@@ -2222,8 +2296,14 @@ int main(int argc, char* argv[])
 		  h_eventN2_Ip_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR_hot[e].second == "type0xI"){
+		else if(tCR_hot[e].second == "typeI"){
 		  h_eventN2_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_I_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
+		}
+		else if(tCR_hot[e].second == "type0"){
+		  h_eventN2_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN2_0_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN2_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else{
@@ -2269,8 +2349,14 @@ int main(int argc, char* argv[])
 		  h_eventN3_Ip_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
-		else if(tCR_hot[e].second == "type0xI"){
+		else if(tCR_hot[e].second == "typeI"){
 		  h_eventN3_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_I_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
+		}
+		else if(tCR_hot[e].second == "type0"){
+		  h_eventN3_0xI_hot->Fill(tCR_hot[e].first, nJets);
+		  h_eventN3_0_hot->Fill(tCR_hot[e].first, nJets);
 		  h_eventN3_sum_hot->Fill(tCR_hot[e].first, nJets);
 		}
 		else{
@@ -2278,11 +2364,12 @@ int main(int argc, char* argv[])
 		  std::cout << tCR_hot[e].second << std::endl;
 		  nERROR++;
 		}
-	      }//case 2 (3rd highest)
+	      }//end case 2 (3rd highest)
 		break;
 	      default: break;
 	      }
 	    }
+
             //Print properties of the remaining system
             //the remaining system is used as the second portion of the visible system to calculate MT2 in the NT = 1 bin
             //const TopObject& rsys = ttr.getRsys();
