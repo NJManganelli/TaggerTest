@@ -6,6 +6,7 @@
 #include "TTree.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TH3F.h"
 #include "TLorentzVector.h"
 
 //manditory includes to use top tagger
@@ -1031,14 +1032,33 @@ int main(int argc, char* argv[])
 				      nBins, 0.0, 1.0, 7, 7, 14);
 
   //Count number of correct hadronic top quark jets that are tagged, by jet multiplicity and discriminant
-  // TH2F *h_eventN3_CntJet_hot = new TH2F ("h_eventN3_CntJet_hot", "Sum of correctly ;Discriminant; Number of Jets", 
-  // 				      nBins, 0.0, 1.0, 7, 7, 14);
+  TH3F *h_eventN1_CntJet_hot = new TH3F ("h_eventN1_CntJet_hot", "N1 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
+  TH3F *h_eventN2_CntJet_hot = new TH3F ("h_eventN2_CntJet_hot", "N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
+  TH3F *h_eventN3_CntJet_hot = new TH3F ("h_eventN3_CntJet_hot", "N3 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
+  TH3F *h_eventN12_CntJet_hot = new TH3F ("h_eventN12_CntJet_hot", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 7, 0, 7);
+  TH3F *h_eventN123_CntJet_hot = new TH3F ("h_eventN123_CntJet_hot", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 10, 0, 10);
+
+  TH3F *h_eventN1_CntJet_bdt = new TH3F ("h_eventN1_CntJet_bdt", "N1 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
+  TH3F *h_eventN2_CntJet_bdt = new TH3F ("h_eventN2_CntJet_bdt", "N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
+  TH3F *h_eventN3_CntJet_bdt = new TH3F ("h_eventN3_CntJet_bdt", "N3 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 4, 0, 4);
+  TH3F *h_eventN12_CntJet_bdt = new TH3F ("h_eventN12_CntJet_bdt", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 7, 0, 7);
+  TH3F *h_eventN123_CntJet_bdt = new TH3F ("h_eventN123_CntJet_bdt", "N1 + N2 Aggregate;Discriminant; Number of Jets in Event; Aggregate of Tagged Hadronic Top Jets", 
+					 nBins, 0.0, 1.0, 7, 7, 14, 10, 0, 10);
   
   //BDT Scaling histograms (map range of BDT to [0,1] using function scalebdt(BDTdiscriminant)
-  TH1F *h_noscaling_bdt = new TH1F ("h_noscaling_bdt", "Un-scaled BDT Distribution;Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35);
-  TH1F *h_noscaling2_bdt = new TH1F ("h_noscaling2_bdt", "Un-scaled BDT Distribution (2nd Highest);Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35);
-  TH1F *h_scaling_bdt = new TH1F ("h_scaling_bdt", "scaled BDT Distribution;Discriminant;Number of Tagger Candidates", 200, -0.2, 1.4);
-  TH1F *h_scaling2_bdt = new TH1F ("h_scaling2_bdt", "scaled BDT Distribution (2nd Highest);Discriminant;Number of Tagger Candidates", 200, 0.0, 1.0);
+  TH2F *h_noscaling_bdt = new TH2F ("h_noscaling_bdt", "Un-scaled BDT Distribution;Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35, 7, 7, 14);
+  TH2F *h_noscaling2_bdt = new TH2F ("h_noscaling2_bdt", "Un-scaled BDT Distribution (2nd Highest);Discriminant;Number of Tagger Candidates", 200, -0.45, 0.35, 7, 7, 14);
+  TH2F *h_scaling_bdt = new TH2F ("h_scaling_bdt", "scaled BDT Distribution;Discriminant;Number of Tagger Candidates", 200, -0.2, 1.4, 7, 7, 14);
+  TH2F *h_scaling2_bdt = new TH2F ("h_scaling2_bdt", "scaled BDT Distribution (2nd Highest);Discriminant;Number of Tagger Candidates", 200, 0.0, 1.0, 7, 7, 14);
 
   //store errors
   TH1I *h_nERROR = new TH1I ("h_nERROR", "Number of logic errors in classification system + miscellaneous", 100, 0, 100);
@@ -1906,8 +1926,8 @@ int main(int argc, char* argv[])
 	    std::vector<std::pair<double, std::string>> tCR_bdt = BDTEval.getOrderedClassesR();
 	    //*
 	    for(int e = 0; e < tCR_bdt.size(); e++){
-	      h_scaling_bdt->Fill(tCR_bdt[e].first);
-	      h_noscaling_bdt->Fill( unscaleBDT(tCR_bdt[e].first) );
+	      h_scaling_bdt->Fill(tCR_bdt[e].first, nJets);
+	      h_noscaling_bdt->Fill( unscaleBDT(tCR_bdt[e].first), nJets );
 	      if(tCR_bdt[e].second == "typeIII")
 		h_typeIII_bdt->Fill(tCR_bdt[e].first, nJets);
 	      else if(tCR_bdt[e].second == "typeIIb")
@@ -1980,8 +2000,8 @@ int main(int argc, char* argv[])
 		break;
 	      case 1:{
 		h_nJet_N2_bdt->Fill(nJets);
-		h_scaling2_bdt->Fill(tCR_bdt[e].first);
-		h_noscaling2_bdt->Fill( unscaleBDT(tCR_bdt[e].first) );
+		h_scaling2_bdt->Fill(tCR_bdt[e].first, nJets);
+		h_noscaling2_bdt->Fill( unscaleBDT(tCR_bdt[e].first), nJets );
 		if(tCR_bdt[e].second == "typeIII"){
 		  h_eventN2_III_bdt->Fill(tCR_bdt[e].first, nJets);
 		  h_eventN2_sum_bdt->Fill(tCR_bdt[e].first, nJets);
@@ -2478,8 +2498,22 @@ int main(int argc, char* argv[])
     h_eventN3_I_bdt->Write();
     h_eventN3_0_bdt->Write();
     
+    //Special top-jet counting histograms
+
+    h_eventN1_CntJet_hot->Write();  
+    h_eventN2_CntJet_hot->Write();  
+    h_eventN3_CntJet_hot->Write();  
+    h_eventN12_CntJet_hot->Write(); 
+    h_eventN123_CntJet_hot->Write();
+                           
+    h_eventN1_CntJet_bdt->Write();  
+    h_eventN2_CntJet_bdt->Write();  
+    h_eventN3_CntJet_bdt->Write();  
+    h_eventN12_CntJet_bdt->Write(); 
+    h_eventN123_CntJet_bdt->Write();
+
     //Special BDT cross-check histograms
-    h_noscaling_bdt->Write();
+    h_noscaling_bdt->Write();           
     h_noscaling2_bdt->Write();
     h_scaling_bdt->Write();
     h_scaling2_bdt->Write();
@@ -2676,6 +2710,18 @@ int main(int argc, char* argv[])
     delete h_noscaling2_bdt;
     delete h_scaling_bdt;
     delete h_scaling2_bdt;
+
+    delete h_eventN1_CntJet_hot;
+    delete h_eventN2_CntJet_hot;
+    delete h_eventN3_CntJet_hot;
+    delete h_eventN12_CntJet_hot;
+    delete h_eventN123_CntJet_hot;
+                       
+    delete h_eventN1_CntJet_bdt;
+    delete h_eventN2_CntJet_bdt;
+    delete h_eventN3_CntJet_bdt;
+    delete h_eventN12_CntJet_bdt;
+    delete h_eventN123_CntJet_bdt;
 
     delete h_nERROR;
     delete tf, tf2, td, tree, of;
